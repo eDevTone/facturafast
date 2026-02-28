@@ -1,4 +1,4 @@
-# CFDI Fácil 🧾
+# FacturaFast 🧾
 
 > Sistema de facturación electrónica SAT para México. Simple, rápido, profesional.
 
@@ -36,8 +36,8 @@
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/eDevTone/cfdi-facil.git
-cd cfdi-facil
+git clone https://github.com/eDevTone/facturafast.git
+cd facturafast
 npm install
 ```
 
@@ -83,7 +83,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ## 📂 Project Structure
 
 ```
-cfdi-facil/
+facturafast/
 ├── app/
 │   ├── (auth)/          # Authentication pages
 │   ├── (dashboard)/     # Main app (protected routes)
