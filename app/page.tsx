@@ -1,7 +1,7 @@
 import { FileText, TrendingUp, Users, DollarSign } from "lucide-react"
-import { Button } from "@/shared/ui/button"
-import { Card, CardContent } from "@/shared/ui/card"
-import { Badge } from "@/shared/ui/badge"
+import { Button } from "@shared/ui/button"
+import { Card, CardContent } from "@shared/ui/card"
+import { Badge } from "@shared/ui/badge"
 
 export default function Home() {
   return (

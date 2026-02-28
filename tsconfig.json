@@ -20,11 +20,11 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@/features/*": ["./features/*"],
-      "@/shared/*": ["./shared/*"],
-      "@/database/*": ["./database/*"],
-      "@/config/*": ["./config/*"],
-      "@/types/*": ["./types/*"]
+      "@features/*": ["./features/*"],
+      "@shared/*": ["./shared/*"],
+      "@database/*": ["./database/*"],
+      "@config/*": ["./config/*"],
+      "@types/*": ["./types/*"]
     }
   },
   "include": [

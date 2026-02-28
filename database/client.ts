@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import * as schema from '@/database/schemas'
+import * as schema from '@database/schemas'
 
 // Connection string from Supabase
 const connectionString = process.env.DATABASE_URL!
