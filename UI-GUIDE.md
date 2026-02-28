@@ -1,6 +1,11 @@
 # FacturaFast - UI Style Guide
 
-## 🎨 Design System: Cal.com Inspired (Sin Negro Puro)
+## 🎨 Design System: Cal.com Inspired + Tailwind 4 + Shadcn/ui
+
+### Stack
+- **Tailwind CSS 4** - Modern CSS-first configuration
+- **Shadcn/ui** - High-quality React components
+- **Lucide React** - Beautiful icons
 
 ### Filosofía
 - **Minimalista pero moderno**
@@ -13,281 +18,142 @@
 
 ## 🎨 Color Palette
 
-### Primary Colors
+### Tailwind 4 Theme Variables (globals.css)
+
 ```css
-Primary (Gris oscuro):   #18181B   /* rgb(24, 24, 27) - zinc-900 */
-Accent (Azul):           #3B82F6   /* rgb(59, 130, 246) - blue-500 */
-Success (Verde):         #10B981   /* rgb(16, 185, 129) - emerald-500 */
-Destructive (Rojo):      #EF4444   /* rgb(239, 68, 68) - red-500 */
-Warning (Amarillo):      #F59E0B   /* rgb(245, 158, 11) - amber-500 */
+@theme {
+  --color-primary: #18181b;           /* Zinc-900 */
+  --color-accent: #3b82f6;            /* Blue-500 */
+  --color-success: #10b981;           /* Emerald-500 */
+  --color-destructive: #ef4444;       /* Red-500 */
+  --color-warning: #f59e0b;           /* Amber-500 */
+  
+  --color-background: #ffffff;
+  --color-foreground: #18181b;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  --color-border: #e5e7eb;
+  
+  --radius: 0.5rem;
+}
 ```
 
-### Neutral Palette
-```css
-Background:     #FFFFFF   /* White */
-Card:           #FFFFFF   /* White */
-Muted BG:       #F9FAFB   /* gray-50 */
-Border:         #E5E7EB   /* gray-200 */
-Text Primary:   #18181B   /* zinc-900 */
-Text Secondary: #71717A   /* zinc-500 */
-Text Muted:     #A1A1AA   /* zinc-400 */
+### Usar en Componentes
+
+```tsx
+// Tailwind 4 custom colors
+<div className="bg-primary text-primary-foreground">
+<div className="bg-accent text-accent-foreground">
+<div className="text-success">
+<div className="text-destructive">
+<div className="border-border">
 ```
 
 ---
 
-## 🧩 Components
+## 🧩 Shadcn/ui Components
 
-### Buttons
+### Button
 
-**Primary (Accent Blue)**
 ```tsx
-<Button className="bg-blue-500 text-white hover:bg-blue-600">
+import { Button } from "@/components/ui/button"
+
+// Primary (Accent)
+<Button className="bg-accent text-accent-foreground hover:bg-accent/90">
   Nueva Factura
 </Button>
-```
 
-**Secondary (Dark Gray)**
-```tsx
-<Button variant="outline" className="border-zinc-300 text-zinc-900 hover:bg-zinc-50">
+// Outline
+<Button variant="outline">
   Cancelar
 </Button>
-```
 
-**Ghost**
-```tsx
-<Button variant="ghost" className="text-zinc-600 hover:bg-zinc-100">
+// Ghost
+<Button variant="ghost">
   Ver Más
+</Button>
+
+// Destructive
+<Button variant="destructive">
+  Eliminar
 </Button>
 ```
 
----
+### Card
 
-### Cards
-
-**Default Card**
 ```tsx
-<Card className="border border-gray-200 hover:border-zinc-900 transition-colors">
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
+// Default Card
+<Card className="border-border hover:border-primary transition-colors">
   <CardContent className="p-6">
     {/* Content */}
   </CardContent>
 </Card>
-```
 
-**Stats Card**
-```tsx
-<Card className="border border-gray-200 p-6">
-  <div className="flex items-start justify-between">
-    <div>
-      <p className="text-sm text-zinc-500">Total Facturado</p>
-      <p className="text-3xl font-bold text-zinc-900 mt-2">$45,230</p>
-    </div>
-    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-      <DollarSign className="w-5 h-5 text-blue-600" />
-    </div>
-  </div>
-  <p className="text-sm text-emerald-600 mt-3 flex items-center gap-1">
-    <TrendingUp className="w-4 h-4" />
-    +12% vs mes anterior
-  </p>
-</Card>
-```
-
-**Factura Card**
-```tsx
-<Card className="border border-gray-200 hover:shadow-md transition-shadow group">
+// Stats Card
+<Card className="border-border">
   <CardContent className="p-6">
-    <div className="flex items-center justify-between">
-      {/* Left: Factura info */}
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-          <FileText className="w-6 h-6 text-blue-600" />
-        </div>
-        <div>
-          <p className="font-semibold text-zinc-900">Factura #001</p>
-          <p className="text-sm text-zinc-500">Cliente SA de CV</p>
-        </div>
+    <div className="flex items-start justify-between">
+      <div>
+        <p className="text-sm text-muted-foreground">Total Facturado</p>
+        <p className="text-3xl font-bold text-foreground mt-2">$45,230</p>
       </div>
-      
-      {/* Right: Amount + Status */}
-      <div className="text-right">
-        <p className="text-2xl font-bold text-zinc-900">$5,230</p>
-        <Badge variant="default" className="mt-1">Timbrada</Badge>
+      <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+        <DollarSign className="w-5 h-5 text-accent" />
       </div>
     </div>
+    <p className="text-sm text-success mt-3">+12% vs mes anterior</p>
   </CardContent>
 </Card>
 ```
 
----
-
-### Badges
+### Badge
 
 ```tsx
-{/* Status badges */}
-<Badge variant="default" className="bg-zinc-100 text-zinc-900">
-  Draft
-</Badge>
+import { Badge } from "@/components/ui/badge"
 
-<Badge variant="default" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+// Variants
+<Badge>Default</Badge>
+<Badge variant="outline">Outline</Badge>
+<Badge variant="secondary">Secondary</Badge>
+<Badge variant="destructive">Destructive</Badge>
+
+// Custom (Factura Status)
+<Badge className="bg-success/10 text-success border-success/20">
   Timbrada
 </Badge>
 
-<Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">
+<Badge className="bg-muted text-muted-foreground">
+  Draft
+</Badge>
+
+<Badge variant="destructive">
   Cancelada
 </Badge>
 ```
 
 ---
 
-### Navigation
-
-**Top Nav**
-```tsx
-<nav className="border-b border-gray-200 bg-white">
-  <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-    {/* Logo */}
-    <div className="flex items-center gap-8">
-      <h1 className="text-xl font-bold text-zinc-900">FacturaFast</h1>
-      
-      {/* Nav links */}
-      <div className="hidden md:flex gap-6">
-        <a href="#" className="text-sm text-zinc-600 hover:text-zinc-900">
-          Facturas
-        </a>
-        <a href="#" className="text-sm text-zinc-600 hover:text-zinc-900">
-          Clientes
-        </a>
-      </div>
-    </div>
-    
-    {/* Actions */}
-    <Button className="bg-blue-500 text-white hover:bg-blue-600">
-      Nueva Factura
-    </Button>
-  </div>
-</nav>
-```
-
----
-
-### Tables
-
-```tsx
-<Table>
-  <TableHeader>
-    <TableRow className="border-b border-gray-200 hover:bg-transparent">
-      <TableHead className="text-zinc-500 font-medium">Folio</TableHead>
-      <TableHead className="text-zinc-500 font-medium">Cliente</TableHead>
-      <TableHead className="text-zinc-500 font-medium">Total</TableHead>
-      <TableHead className="text-zinc-500 font-medium">Estatus</TableHead>
-    </TableRow>
-  </TableHeader>
-  <TableBody>
-    <TableRow className="border-b border-gray-200 hover:bg-zinc-50">
-      <TableCell className="font-medium text-zinc-900">001</TableCell>
-      <TableCell className="text-zinc-600">Cliente SA de CV</TableCell>
-      <TableCell className="text-zinc-900">$5,230</TableCell>
-      <TableCell>
-        <Badge className="bg-emerald-50 text-emerald-700">Timbrada</Badge>
-      </TableCell>
-    </TableRow>
-  </TableBody>
-</Table>
-```
-
----
-
-### Forms
-
-```tsx
-<form className="space-y-6">
-  {/* Input */}
-  <div className="space-y-2">
-    <Label className="text-sm font-medium text-zinc-900">
-      RFC del Cliente
-    </Label>
-    <Input 
-      className="border-gray-200 focus:border-zinc-900 focus:ring-zinc-900"
-      placeholder="XAXX010101000"
-    />
-  </div>
-  
-  {/* Select */}
-  <div className="space-y-2">
-    <Label className="text-sm font-medium text-zinc-900">
-      Método de Pago
-    </Label>
-    <Select>
-      <SelectTrigger className="border-gray-200 focus:border-zinc-900">
-        <SelectValue placeholder="Selecciona..." />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="pue">PUE - Pago en Una Exhibición</SelectItem>
-        <SelectItem value="ppd">PPD - Pago en Parcialidades</SelectItem>
-      </SelectContent>
-    </Select>
-  </div>
-  
-  {/* Actions */}
-  <div className="flex gap-3 justify-end">
-    <Button variant="outline" className="border-zinc-300 text-zinc-900">
-      Cancelar
-    </Button>
-    <Button className="bg-blue-500 text-white hover:bg-blue-600">
-      Guardar
-    </Button>
-  </div>
-</form>
-```
-
----
-
-## 📐 Spacing & Typography
-
-### Spacing Scale (Tailwind Default)
-```
-px: 1px
-0.5: 2px
-1: 4px
-2: 8px
-3: 12px
-4: 16px
-6: 24px
-8: 32px
-12: 48px
-16: 64px
-```
-
-### Typography Scale
-```tsx
-{/* Headings */}
-<h1 className="text-4xl font-bold text-zinc-900">Heading 1</h1>
-<h2 className="text-3xl font-bold text-zinc-900">Heading 2</h2>
-<h3 className="text-2xl font-semibold text-zinc-900">Heading 3</h3>
-<h4 className="text-xl font-semibold text-zinc-900">Heading 4</h4>
-
-{/* Body */}
-<p className="text-base text-zinc-900">Body text</p>
-<p className="text-sm text-zinc-600">Secondary text</p>
-<p className="text-xs text-zinc-500">Caption text</p>
-```
-
----
-
-## 🎯 Layout Patterns
+## 📐 Layout Patterns
 
 ### Dashboard Grid
+
 ```tsx
-<div className="min-h-screen bg-white">
+<div className="min-h-screen bg-background">
   {/* Nav */}
-  <nav>{/* See Navigation above */}</nav>
+  <nav className="border-b border-border bg-card">
+    <div className="max-w-7xl mx-auto px-6 py-4">
+      {/* Logo + Actions */}
+    </div>
+  </nav>
   
   {/* Main */}
   <main className="max-w-7xl mx-auto px-6 py-8">
     {/* Page Header */}
     <div className="mb-8">
-      <h1 className="text-3xl font-bold text-zinc-900">Facturas</h1>
-      <p className="text-zinc-500 mt-1">Gestiona todas tus facturas CFDI</p>
+      <h1 className="text-3xl font-bold text-foreground">Facturas</h1>
+      <p className="text-muted-foreground mt-1">Gestiona tus facturas CFDI</p>
     </div>
     
     {/* Stats Grid */}
@@ -295,53 +161,142 @@ px: 1px
       {/* Stats Cards */}
     </div>
     
-    {/* Content Card */}
-    <Card className="border border-gray-200">
-      {/* Table or Content */}
-    </Card>
+    {/* Content */}
+    <Card>{/* Table or Content */}</Card>
   </main>
 </div>
 ```
 
 ---
 
-## 🎨 Icons
-
-**Library:** Lucide React (already installed)
-
-**Style:** Use thin/regular stroke (`strokeWidth={1.5}` or `strokeWidth={2}`)
-
-**Sizes:**
-- Small: `w-4 h-4` (16px)
-- Medium: `w-5 h-5` (20px)
-- Large: `w-6 h-6` (24px)
+## 🎯 Typography Scale
 
 ```tsx
-import { FileText, TrendingUp, Settings, User } from 'lucide-react'
+{/* Headings */}
+<h1 className="text-4xl font-bold text-foreground">Heading 1</h1>
+<h2 className="text-3xl font-bold text-foreground">Heading 2</h2>
+<h3 className="text-2xl font-semibold text-foreground">Heading 3</h3>
+<h4 className="text-xl font-semibold text-foreground">Heading 4</h4>
 
-<FileText className="w-5 h-5 text-zinc-600" strokeWidth={2} />
+{/* Body */}
+<p className="text-base text-foreground">Body text</p>
+<p className="text-sm text-muted-foreground">Secondary text</p>
+<p className="text-xs text-muted-foreground">Caption text</p>
 ```
 
 ---
 
-## ✅ Do's and Don'ts
+## 🎨 Icons (Lucide React)
 
-### ✅ Do:
-- Use gris oscuro (`zinc-900`) para textos principales
-- Reserve azul para acciones primarias
-- Usa borders sutiles (`border-gray-200`)
-- Mantén espaciado generoso
-- Usa hover states en cards (`hover:border-zinc-900`)
+```tsx
+import { FileText, TrendingUp, DollarSign, Users } from "lucide-react"
 
-### ❌ Don't:
-- NO uses negro puro (`#000000`)
-- NO satures de color (solo accents)
-- NO uses sombras pesadas
-- NO mezcles muchos colores
-- NO uses gradientes (mantén flat)
+// Sizes
+<FileText className="w-4 h-4" />  {/* Small */}
+<FileText className="w-5 h-5" />  {/* Medium */}
+<FileText className="w-6 h-6" />  {/* Large */}
+
+// Colors
+<FileText className="text-accent" />
+<FileText className="text-success" />
+<FileText className="text-destructive" />
+<FileText className="text-muted-foreground" />
+```
 
 ---
 
-**Última actualización:** 28 Feb 2026
-**Inspiración:** Cal.com, Vercel, Raycast
-**Framework:** Tailwind CSS + Shadcn/ui
+## ✅ Best Practices
+
+### ✅ Do:
+- Use Shadcn/ui components (Button, Card, Badge, etc.)
+- Use Tailwind 4 theme variables (`bg-accent`, `text-foreground`, etc.)
+- Use `border-border` for consistency
+- Use `hover:border-primary` for card interactions
+- Use `text-muted-foreground` for secondary text
+- Keep spacing generous
+
+### ❌ Don't:
+- NO crear componentes custom si Shadcn/ui lo tiene
+- NO usar negro puro (`#000000`) - usar `primary`
+- NO saturar de color
+- NO usar `tailwind.config.ts` (Tailwind 4 usa `@theme`)
+- NO hardcodear colores - usar theme variables
+
+---
+
+## 📦 Adding New Shadcn/ui Components
+
+```bash
+# Install specific components
+npx shadcn@latest add [component-name]
+
+# Examples:
+npx shadcn@latest add input
+npx shadcn@latest add select
+npx shadcn@latest add table
+npx shadcn@latest add form
+npx shadcn@latest add dialog
+```
+
+---
+
+## 🎯 Factura-Specific Components
+
+### Factura Card
+
+```tsx
+<Card className="border-border hover:shadow-md transition-shadow group">
+  <CardContent className="p-6">
+    <div className="flex items-center justify-between">
+      {/* Left: Info */}
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+          <FileText className="w-6 h-6 text-accent" />
+        </div>
+        <div>
+          <p className="font-semibold text-foreground">Factura #001</p>
+          <p className="text-sm text-muted-foreground">Cliente SA de CV</p>
+        </div>
+      </div>
+      
+      {/* Right: Amount + Status */}
+      <div className="text-right">
+        <p className="text-2xl font-bold text-foreground">$5,230</p>
+        <Badge className="bg-success/10 text-success border-success/20 mt-1">
+          Timbrada
+        </Badge>
+      </div>
+    </div>
+  </CardContent>
+</Card>
+```
+
+### Status Badge Helper
+
+```tsx
+function getStatusBadge(status: 'draft' | 'timbrada' | 'cancelada') {
+  const variants = {
+    draft: 'bg-muted text-muted-foreground',
+    timbrada: 'bg-success/10 text-success border-success/20',
+    cancelada: 'bg-destructive/10 text-destructive border-destructive/20'
+  }
+  
+  const labels = {
+    draft: 'Borrador',
+    timbrada: 'Timbrada',
+    cancelada: 'Cancelada'
+  }
+  
+  return (
+    <Badge className={variants[status]}>
+      {labels[status]}
+    </Badge>
+  )
+}
+```
+
+---
+
+**Stack:** Tailwind CSS 4 + Shadcn/ui + Lucide Icons
+**Style:** Cal.com / Vercel inspired
+**Updated:** 28 Feb 2026
