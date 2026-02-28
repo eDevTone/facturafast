@@ -1,7 +1,7 @@
 import { FileText, TrendingUp, Users, DollarSign } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/shared/ui/button"
+import { Card, CardContent } from "@/shared/ui/card"
+import { Badge } from "@/shared/ui/badge"
 
 export default function Home() {
   return (
@@ -93,75 +93,70 @@ export default function Home() {
                 <FileText className="w-8 h-8 text-accent" />
               </div>
               <h3 className="text-2xl font-bold text-foreground mb-2">
-                FacturaFast está listo
+                Arquitectura Screaming 🏗️
               </h3>
               <p className="text-muted-foreground mb-6">
-                Sistema de facturación electrónica SAT. Rápido, simple, profesional.
+                Features organizadas por dominio de negocio, no por tipo de archivo.
+                El proyecto "grita" su propósito: FACTURACIÓN ELECTRÓNICA.
               </p>
               <div className="flex gap-3 justify-center">
                 <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  Crear Primera Factura
+                  Ver Features
                 </Button>
                 <Button variant="outline" className="border-border text-foreground hover:bg-muted">
-                  Ver Documentación
+                  Documentación
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Design System Preview */}
+        {/* Architecture Preview */}
         <Card className="mt-12 border-border">
           <CardContent className="p-6">
             <h4 className="text-lg font-semibold text-foreground mb-4">
-              Cal.com Style - Tailwind 4 + Shadcn/ui
+              🏗️ Screaming Architecture - Features
             </h4>
             
-            {/* Color Swatches */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="text-center">
-                <div className="w-full h-20 rounded-lg bg-primary mb-2"></div>
-                <p className="text-sm text-foreground">Primary</p>
-                <p className="text-xs text-muted-foreground">#18181B</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="border border-border rounded-lg p-4 hover:border-primary transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-5 h-5 text-accent" />
+                  <p className="font-semibold text-foreground">Invoicing</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Facturación CFDI 4.0, XML, PDF, timbrado
+                </p>
               </div>
-              <div className="text-center">
-                <div className="w-full h-20 rounded-lg bg-accent mb-2"></div>
-                <p className="text-sm text-foreground">Accent</p>
-                <p className="text-xs text-muted-foreground">#3B82F6</p>
+
+              <div className="border border-border rounded-lg p-4 hover:border-primary transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-5 h-5 text-accent" />
+                  <p className="font-semibold text-foreground">Clients</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Catálogo de clientes y receptores
+                </p>
               </div>
-              <div className="text-center">
-                <div className="w-full h-20 rounded-lg bg-success mb-2"></div>
-                <p className="text-sm text-foreground">Success</p>
-                <p className="text-xs text-muted-foreground">#10B981</p>
-              </div>
-              <div className="text-center">
-                <div className="w-full h-20 rounded-lg bg-destructive mb-2"></div>
-                <p className="text-sm text-foreground">Destructive</p>
-                <p className="text-xs text-muted-foreground">#EF4444</p>
+
+              <div className="border border-border rounded-lg p-4 hover:border-primary transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="w-5 h-5 text-accent" />
+                  <p className="font-semibold text-foreground">Fiscal Profile</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Perfil fiscal, CSF, certificados
+                </p>
               </div>
             </div>
 
-            {/* Component Samples */}
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium mb-2">Buttons:</p>
-                <div className="flex gap-2 flex-wrap">
-                  <Button>Primary</Button>
-                  <Button variant="outline">Outline</Button>
-                  <Button variant="ghost">Ghost</Button>
-                  <Button variant="destructive">Destructive</Button>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium mb-2">Badges:</p>
-                <div className="flex gap-2 flex-wrap">
-                  <Badge>Default</Badge>
-                  <Badge variant="outline">Outline</Badge>
-                  <Badge variant="secondary">Secondary</Badge>
-                  <Badge variant="destructive">Destructive</Badge>
-                </div>
-              </div>
+            <div className="bg-muted/50 rounded-lg p-4">
+              <p className="text-sm text-muted-foreground font-mono">
+                features/invoicing/    ← Todo sobre FACTURAS<br/>
+                features/clients/      ← Todo sobre CLIENTES<br/>
+                features/timbrado/     ← Todo sobre PAC/TIMBRADO<br/>
+                shared/ui/             ← Componentes UI reutilizables
+              </p>
             </div>
           </CardContent>
         </Card>

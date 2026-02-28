@@ -1,169 +1,264 @@
-# FacturaFast 🧾
+# FacturaFast ⚡
 
-> Sistema de facturación electrónica SAT para México. Simple, rápido, profesional.
+Sistema de facturación electrónica CFDI 4.0 para México. Rápido, simple, profesional.
 
-**"Factura en 30 segundos. Sin complicaciones. 100% SAT."**
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.x-38bdf8)](https://tailwindcss.com/)
+[![Drizzle ORM](https://img.shields.io/badge/Drizzle-ORM-c5f74f)](https://orm.drizzle.team/)
 
 ---
 
-## ✨ Features
+## 🏗️ Architecture: Screaming Architecture
 
-- ⚡ **Onboarding automático** - Sube tu Constancia de Situación Fiscal (CSF), extrae datos automáticamente
-- 📋 **Facturas CFDI 4.0** - Cumplimiento total con SAT
-- 🚀 **Timbrado instantáneo** - Genera XML + PDF en segundos
-- 📱 **Envío automático** - WhatsApp + Email al cliente
-- 💼 **Catálogo de clientes** - Guarda clientes recurrentes
-- ❌ **Cancelación fácil** - Cancela CFDIs directo desde la plataforma
-- 📊 **Dashboard simple** - Ve todas tus facturas en un solo lugar
+Este proyecto usa **Screaming Architecture** - la estructura grita su propósito:
+
+```
+features/
+  ├── invoicing/       ← 📋 Sistema de FACTURACIÓN
+  ├── clients/         ← 👥 Gestión de CLIENTES
+  ├── fiscal-profile/  ← 🏢 Perfil FISCAL (CSF)
+  ├── timbrado/        ← ✅ TIMBRADO PAC
+  └── notifications/   ← 📬 Notificaciones
+```
+
+No necesitas buscar "donde está el código de facturas" - está en `features/invoicing/`.
+
+📖 **[Ver documentación completa de arquitectura →](./ARCHITECTURE.md)**
+📖 **[Ver guía de Screaming Architecture →](./SCREAMING-ARCHITECTURE.md)**
+
+---
+
+## 🚀 Features
+
+### Core
+- ✅ **CFDI 4.0** - Facturas electrónicas SAT
+- ✅ **Timbrado automático** - Integración con PAC (Finkok/SW Sapien)
+- ✅ **Generación XML + PDF** - Formato oficial SAT
+- ✅ **Catálogo de clientes** - Gestión de receptores
+- ✅ **Onboarding con CSF** - Extracción automática de datos fiscales
+- ✅ **Cancelación CFDI** - Cancelar facturas timbradas
+
+### Integraciones
+- ✅ **WhatsApp** - Notificaciones via Twilio
+- ✅ **Email** - Envío de facturas via Resend
+- ✅ **Storage** - Almacenamiento XML/PDF en Supabase
+- ✅ **Stripe** - Billing y pagos (Fase 4)
+
+### UX
+- ✅ **Cal.com inspired design** - Minimalista, moderno, profesional
+- ✅ **Responsive** - Mobile, tablet, desktop
+- ✅ **Fast** - Optimizado para performance
+- ✅ **Accessible** - WCAG 2.1 AA
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** Next.js 15 + TypeScript + Tailwind CSS
-- **UI:** Shadcn/ui
-- **Backend:** Next.js API Routes
-- **Database:** Supabase (PostgreSQL)
-- **Auth:** Supabase Auth
-- **PDF:** jsPDF
+### Frontend
+- **Framework:** Next.js 16 (App Router, React Server Components)
+- **Language:** TypeScript (strict mode)
+- **Styling:** Tailwind CSS 4 (@theme configuration)
+- **Components:** Shadcn/ui
+- **Icons:** Lucide React
 - **Forms:** React Hook Form + Zod
-- **Timbrado:** Finkok / SW Sapien (PAC)
+- **State:** React Query (TanStack Query)
+
+### Backend
+- **Database:** PostgreSQL (Supabase)
+- **ORM:** Drizzle ORM
+- **Auth:** Supabase Auth
+- **Storage:** Supabase Storage
+- **API:** Next.js API Routes
+
+### Services
+- **PAC:** Finkok / SW Sapien (timbrado CFDI)
+- **WhatsApp:** Twilio
+- **Email:** Resend
+- **Payments:** Stripe
+
+### Development
+- **Mock Services** - Desarrollo sin APIs externas
+- **Drizzle Studio** - Database GUI
+- **TypeScript** - Type safety
+- **ESLint** - Code quality
 
 ---
 
-## 🚀 Setup
-
-### 1. Clone & Install
-
-```bash
-git clone https://github.com/eDevTone/facturafast.git
-cd facturafast
-npm install
-```
-
-### 2. Environment Variables
-
-Copy `.env.example` to `.env.local`:
-
-```bash
-cp .env.example .env.local
-```
-
-Fill in your credentials:
-
-```env
-# Supabase (create project at supabase.com)
-NEXT_PUBLIC_SUPABASE_URL=your_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
-
-# CSF Extraction API
-CSF_API_URL=your_extraction_api
-CSF_API_KEY=your_api_key
-
-# PAC (Optional for MVP, mock first)
-PAC_API_URL=https://demo-facturacion.finkok.com
-```
-
-### 3. Database Setup
-
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Go to SQL Editor
-3. Run the schema from `supabase-schema.sql`
-
-### 4. Run Development Server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000)
-
----
-
-## 📂 Project Structure
+## 📁 Project Structure
 
 ```
 facturafast/
-├── app/
-│   ├── (auth)/          # Authentication pages
-│   ├── (dashboard)/     # Main app (protected routes)
-│   └── api/             # API routes
-├── components/
-│   ├── ui/              # Shadcn components
-│   ├── invoice/         # Invoice-specific components
-│   ├── client/          # Client-specific components
-│   └── dashboard/       # Dashboard components
-├── lib/
-│   ├── supabase/        # Supabase client setup
-│   ├── utils/           # Utility functions
-│   └── validations/     # Zod schemas
-├── types/               # TypeScript types
-└── public/              # Static assets
+├── features/              # 🎯 Business domain (SCREAMING)
+│   ├── invoicing/         # Facturación CFDI
+│   ├── clients/           # Clientes
+│   ├── fiscal-profile/    # Perfil fiscal
+│   ├── timbrado/          # PAC integration
+│   └── notifications/     # WhatsApp + Email
+│
+├── shared/                # 🔧 Infrastructure
+│   ├── ui/                # Shadcn/ui components
+│   ├── components/        # Shared components
+│   ├── hooks/             # React hooks
+│   └── utils/             # Utilities
+│
+├── database/              # 🗄️ Data layer
+│   ├── schemas/           # Drizzle schemas
+│   ├── migrations/        # SQL migrations
+│   └── client.ts          # DB client
+│
+├── config/                # ⚙️ Configuration
+│   └── sat-catalogs.ts    # Catálogos SAT
+│
+└── app/                   # 📱 Next.js App Router
+    ├── (auth)/            # Auth pages
+    ├── (dashboard)/       # Dashboard
+    └── api/               # API routes
 ```
 
 ---
 
-## 🎯 MVP Roadmap
+## 🚀 Getting Started
 
-### Phase 1: Core (TODAY - 6-8 hours) ✅
+### Prerequisites
+- Node.js 22+ (LTS)
+- PostgreSQL (Supabase account)
+- Git
 
-- [x] Project setup
-- [x] Database schema
-- [x] TypeScript types
-- [ ] Auth (Supabase)
-- [ ] Onboarding with CSF upload
-- [ ] Create invoice form
-- [ ] Mock timbrado (without PAC)
-- [ ] Generate PDF
-- [ ] Dashboard list
+### Installation
 
-### Phase 2: PAC Integration (2-3 days)
+```bash
+# Clone repo
+git clone https://github.com/eDevTone/facturafast.git
+cd facturafast
 
-- [ ] Finkok/SW Sapien integration
-- [ ] Real XML CFDI 4.0 generation
-- [ ] Timbrado real
-- [ ] PDF with QR + sello digital
-- [ ] Testing with real invoices
+# Install dependencies
+npm install
 
-### Phase 3: Features (1 week)
+# Setup environment
+cp .env.example .env.local
+# Edit .env.local with your credentials
 
-- [ ] Client catalog
-- [ ] RFC autocomplete (SAT API)
+# Run migrations
+npm run db:push
+
+# Start dev server
+npm run dev
+```
+
+Visit: http://localhost:3000
+
+### Database Setup (Supabase)
+
+1. Create Supabase project: https://supabase.com/dashboard
+2. Get connection string from Settings → Database
+3. Add to `.env.local`:
+   ```
+   DATABASE_URL=postgresql://postgres:[PASSWORD]@[HOST]:5432/postgres
+   ```
+4. Run migrations:
+   ```bash
+   npm run db:push
+   ```
+
+---
+
+## 📚 Documentation
+
+- **[Architecture Guide](./ARCHITECTURE.md)** - Screaming Architecture explained
+- **[UI Style Guide](./UI-GUIDE.md)** - Tailwind 4 + Shadcn/ui
+- **[Feature: Invoicing](./features/invoicing/README.md)** - Facturación CFDI
+- **[Feature: Clients](./features/clients/README.md)** - Catálogo de clientes
+- **[Feature: Timbrado](./features/timbrado/README.md)** - PAC integration
+
+---
+
+## 🔧 Development Scripts
+
+```bash
+# Development
+npm run dev              # Start dev server
+npm run build            # Build for production
+npm run start            # Start production server
+
+# Database
+npm run db:generate      # Generate migration
+npm run db:push          # Push schema to database
+npm run db:studio        # Open Drizzle Studio (GUI)
+
+# Code Quality
+npm run lint             # Run ESLint
+npm run type-check       # TypeScript check
+```
+
+---
+
+## 🎯 Roadmap
+
+### Phase 1: Core MVP ✅ (Current)
+- [x] Project setup (Next.js + Tailwind + Drizzle)
+- [x] Screaming Architecture implementation
+- [x] UI Design System (Cal.com style)
+- [x] Mock services (PAC, Notifications)
+- [ ] Auth UI (Supabase)
+- [ ] Invoice CRUD
+- [ ] Client CRUD
+- [ ] Fiscal Profile setup
+
+### Phase 2: Real Integrations
+- [ ] PAC integration (Finkok)
+- [ ] WhatsApp notifications (Twilio)
+- [ ] Email notifications (Resend)
+- [ ] CSF extraction API
+- [ ] Storage (Supabase)
+
+### Phase 3: Production Features
 - [ ] CFDI cancellation
-- [ ] WhatsApp + Email sending
-- [ ] Export to Excel
-- [ ] Product/service catalog
+- [ ] Advanced dashboard
+- [ ] Reports & analytics
+- [ ] Multi-user support
+- [ ] Role-based access
 
-### Phase 4: Billing (3-5 days)
-
+### Phase 4: Monetization
 - [ ] Stripe integration
 - [ ] Subscription plans
 - [ ] Usage limits
-- [ ] Landing page
+- [ ] Invoicing (meta!)
+- [ ] Public launch
 
 ---
 
-## 🔐 Security
+## 💰 Business Model
 
-- Row Level Security (RLS) enabled
-- User data isolated per account
-- Encrypted certificates
-- Secure environment variables
-- HTTPS only in production
+### Pricing (Planned)
+- **Starter:** $199 MXN/mes (50 facturas)
+- **Pro:** $399 MXN/mes (200 facturas)
+- **Business:** $999 MXN/mes (ilimitado)
 
----
-
-## 📝 License
-
-MIT
+### Revenue Potential (Conservative)
+- Mes 3: $11,950 MXN (~$700 USD)
+- Mes 6: $36,820 MXN (~$2,100 USD)
+- Mes 12: $111,580 MXN (~$6,500 USD)
 
 ---
 
-## 👨‍💻 Author
+## 📄 License
 
-**eDevTone**
-- GitHub: [@eDevTone](https://github.com/eDevTone)
+MIT License - see [LICENSE](./LICENSE)
 
 ---
 
-**¿Listo para facturar sin complicaciones?** 🚀
+## 🤝 Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) first.
+
+---
+
+## 📧 Contact
+
+- **GitHub:** [@eDevTone](https://github.com/eDevTone)
+- **Project:** [FacturaFast](https://github.com/eDevTone/facturafast)
+
+---
+
+**Built with ❤️ for the Mexican market**
