@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@shared/ui/select'
 
+import { CSFUpload } from './csf-upload'
 import { createClientAction } from '../actions/create-client.action'
 import { createClientFormSchema, type ClientFormData } from '../schemas/client-form.schema'
 
@@ -33,6 +34,24 @@ export function ClientForm() {
   const form = useForm<ClientFormData>({
     resolver: zodResolver(createClientFormSchema),
   })
+
+  const handleCSFData = (data: {
+    rfc: string
+    razonSocial: string
+    regimenFiscal?: string
+    codigoPostal: string
+  }) => {
+    // Auto-fill form fields with extracted data
+    form.setValue('rfc', data.rfc)
+    form.setValue('razonSocial', data.razonSocial)
+    form.setValue('codigoPostal', data.codigoPostal)
+    if (data.regimenFiscal) {
+      form.setValue('regimenFiscal', data.regimenFiscal)
+    }
+
+    // Show success message
+    alert('✅ Datos extraídos del CSF. Revisa y completa la información faltante.')
+  }
 
   async function onSubmit(data: ClientFormData) {
     setIsSubmitting(true)
@@ -57,6 +76,9 @@ export function ClientForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* CSF Upload */}
+        <CSFUpload onDataExtracted={handleCSFData} />
+
         <Card>
           <CardHeader>
             <CardTitle>Información del Cliente</CardTitle>
