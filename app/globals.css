@@ -1,27 +1,36 @@
 @import "tailwindcss";
 
-/* Tailwind 4 Theme Configuration */
 @theme {
+  /* Cal.com inspired color palette */
   --color-primary: #18181b;
   --color-primary-foreground: #fafafa;
+  
   --color-accent: #3b82f6;
-  --color-accent-foreground: #fafafa;
+  --color-accent-foreground: #ffffff;
+  
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
+  --color-destructive-foreground: #ffffff;
   
   --color-background: #ffffff;
   --color-foreground: #18181b;
+  
   --color-card: #ffffff;
   --color-card-foreground: #18181b;
   
   --color-muted: #f4f4f5;
   --color-muted-foreground: #71717a;
-  --color-border: #e5e7eb;
-  --color-input: #e5e7eb;
+  
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
   --color-ring: #3b82f6;
   
+  /* Additional semantic colors */
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #18181b;
+  
+  /* Border radius */
   --radius: 0.5rem;
 }
 
@@ -31,9 +40,12 @@
   }
   
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
