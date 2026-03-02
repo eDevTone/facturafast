@@ -1,15 +1,24 @@
 import { InvoiceList } from '@features/invoicing/components/invoice-list'
 import { getInvoices } from '@features/invoicing/services/invoice.service'
+import type { InvoiceWithRelations } from '@features/invoicing/types/invoice.types'
 import { Button } from '@shared/ui/button'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
+
+// Mark as dynamic to prevent static generation (no DB yet)
+export const dynamic = 'force-dynamic'
 
 export default async function FacturasPage() {
   // TODO: Get real user ID from Clerk
   const userId = 'temp-user-id'
   
   // Server Component - DB directo (sin API route)
-  const invoices = await getInvoices(userId)
+  let invoices: InvoiceWithRelations[] = []
+  try {
+    invoices = await getInvoices(userId)
+  } catch (error) {
+    console.error('DB not available yet:', error)
+  }
   
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">

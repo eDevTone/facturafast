@@ -1,5 +1,8 @@
-import { pgTable, uuid, varchar, text, timestamp, integer, numeric } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, timestamp, integer, numeric, pgEnum } from 'drizzle-orm/pg-core'
 import { clients } from './clients'
+
+// Enum for invoice status
+export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'timbrada', 'cancelada'])
 
 export const invoices = pgTable('invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -19,7 +22,7 @@ export const invoices = pgTable('invoices', {
   xmlUrl: text('xml_url'),
   pdfUrl: text('pdf_url'),
   uuid: varchar('uuid', { length: 36 }), // Folio Fiscal SAT
-  estatus: varchar('estatus', { length: 20 }).notNull().default('draft'), // draft, timbrada, cancelada
+  estatus: invoiceStatusEnum('estatus').notNull().default('draft'),
   motivoCancelacion: varchar('motivo_cancelacion', { length: 2 }),
   fechaCancelacion: timestamp('fecha_cancelacion', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

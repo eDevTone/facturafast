@@ -2,10 +2,10 @@ import { z } from 'zod'
 
 // Invoice item schema
 export const invoiceItemSchema = z.object({
-  claveProdServ: z.string().optional().default('84111506'),
+  claveProdServ: z.string().optional(),
   descripcion: z.string().min(1, 'Descripción requerida'),
   cantidad: z.number().min(0.01, 'Cantidad debe ser mayor a 0'),
-  unidad: z.string().optional().default('E48'),
+  unidad: z.string().optional(),
   valorUnitario: z.number().min(0.01, 'Valor unitario debe ser mayor a 0')
 })
 
@@ -16,7 +16,7 @@ export const createInvoiceFormSchema = z.object({
   formaPago: z.string().min(1, 'Forma de pago requerida'),
   metodoPago: z.string().min(1, 'Método de pago requerido'),
   usoCfdi: z.string().min(1, 'Uso CFDI requerido'),
-  moneda: z.string().optional().default('MXN'),
+  moneda: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, 'Debe agregar al menos un concepto')
 })
 

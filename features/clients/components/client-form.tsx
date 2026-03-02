@@ -32,9 +32,6 @@ export function ClientForm() {
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(createClientFormSchema),
-    defaultValues: {
-      usoCfdi: 'P01'
-    }
   })
 
   async function onSubmit(data: ClientFormData) {

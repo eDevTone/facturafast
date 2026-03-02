@@ -2,15 +2,24 @@ import Link from 'next/link'
 import { DashboardStats } from '@features/dashboard/components/dashboard-stats'
 import { InvoiceList } from '@features/invoicing/components/invoice-list'
 import { getInvoices } from '@features/invoicing/services/invoice.service'
+import type { InvoiceWithRelations } from '@features/invoicing/types/invoice.types'
 import { Button } from '@shared/ui/button'
 import { Plus, ArrowRight } from 'lucide-react'
+
+// Mark as dynamic to prevent static generation (no DB yet)
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   // TODO: Get real user ID from Clerk
   const userId = 'temp-user-id'
   
   // Server Component - Get data
-  const allInvoices = await getInvoices(userId)
+  let allInvoices: InvoiceWithRelations[] = []
+  try {
+    allInvoices = await getInvoices(userId)
+  } catch (error) {
+    console.error('DB not available yet:', error)
+  }
   
   // Calculate stats (mock for now)
   const stats = {

@@ -1,8 +1,9 @@
 import { pgTable, uuid, varchar, text, timestamp } from 'drizzle-orm/pg-core'
 
+// TODO: Add .references(() => users.id) when auth is implemented (Clerk + webhooks)
 export const userFiscalProfile = pgTable('user_fiscal_profile', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => /* auth.users - handled by Supabase Auth */),
+  userId: uuid('user_id').notNull(), // Will reference auth.users table
   rfc: varchar('rfc', { length: 13 }).notNull(),
   razonSocial: text('razon_social').notNull(),
   regimenFiscal: varchar('regimen_fiscal', { length: 10 }).notNull(),
