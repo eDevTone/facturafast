@@ -6,18 +6,7 @@
 import * as cheerio from "cheerio";
 import axios from "axios";
 import https from "https";
-
-// Dynamic import for pdf-parse (CommonJS module)
-let pdfParse: any = null;
-
-async function getPdfParse() {
-  if (!pdfParse) {
-    // Try different ways to access the export
-    const module = await import("pdf-parse");
-    pdfParse = (module as any).default || module;
-  }
-  return pdfParse;
-}
+import { parsePdf } from "./pdf-parser-wrapper";
 
 // ============================================================================
 // CONSTANTS
@@ -127,17 +116,8 @@ async function extractTextFromPdf(
     throw new Error("Empty PDF buffer");
   }
 
-  const parser = await getPdfParse();
-  
-  // Call parser directly (it might be a function or have a specific export)
-  let data;
-  if (typeof parser === 'function') {
-    data = await parser(pdfBuffer, { max: maxPages });
-  } else if (typeof parser.default === 'function') {
-    data = await parser.default(pdfBuffer, { max: maxPages });
-  } else {
-    throw new Error('pdf-parse module not loaded correctly');
-  }
+  // Use wrapper that handles require() properly
+  const data = await parsePdf(pdfBuffer, { max: maxPages });
 
   if (!data.text || data.text.trim().length === 0) {
     throw new Error("PDF has no text content");
