@@ -12,7 +12,9 @@ let pdfParse: any = null;
 
 async function getPdfParse() {
   if (!pdfParse) {
-    pdfParse = (await import("pdf-parse")).default;
+    // Try different ways to access the export
+    const module = await import("pdf-parse");
+    pdfParse = (module as any).default || module;
   }
   return pdfParse;
 }
@@ -126,7 +128,16 @@ async function extractTextFromPdf(
   }
 
   const parser = await getPdfParse();
-  const data = await parser(pdfBuffer, { max: maxPages });
+  
+  // Call parser directly (it might be a function or have a specific export)
+  let data;
+  if (typeof parser === 'function') {
+    data = await parser(pdfBuffer, { max: maxPages });
+  } else if (typeof parser.default === 'function') {
+    data = await parser.default(pdfBuffer, { max: maxPages });
+  } else {
+    throw new Error('pdf-parse module not loaded correctly');
+  }
 
   if (!data.text || data.text.trim().length === 0) {
     throw new Error("PDF has no text content");
