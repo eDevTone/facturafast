@@ -5,8 +5,8 @@
   --color-primary: #18181b;
   --color-primary-foreground: #fafafa;
   
-  --color-accent: #3b82f6;
-  --color-accent-foreground: #ffffff;
+  --color-accent: #3f3f46;
+  --color-accent-foreground: #fafafa;
   
   --color-success: #10b981;
   --color-warning: #f59e0b;
@@ -24,7 +24,7 @@
   
   --color-border: #e4e4e7;
   --color-input: #e4e4e7;
-  --color-ring: #3b82f6;
+  --color-ring: #3f3f46;
   
   /* Additional semantic colors */
   --color-secondary: #f4f4f5;
