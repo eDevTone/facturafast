@@ -1,9 +1,9 @@
 /**
- * CSF Extraction Service (Local Implementation)
- * Extracts fiscal profile data from CSF PDFs using local code (no external API)
+ * CSF Extraction Service
+ * Extracts fiscal profile data from CSF PDFs using lib/csf
  */
 
-import { extractCsfDataFromPdf } from "../lib/csf/extract-csf";
+import { extractCsfDataFromPdf } from "@/lib/csf";
 import type { CsfPdfResponse } from "../types/csf.types";
 
 /**
@@ -14,7 +14,7 @@ export async function extractCsfFromPdf(file: File): Promise<CsfPdfResponse> {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  // Extract using local implementation
+  // Extract using lib/csf
   const result = await extractCsfDataFromPdf(buffer);
 
   return {
