@@ -1,12 +1,15 @@
 /**
  * pdf-parse wrapper for CommonJS compatibility
- * Uses eval(require()) to bypass Next.js bundler
+ * Externalized via next.config.mjs webpack config
  */
+
+// Direct require works because pdf-parse is externalized
+// @ts-ignore - CommonJS module
+import pdfParse from 'pdf-parse';
 
 export async function parsePdf(
   buffer: Buffer,
   options?: { max?: number }
 ): Promise<any> {
-  const pdfParse = eval('require')('pdf-parse');
   return pdfParse(buffer, options);
 }
