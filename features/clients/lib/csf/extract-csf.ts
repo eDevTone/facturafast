@@ -3,10 +3,19 @@
  * Extracts fiscal data from CSF PDFs without external API
  */
 
-import pdfParse from "pdf-parse";
 import * as cheerio from "cheerio";
 import axios from "axios";
 import https from "https";
+
+// Dynamic import for pdf-parse (CommonJS module)
+let pdfParse: any = null;
+
+async function getPdfParse() {
+  if (!pdfParse) {
+    pdfParse = (await import("pdf-parse")).default;
+  }
+  return pdfParse;
+}
 
 // ============================================================================
 // CONSTANTS
@@ -116,7 +125,8 @@ async function extractTextFromPdf(
     throw new Error("Empty PDF buffer");
   }
 
-  const data = await (pdfParse as any)(pdfBuffer, { max: maxPages });
+  const parser = await getPdfParse();
+  const data = await parser(pdfBuffer, { max: maxPages });
 
   if (!data.text || data.text.trim().length === 0) {
     throw new Error("PDF has no text content");
