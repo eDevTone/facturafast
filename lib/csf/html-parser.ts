@@ -32,6 +32,48 @@ function classifyTaxpayer(rfc: string): TaxpayerType {
   return null;
 }
 
+/**
+ * Split a long concatenated string on label boundaries.
+ * The SAT HTML often concatenates labels+values without separators, e.g.:
+ *   "CP:68020Correo electrónico:isuarez@example.com"
+ * This splits into: ["CP:", "68020", "Correo electrónico:", "isuarez@example.com"]
+ */
+const SECTION_TITLES_PATTERN = new RegExp(
+  `(Datos de Identificaci[oó]n|Datos de Ubicaci[oó]n \\(domicilio fiscal, vigente\\)|Caracter[ií]sticas fiscales \\(vigente\\))`,
+  "g"
+);
+
+function splitOnLabelBoundaries(text: string): string[] {
+  // First, insert separators before section titles
+  let processed = text.replace(SECTION_TITLES_PATTERN, "\n$1\n");
+
+  // Split before patterns like "SomeLabel:" that appear mid-string
+  // Handles both "CP:68020" and "Correo electrónico:value"
+  processed = processed.replace(
+    /([a-z0-9])([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ\s]*:)/g,
+    "$1\n$2"
+  );
+
+  const result: string[] = [];
+  for (const chunk of processed.split("\n")) {
+    const trimmed = chunk.trim();
+    if (!trimmed) continue;
+
+    // If chunk is "Label: value", split into label and value
+    const labelMatch = /^([A-Za-záéíóúüñÁÉÍÓÚÜÑ\s]+:)\s*([\s\S]*)$/.exec(trimmed);
+    if (labelMatch) {
+      const label = labelMatch[1].trim();
+      const value = labelMatch[2].trim();
+      result.push(label);
+      if (value) result.push(value);
+    } else {
+      result.push(trimmed);
+    }
+  }
+
+  return result;
+}
+
 export function parseSatHtml(html: string) {
   const $ = cheerio.load(html);
 
@@ -39,6 +81,7 @@ export function parseSatHtml(html: string) {
   $("style").remove();
   $("noscript").remove();
 
+  // Extract text tokens from visible elements (direct text nodes)
   const tokens: string[] = [];
   $("body")
     .find("*")
@@ -59,15 +102,32 @@ export function parseSatHtml(html: string) {
       }
     });
 
-  const bodyText = $("body").text();
-  const textTokens = bodyText
-    .split(/\n/)
-    .map((t) => normalizeSpace(t))
-    .filter((t) => t && !isJavaScriptCode(t));
+  // Use DOM tokens as primary source — they have proper element boundaries.
+  // Only fall back to body text if DOM tokens are too few.
+  let rawTokens: string[];
+  if (tokens.length >= 5) {
+    rawTokens = tokens;
+  } else {
+    const bodyText = $("body").text();
+    const textTokens = bodyText
+      .split(/\n/)
+      .map((t) => normalizeSpace(t))
+      .filter((t) => t && !isJavaScriptCode(t));
+    rawTokens = [...new Set([...tokens, ...textTokens])];
+  }
 
-  const allTokens = mergeBrokenTokens([
-    ...new Set([...tokens, ...textTokens]),
-  ]);
+  const merged = mergeBrokenTokens(rawTokens);
+
+  // Split any long concatenated tokens on label boundaries or section titles
+  const allTokens: string[] = [];
+  for (const tok of merged) {
+    if (tok.length > 30 && (/[a-z][A-Z]/.test(tok) || /[^:]:[A-Z]/.test(tok))) {
+      allTokens.push(...splitOnLabelBoundaries(tok));
+    } else {
+      allTokens.push(tok);
+    }
+  }
+
   const fullText = allTokens.join(" ");
 
   const rawKv: Record<string, string | string[]> = {};
@@ -148,7 +208,8 @@ export function parseSatHtml(html: string) {
   }
 
   if (regimenes.length > 0) {
-    sections[SECTION_FISCAL].Régimen = regimenes;
+    (sections[SECTION_FISCAL] as any).regimenes = regimenes;
+    delete sections[SECTION_FISCAL]["Régimen"];
     delete sections[SECTION_FISCAL]["Fecha de alta"];
   }
 

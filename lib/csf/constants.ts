@@ -9,7 +9,7 @@ export const LUGAR_FECHA_REGEX =
   /Lugar\s+y\s+Fecha\s+de\s+Emisi[oó]n\s+(.+?)\s+A\s+(\d{1,2})\s+DE\s+([A-ZÁÉÍÓÚÜÑ]+)\s+DE\s+(\d{4})/i;
 
 export const SAT_QR_BASE_URL =
-  "https://siat.sat.gob.mx/app/qr/faces/pages/mobile/validadorqr.jsf?D3=";
+  "https://siat.sat.gob.mx/app/qr/faces/pages/mobile/validadorqr.jsf?D1=10&D2=1&D3=";
 
 export const SPANISH_MONTHS: Record<string, number> = {
   ENERO: 1,
@@ -33,28 +33,33 @@ export const SECTION_ADDRESS = "Datos de Ubicación (domicilio fiscal, vigente)"
 export const SECTION_FISCAL = "Características fiscales (vigente)";
 
 export const IDENTIFICATION_KEYS = new Set([
-  "El RFC",
-  "Nombre, denominación o razón social",
+  "CURP",
+  "Nombre",
+  "Apellido Paterno",
+  "Apellido Materno",
+  "Fecha Nacimiento",
+  "Fecha de constitución",
+  "Denominación o Razón Social",
   "Régimen de capital",
-  "Nombre comercial",
+  "Fecha de Inicio de operaciones",
+  "Situación del contribuyente",
+  "Fecha del último cambio de situación",
 ]);
 
 export const ADDRESS_KEYS = new Set([
-  "Código Postal",
+  "Entidad Federativa",
+  "Municipio o delegación",
+  "Colonia",
   "Tipo de vialidad",
-  "Nombre de vialidad",
+  "Nombre de la vialidad",
   "Número exterior",
   "Número interior",
-  "Nombre de la colonia",
-  "Nombre de la localidad",
-  "Nombre del municipio o demarcación territorial",
-  "Nombre de la entidad federativa",
-  "Entre calle",
-  "Y calle",
+  "CP",
+  "Correo electrónico",
+  "AL",
 ]);
 
 export const FISCAL_KEYS = new Set([
   "Régimen",
   "Fecha de alta",
-  "Fecha de inicio de operaciones",
 ]);

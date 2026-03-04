@@ -24,7 +24,6 @@ export async function extractCsfDataFromPdf(pdfBuffer: Buffer) {
 
   // Step 3: Fetch SAT HTML
   const fetchResult = await fetchSatHtml(satUrl);
-
   // Step 4: Parse HTML
   const data = parseSatHtml(fetchResult.text);
 

@@ -36,20 +36,37 @@ export function ClientForm() {
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(createClientFormSchema),
+    defaultValues: {
+      rfc: '',
+      razonSocial: '',
+      email: '',
+      telefono: '',
+      codigoPostal: '',
+      regimenFiscal: '',
+      usoCfdi: '',
+    },
   })
 
   const handleCSFData = (data: {
     rfc: string
     razonSocial: string
-    regimenFiscal?: string
+    regimenFiscal?: string | null
     codigoPostal: string
+    email?: string
+    usoCfdi?: string
   }) => {
     // Auto-fill form fields with extracted data
-    form.setValue('rfc', data.rfc)
-    form.setValue('razonSocial', data.razonSocial)
-    form.setValue('codigoPostal', data.codigoPostal)
+    form.setValue('rfc', data.rfc, { shouldDirty: true })
+    form.setValue('razonSocial', data.razonSocial, { shouldDirty: true })
+    form.setValue('codigoPostal', data.codigoPostal, { shouldDirty: true })
     if (data.regimenFiscal) {
-      form.setValue('regimenFiscal', data.regimenFiscal)
+      form.setValue('regimenFiscal', data.regimenFiscal, { shouldDirty: true })
+    }
+    if (data.email) {
+      form.setValue('email', data.email, { shouldDirty: true })
+    }
+    if (data.usoCfdi) {
+      form.setValue('usoCfdi', data.usoCfdi, { shouldDirty: true })
     }
 
     toast.success('Datos extraídos del CSF', {
@@ -263,13 +280,10 @@ export function ClientForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Uso CFDI *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Selecciona uso CFDI" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

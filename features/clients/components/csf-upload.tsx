@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Upload, FileText, Loader2 } from 'lucide-react'
 import { Button } from '@shared/ui/button'
 import { Card, CardContent } from '@shared/ui/card'
-import { extractCsfFromPdf, mapCsfToClientData } from '../services/csf-extraction.service'
+import { extractCsfAction } from '../actions/extract-csf.action'
+import { mapCsfToClientData } from '../services/csf-extraction.service'
 
 interface CSFUploadProps {
   onDataExtracted: (data: {
@@ -45,11 +46,15 @@ export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
     setError(null)
 
     try {
-      // Call real eip-api
-      const csfData = await extractCsfFromPdf(file)
-      
-      // Map CSF data to client form format
-      const clientData = mapCsfToClientData(csfData)
+      const formData = new FormData()
+      formData.append('file', file)
+      const result = await extractCsfAction(formData)
+
+      if (!result.success) {
+        throw new Error(result.error)
+      }
+
+      const clientData = mapCsfToClientData(result.data)
       
       onDataExtracted(clientData)
       setFile(null) // Clear file after extraction

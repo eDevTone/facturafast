@@ -1,36 +1,48 @@
 /**
  * CSF String Utilities
+ * Aligned with eip-api implementation
  */
 
 export function normalizeSpace(s: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
-export function normalizeKey(s: string): string {
-  return normalizeSpace(s.replace(/:$/, ""));
+export function normalizeKey(k: string): string {
+  let key = normalizeSpace(k);
+  if (key.endsWith(":")) {
+    key = key.slice(0, -1).trim();
+  }
+  return key;
 }
 
-export function looksLikeLabelToken(s: string): boolean {
-  return s.endsWith(":") || /^[A-ZÁÉÍÓÚÜÑ\s]+$/.test(s);
+export function looksLikeLabelToken(tok: string): boolean {
+  const trimmed = tok.trim();
+  return Boolean(trimmed) && trimmed.endsWith(":") && /^[a-zA-Z]/.test(trimmed);
 }
 
 export function mergeBrokenTokens(tokens: string[]): string[] {
-  const result: string[] = [];
-  let buffer = "";
-
-  for (const t of tokens) {
-    if (looksLikeLabelToken(t)) {
-      if (buffer) result.push(buffer);
-      buffer = t;
-    } else if (buffer) {
-      buffer += " " + t;
-    } else {
-      result.push(t);
+  const merged: string[] = [];
+  let i = 0;
+  while (i < tokens.length) {
+    const a = tokens[i];
+    if (i + 1 < tokens.length) {
+      const b = tokens[i + 1];
+      if (
+        a.length <= 12 &&
+        b &&
+        /^[a-z]/.test(b) &&
+        !a.endsWith(":") &&
+        a.length + b.length <= 120
+      ) {
+        merged.push(a + b);
+        i += 2;
+        continue;
+      }
     }
+    merged.push(a);
+    i += 1;
   }
-
-  if (buffer) result.push(buffer);
-  return result;
+  return merged;
 }
 
 export function isJavaScriptCode(text: string): boolean {
@@ -52,9 +64,7 @@ export function isJavaScriptCode(text: string): boolean {
 }
 
 export function cleanValue(value: string): string {
-  if (isJavaScriptCode(value)) {
-    return "";
-  }
+  if (isJavaScriptCode(value)) return "";
 
   const cleaned = value
     .replace(/\$\s*\(\s*function\s*\(\s*\)\s*\{[^}]*\}\s*\)\s*;?\s*/g, "")
@@ -69,13 +79,11 @@ export function cleanValue(value: string): string {
 
 export function stripSectionTitleSuffix(value: string, titles: string[]): string {
   let v = normalizeSpace(value);
-
   for (const title of titles) {
     if (v.endsWith(title)) {
       v = normalizeSpace(v.slice(0, -title.length));
     }
   }
-
   return v;
 }
 
