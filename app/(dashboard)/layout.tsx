@@ -1,5 +1,5 @@
-import { Sidebar } from "@/shared/components/sidebar";
 import { Header } from "@/shared/components/header";
+import { Sidebar } from "@/shared/components/sidebar";
 
 export default function DashboardLayout({
   children,
@@ -9,7 +9,7 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Desktop Sidebar */}
-      <div className="hidden md:block">
+      <div className="hidden shrink-0 md:block">
         <Sidebar />
       </div>
 

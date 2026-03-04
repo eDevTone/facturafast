@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@layer clerk, components, utilities;
+
 @theme {
   /* Cal.com inspired color palette */
   --color-primary: #18181b;

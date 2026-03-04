@@ -80,7 +80,9 @@ export function ClientForm() {
     const toastId = toast.loading('Creando cliente...')
     
     try {
+      console.log('[create-client] submitting:', data)
       const result = await createClientAction(data)
+      console.log('[create-client] result:', result)
 
       if (result.success) {
         toast.success('Cliente creado exitosamente', {

@@ -1,5 +1,6 @@
 "use client";
 
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { Bell } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { MobileSidebar } from "./mobile-sidebar";
@@ -22,16 +23,17 @@ export function Header() {
           <span className="sr-only">Notifications</span>
         </Button>
 
-        {/* User (desktop only) */}
-        <div className="hidden items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted md:flex">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-            ET
-          </div>
-          <div>
-            <p className="text-sm font-medium">eTone</p>
-            <p className="text-xs text-muted-foreground">Admin</p>
-          </div>
-        </div>
+        {/* User */}
+        <Show when="signed-out">
+          <SignInButton>
+            <Button variant="outline" size="sm">
+              Iniciar sesión
+            </Button>
+          </SignInButton>
+        </Show>
+        <Show when="signed-in">
+          <UserButton />
+        </Show>
       </div>
     </header>
   );

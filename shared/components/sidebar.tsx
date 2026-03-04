@@ -1,5 +1,6 @@
 "use client";
 
+import { Show, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -15,7 +16,7 @@ import { NavItem } from "./nav-item";
 
 export function Sidebar() {
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-background">
+    <aside className="flex h-screen w-64 flex-col overflow-hidden border-r bg-background">
       {/* Logo */}
       <div className="flex h-16 items-center border-b px-6">
         <Link href="/" className="flex items-center gap-2">
@@ -99,14 +100,10 @@ export function Sidebar() {
 
       {/* User Profile */}
       <div className="border-t p-4">
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-            ET
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-foreground">eTone</p>
-            <p className="text-xs text-muted-foreground">Admin</p>
-          </div>
+        <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+          <Show when="signed-in">
+            <UserButton showName />
+          </Show>
         </div>
       </div>
     </aside>
