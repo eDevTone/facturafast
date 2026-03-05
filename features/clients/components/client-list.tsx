@@ -1,8 +1,9 @@
 'use client'
 
-import { Users } from 'lucide-react'
-import { Card, CardContent } from '@shared/ui/card'
+import Link from 'next/link'
+import { Users, Phone, MapPin } from 'lucide-react'
 import { Button } from '@shared/ui/button'
+import { Badge } from '@shared/ui/badge'
 import type { Client } from '../types/client.types'
 
 interface ClientListProps {
@@ -12,53 +13,69 @@ interface ClientListProps {
 export function ClientList({ clients }: ClientListProps) {
   if (clients.length === 0) {
     return (
-      <Card className="border-border">
-        <CardContent className="p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-muted-foreground" />
+      <div className="rounded-xl border border-border/60 bg-card">
+        <div className="flex flex-col items-center justify-center p-12 text-center">
+          <div className="mb-4 rounded-full bg-muted p-4">
+            <Users className="h-6 w-6 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">
+          <h3 className="text-base font-semibold text-foreground">
             No hay clientes aún
           </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="mt-1 text-sm text-muted-foreground">
             Agrega tu primer cliente para comenzar a facturar
           </p>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-            Nuevo Cliente
-          </Button>
-        </CardContent>
-      </Card>
+          <Link href="/clients/new" className="mt-5">
+            <Button>Nuevo Cliente</Button>
+          </Link>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       {clients.map(client => (
-        <Card
+        <div
           key={client.id}
-          className="border-border hover:shadow-md transition-shadow group cursor-pointer"
+          className="group rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border"
         >
-          <CardContent className="p-6">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors flex-shrink-0">
-                <Users className="w-5 h-5 text-accent" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-foreground truncate">
-                  {client.razonSocial}
-                </h3>
-                <p className="text-sm text-muted-foreground font-mono">
-                  {client.rfc}
-                </p>
-                {client.email && (
-                  <p className="text-xs text-muted-foreground truncate mt-1">
-                    {client.email}
-                  </p>
-                )}
-              </div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-medium text-foreground truncate">
+                {client.businessName}
+              </h3>
+              <p className="mt-0.5 text-sm font-mono text-muted-foreground">
+                {client.rfc}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+            {client.taxRegime && (
+              <Badge variant="secondary" className="shrink-0 text-xs">
+                {client.taxRegime}
+              </Badge>
+            )}
+          </div>
+
+          {client.email && (
+            <p className="mt-3 text-xs text-muted-foreground truncate">
+              {client.email}
+            </p>
+          )}
+
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/40">
+            {client.phone && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Phone className="h-3 w-3" />
+                {client.phone}
+              </span>
+            )}
+            {client.postalCode && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3" />
+                {client.postalCode}
+              </span>
+            )}
+          </div>
+        </div>
       ))}
     </div>
   )

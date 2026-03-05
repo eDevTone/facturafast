@@ -53,7 +53,7 @@ export async function searchClients(
   return db.query.clients.findMany({
     where: and(
       eq(clients.userId, userId),
-      ilike(clients.razonSocial, `%${query}%`)
+      ilike(clients.businessName, `%${query}%`)
     ),
     limit: 10
   })
@@ -71,21 +71,21 @@ export async function createClient(
   if (existing) {
     throw new Error(`Client with RFC ${data.rfc} already exists`)
   }
-  
+
   const [client] = await db
     .insert(clients)
     .values({
       userId,
       rfc: data.rfc.toUpperCase(),
-      razonSocial: data.razonSocial,
+      businessName: data.businessName,
       email: data.email || null,
-      telefono: data.telefono || null,
-      codigoPostal: data.codigoPostal,
-      regimenFiscal: data.regimenFiscal || null,
-      usoCfdi: data.usoCfdi || 'P01'
+      phone: data.phone || null,
+      postalCode: data.postalCode,
+      taxRegime: data.taxRegime || null,
+      cfdiUsage: data.cfdiUsage || 'P01'
     })
     .returning()
-  
+
   return client
 }
 
@@ -101,7 +101,7 @@ export async function updateClient(
   if (!client) {
     throw new Error('Client not found')
   }
-  
+
   const [updated] = await db
     .update(clients)
     .set({
@@ -110,7 +110,7 @@ export async function updateClient(
     })
     .where(eq(clients.id, id))
     .returning()
-  
+
   return updated
 }
 
@@ -122,10 +122,10 @@ export async function deleteClient(id: string, userId: string) {
   if (!client) {
     throw new Error('Client not found')
   }
-  
+
   // TODO: Check if client has invoices before deleting
-  
+
   await db.delete(clients).where(eq(clients.id, id))
-  
+
   return { success: true }
 }

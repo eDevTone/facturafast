@@ -16,95 +16,73 @@ import { NavItem } from "./nav-item";
 
 export function Sidebar() {
   return (
-    <aside className="flex h-screen w-64 flex-col overflow-hidden border-r bg-background">
+    <aside className="flex h-screen w-60 flex-col border-r border-border/50 bg-sidebar">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Receipt className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-bold text-foreground">
-            FacturaFast
-          </span>
+      <div className="flex h-14 items-center gap-2.5 px-5">
+        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
+          <Receipt className="h-4 w-4 text-primary-foreground" />
+        </div>
+        <Link href="/" className="text-[15px] font-semibold tracking-tight text-foreground">
+          FacturaFast
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        <NavItem
-          href="/dashboard"
-          icon={LayoutDashboard}
-          label="Dashboard"
-        />
+      <nav className="flex-1 space-y-6 overflow-y-auto px-3 pt-2 pb-4">
+        <div>
+          <NavItem
+            href="/dashboard"
+            icon={LayoutDashboard}
+            label="Dashboard"
+          />
+        </div>
 
-        {/* Ventas Section */}
-        <div className="pt-4">
-          <p className="mb-2 px-3 text-xs font-semibold uppercase text-muted-foreground">
+        {/* Ventas */}
+        <div className="space-y-1">
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
             Ventas
           </p>
-          <NavItem
-            href="/facturas"
-            icon={Receipt}
-            label="Facturas"
-          />
-          <NavItem
-            href="/cotizaciones"
-            icon={FileText}
-            label="Cotizaciones"
-          />
-          <NavItem
-            href="/notas-credito"
-            icon={CreditCard}
-            label="Notas de Crédito"
-          />
+          <NavItem href="/invoices" icon={Receipt} label="Facturas" />
+          <NavItem href="/quotes" icon={FileText} label="Cotizaciones" />
+          <NavItem href="/credit-notes" icon={CreditCard} label="Notas de Crédito" />
         </div>
 
-        {/* Catálogos Section */}
-        <div className="pt-4">
-          <p className="mb-2 px-3 text-xs font-semibold uppercase text-muted-foreground">
+        {/* Catálogos */}
+        <div className="space-y-1">
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
             Catálogos
           </p>
-          <NavItem
-            href="/clientes"
-            icon={Users}
-            label="Clientes"
-          />
-          <NavItem
-            href="/productos"
-            icon={Package}
-            label="Productos"
-          />
+          <NavItem href="/clients" icon={Users} label="Clientes" />
+          <NavItem href="/products" icon={Package} label="Productos" />
         </div>
 
-        {/* Reportes Section */}
-        <div className="pt-4">
-          <p className="mb-2 px-3 text-xs font-semibold uppercase text-muted-foreground">
+        {/* Análisis */}
+        <div className="space-y-1">
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
             Análisis
           </p>
-          <NavItem
-            href="/reportes"
-            icon={BarChart3}
-            label="Reportes"
-          />
+          <NavItem href="/reports" icon={BarChart3} label="Reportes" />
         </div>
 
-        {/* Configuración Section */}
-        <div className="pt-4">
-          <NavItem
-            href="/configuracion"
-            icon={Settings}
-            label="Configuración"
-          />
+        {/* Config */}
+        <div>
+          <NavItem href="/settings" icon={Settings} label="Configuración" />
         </div>
       </nav>
 
-      {/* User Profile */}
-      <div className="border-t p-4">
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-          <Show when="signed-in">
-            <UserButton showName />
-          </Show>
-        </div>
+      {/* User */}
+      <div className="border-t border-border/50 px-4 py-3">
+        <Show when="signed-in">
+          <UserButton
+            showName
+            appearance={{
+              elements: {
+                userButtonBox: "flex-row-reverse",
+                userButtonOuterIdentifier: "text-sm text-foreground",
+              },
+            }}
+          />
+        </Show>
       </div>
     </aside>
   );

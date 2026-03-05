@@ -29,25 +29,25 @@ import { createInvoiceFormSchema, type InvoiceFormData } from '../schemas/invoic
 import { calculateInvoiceTotals, formatCurrency } from '../utils/invoice-calculations'
 
 interface InvoiceFormProps {
-  clients: Array<{ id: string; razonSocial: string }>
+  clients: Array<{ id: string; businessName: string }>
 }
 
 export function InvoiceForm({ clients }: InvoiceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(createInvoiceFormSchema),
     defaultValues: {
-      metodoPago: 'PUE',
-      usoCfdi: 'P01',
-      moneda: 'MXN',
+      paymentMethod: 'PUE',
+      cfdiUsage: 'P01',
+      currency: 'MXN',
       items: [
         {
-          claveProdServ: '84111506',
-          descripcion: '',
-          cantidad: 1,
-          unidad: 'E48',
-          valorUnitario: 0
+          productServiceCode: '84111506',
+          description: '',
+          quantity: 1,
+          unit: 'E48',
+          unitPrice: 0
         }
       ]
     }
@@ -66,10 +66,10 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
     setIsSubmitting(true)
     try {
       const result = await createInvoiceAction(data)
-      
+
       if (result.success) {
         alert('Factura creada exitosamente!')
-        // TODO: Router push a /facturas
+        // TODO: Router push a /invoices
       } else {
         alert(`Error: ${result.error}`)
       }
@@ -107,7 +107,7 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
                       <SelectContent>
                         {clients.map(client => (
                           <SelectItem key={client.id} value={client.id}>
-                            {client.razonSocial}
+                            {client.businessName}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -137,7 +137,7 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
               {/* Forma de Pago */}
               <FormField
                 control={form.control}
-                name="formaPago"
+                name="paymentForm"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Forma de Pago *</FormLabel>
@@ -152,7 +152,7 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
               {/* Método de Pago */}
               <FormField
                 control={form.control}
-                name="metodoPago"
+                name="paymentMethod"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Método de Pago *</FormLabel>
@@ -175,7 +175,7 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
               {/* Uso CFDI */}
               <FormField
                 control={form.control}
-                name="usoCfdi"
+                name="cfdiUsage"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Uso CFDI *</FormLabel>
@@ -209,11 +209,11 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => append({
-                  claveProdServ: '84111506',
-                  descripcion: '',
-                  cantidad: 1,
-                  unidad: 'E48',
-                  valorUnitario: 0
+                  productServiceCode: '84111506',
+                  description: '',
+                  quantity: 1,
+                  unit: 'E48',
+                  unitPrice: 0
                 })}
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -242,7 +242,7 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
                   {/* Descripción */}
                   <FormField
                     control={form.control}
-                    name={`items.${index}.descripcion`}
+                    name={`items.${index}.description`}
                     render={({ field }) => (
                       <FormItem className="col-span-6">
                         <FormLabel>Descripción *</FormLabel>
@@ -257,7 +257,7 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
                   {/* Cantidad */}
                   <FormField
                     control={form.control}
-                    name={`items.${index}.cantidad`}
+                    name={`items.${index}.quantity`}
                     render={({ field }) => (
                       <FormItem className="col-span-2">
                         <FormLabel>Cantidad *</FormLabel>
@@ -277,7 +277,7 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
                   {/* Valor Unitario */}
                   <FormField
                     control={form.control}
-                    name={`items.${index}.valorUnitario`}
+                    name={`items.${index}.unitPrice`}
                     render={({ field }) => (
                       <FormItem className="col-span-2">
                         <FormLabel>Valor Unitario *</FormLabel>
@@ -299,7 +299,7 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
                     <FormLabel>Importe</FormLabel>
                     <FormControl>
                       <Input
-                        value={formatCurrency(items[index]?.cantidad * items[index]?.valorUnitario || 0)}
+                        value={formatCurrency(items[index]?.quantity * items[index]?.unitPrice || 0)}
                         disabled
                         className="bg-muted"
                       />
@@ -336,10 +336,10 @@ export function InvoiceForm({ clients }: InvoiceFormProps) {
           <Button type="button" variant="outline">
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isSubmitting}
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            className=""
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Borrador'}
           </Button>

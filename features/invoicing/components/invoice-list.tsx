@@ -1,8 +1,6 @@
 'use client'
 
 import { FileText } from 'lucide-react'
-import { Badge } from '@shared/ui/badge'
-import { Card, CardContent } from '@shared/ui/card'
 import { Button } from '@shared/ui/button'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { formatCurrency } from '../utils/invoice-calculations'
@@ -14,92 +12,90 @@ interface InvoiceListProps {
 export function InvoiceList({ invoices }: InvoiceListProps) {
   if (invoices.length === 0) {
     return (
-      <Card className="border-border">
-        <CardContent className="p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-8 h-8 text-muted-foreground" />
+      <div className="rounded-xl border border-border/60 bg-card">
+        <div className="flex flex-col items-center justify-center p-12 text-center">
+          <div className="mb-4 rounded-full bg-muted p-4">
+            <FileText className="h-6 w-6 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">
+          <h3 className="text-base font-semibold text-foreground">
             No hay facturas aún
           </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="mt-1 text-sm text-muted-foreground">
             Crea tu primera factura para comenzar
           </p>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-            Nueva Factura
-          </Button>
-        </CardContent>
-      </Card>
+          <div className="mt-5">
+            <Button>Nueva Factura</Button>
+          </div>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {invoices.map(invoice => (
-        <Card
+        <div
           key={invoice.id}
-          className="border-border hover:shadow-md transition-shadow group cursor-pointer"
+          className="group flex items-center justify-between rounded-xl border border-border/60 bg-card px-5 py-4 transition-colors hover:border-border"
         >
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              {/* Left: Invoice info */}
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                  <FileText className="w-6 h-6 text-accent" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-foreground">
-                      {invoice.serie && `${invoice.serie}-`}{invoice.folio}
-                    </p>
-                    <StatusBadge status={invoice.estatus} />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {invoice.client.razonSocial}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(invoice.fechaEmision).toLocaleDateString('es-MX', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                  </p>
-                </div>
-              </div>
-
-              {/* Right: Amount + Actions */}
-              <div className="text-right">
-                <p className="text-2xl font-bold text-foreground">
-                  {formatCurrency(parseFloat(invoice.total))}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {invoice.items.length} concepto{invoice.items.length > 1 ? 's' : ''}
-                </p>
-              </div>
+          {/* Left: Invoice info */}
+          <div className="flex items-center gap-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-foreground">
+                  {invoice.serie && `${invoice.serie}-`}{invoice.folio}
+                </p>
+                <StatusBadge status={invoice.status} />
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {invoice.client.businessName} · {new Date(invoice.issuedAt).toLocaleDateString('es-MX', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Amount */}
+          <div className="text-right">
+            <p className="text-sm font-semibold text-foreground">
+              {formatCurrency(parseFloat(invoice.total))}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {invoice.items.length} concepto{invoice.items.length > 1 ? 's' : ''}
+            </p>
+          </div>
+        </div>
       ))}
     </div>
   )
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const variants = {
-    draft: 'bg-muted text-muted-foreground border-border',
-    timbrada: 'bg-success/10 text-success border-success/20',
-    cancelada: 'bg-destructive/10 text-destructive border-destructive/20'
+  const config = {
+    draft: {
+      label: 'Borrador',
+      className: 'bg-muted text-muted-foreground',
+    },
+    timbrada: {
+      label: 'Timbrada',
+      className: 'bg-primary/15 text-primary',
+    },
+    cancelada: {
+      label: 'Cancelada',
+      className: 'bg-destructive/15 text-destructive',
+    },
   }
 
-  const labels = {
-    draft: 'Borrador',
-    timbrada: 'Timbrada',
-    cancelada: 'Cancelada'
-  }
+  const { label, className } = config[status as keyof typeof config] ?? config.draft
 
   return (
-    <Badge className={variants[status as keyof typeof variants]}>
-      {labels[status as keyof typeof labels]}
-    </Badge>
+    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ${className}`}>
+      {label}
+    </span>
   )
 }

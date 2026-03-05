@@ -5,33 +5,33 @@ export interface Invoice {
   clientId: string
   folio: number
   serie: string | null
-  fechaEmision: Date
+  issuedAt: Date
   subtotal: string
   iva: string
-  retenciones: string
+  withholdings: string
   total: string
-  moneda: string
-  formaPago: string
-  metodoPago: string
-  usoCfdi: string
+  currency: string
+  paymentForm: string
+  paymentMethod: string
+  cfdiUsage: string
   xmlUrl: string | null
   pdfUrl: string | null
   uuid: string | null
-  estatus: 'draft' | 'timbrada' | 'cancelada'
-  motivoCancelacion: string | null
-  fechaCancelacion: Date | null
+  status: 'draft' | 'timbrada' | 'cancelada'
+  cancellationReason: string | null
+  cancelledAt: Date | null
   createdAt: Date
 }
 
 export interface InvoiceItem {
   id: string
   invoiceId: string
-  claveProdServ: string
-  descripcion: string
-  cantidad: string
-  unidad: string
-  valorUnitario: string
-  importe: string
+  productServiceCode: string
+  description: string
+  quantity: string
+  unit: string
+  unitPrice: string
+  amount: string
   createdAt: Date
 }
 
@@ -39,26 +39,26 @@ export interface InvoiceItem {
 export interface CreateInvoiceInput {
   clientId: string
   serie?: string
-  formaPago: string
-  metodoPago: string
-  usoCfdi: string
-  moneda?: string
+  paymentForm: string
+  paymentMethod: string
+  cfdiUsage: string
+  currency?: string
   items: CreateInvoiceItemInput[]
 }
 
 export interface CreateInvoiceItemInput {
-  claveProdServ?: string
-  descripcion: string
-  cantidad: number
-  unidad?: string
-  valorUnitario: number
+  productServiceCode?: string
+  description: string
+  quantity: number
+  unit?: string
+  unitPrice: number
 }
 
 // Response Types
 export interface InvoiceWithRelations extends Invoice {
   client: {
     id: string
-    razonSocial: string
+    businessName: string
     rfc: string
   }
   items: InvoiceItem[]

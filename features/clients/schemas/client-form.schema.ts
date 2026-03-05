@@ -10,16 +10,16 @@ export const createClientFormSchema = z.object({
     .max(13, 'RFC debe tener máximo 13 caracteres')
     .regex(rfcRegex, 'RFC inválido')
     .transform(val => val.toUpperCase()),
-  razonSocial: z.string().min(1, 'Razón social requerida'),
+  businessName: z.string().min(1, 'Razón social requerida'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
-  telefono: z.string().optional(),
-  codigoPostal: z
+  phone: z.string().optional(),
+  postalCode: z
     .string()
     .min(5, 'Código postal debe tener 5 dígitos')
     .max(5, 'Código postal debe tener 5 dígitos')
     .regex(/^\d{5}$/, 'Código postal debe ser numérico'),
-  regimenFiscal: z.string().optional(),
-  usoCfdi: z.string().optional() // Optional, Select has defaultValue
+  taxRegime: z.string().optional(),
+  cfdiUsage: z.string().optional() // Optional, Select has defaultValue
 })
 
 export type ClientFormData = z.infer<typeof createClientFormSchema>

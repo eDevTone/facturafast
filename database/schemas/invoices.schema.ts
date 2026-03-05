@@ -1,40 +1,43 @@
-import { pgTable, uuid, varchar, text, timestamp, integer, numeric } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, timestamp, integer, numeric, pgEnum } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
-import { clients } from './clients'
+import { clients } from './clients.schema'
+
+// Enum for invoice status
+export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'timbrada', 'cancelada'])
 
 export const invoices = pgTable('invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull(),
+  userId: text('user_id').notNull(),
   clientId: uuid('client_id').notNull().references(() => clients.id),
   folio: integer('folio').notNull(),
   serie: varchar('serie', { length: 25 }),
-  fechaEmision: timestamp('fecha_emision', { withTimezone: true }).defaultNow().notNull(),
+  issuedAt: timestamp('issued_at', { withTimezone: true }).defaultNow().notNull(),
   subtotal: numeric('subtotal', { precision: 15, scale: 2 }).notNull(),
   iva: numeric('iva', { precision: 15, scale: 2 }).notNull().default('0'),
-  retenciones: numeric('retenciones', { precision: 15, scale: 2 }).notNull().default('0'),
+  withholdings: numeric('withholdings', { precision: 15, scale: 2 }).notNull().default('0'),
   total: numeric('total', { precision: 15, scale: 2 }).notNull(),
-  moneda: varchar('moneda', { length: 3 }).notNull().default('MXN'),
-  formaPago: varchar('forma_pago', { length: 2 }).notNull(),
-  metodoPago: varchar('metodo_pago', { length: 3 }).notNull(),
-  usoCfdi: varchar('uso_cfdi', { length: 10 }).notNull(),
+  currency: varchar('currency', { length: 3 }).notNull().default('MXN'),
+  paymentForm: varchar('payment_form', { length: 2 }).notNull(),
+  paymentMethod: varchar('payment_method', { length: 3 }).notNull(),
+  cfdiUsage: varchar('cfdi_usage', { length: 10 }).notNull(),
   xmlUrl: text('xml_url'),
   pdfUrl: text('pdf_url'),
   uuid: varchar('uuid', { length: 36 }),
-  estatus: varchar('estatus', { length: 20 }).notNull().default('draft'),
-  motivoCancelacion: varchar('motivo_cancelacion', { length: 2 }),
-  fechaCancelacion: timestamp('fecha_cancelacion', { withTimezone: true }),
+  status: invoiceStatusEnum('status').notNull().default('draft'),
+  cancellationReason: varchar('cancellation_reason', { length: 2 }),
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
 export const invoiceItems = pgTable('invoice_items', {
   id: uuid('id').primaryKey().defaultRandom(),
   invoiceId: uuid('invoice_id').notNull().references(() => invoices.id, { onDelete: 'cascade' }),
-  claveProdServ: varchar('clave_prod_serv', { length: 8 }).notNull().default('84111506'),
-  descripcion: text('descripcion').notNull(),
-  cantidad: numeric('cantidad', { precision: 15, scale: 2 }).notNull(),
-  unidad: varchar('unidad', { length: 10 }).notNull().default('E48'),
-  valorUnitario: numeric('valor_unitario', { precision: 15, scale: 2 }).notNull(),
-  importe: numeric('importe', { precision: 15, scale: 2 }).notNull(),
+  productServiceCode: varchar('product_service_code', { length: 8 }).notNull().default('84111506'),
+  description: text('description').notNull(),
+  quantity: numeric('quantity', { precision: 15, scale: 2 }).notNull(),
+  unit: varchar('unit', { length: 10 }).notNull().default('E48'),
+  unitPrice: numeric('unit_price', { precision: 15, scale: 2 }).notNull(),
+  amount: numeric('amount', { precision: 15, scale: 2 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 

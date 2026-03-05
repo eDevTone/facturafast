@@ -1,8 +1,8 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
-import { clerkLocalization, clerkAppearance } from "@/lib/clerk-config";
+import { ThemeProvider } from "@/shared/components/theme-provider";
+import { ClerkThemeSync } from "@/shared/components/clerk-theme-sync";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,17 +26,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClerkProvider 
-          localization={clerkLocalization}
-          appearance={clerkAppearance}
-        >
-          {children}
-          <Toaster position="top-right" richColors />
-        </ClerkProvider>
+        <ThemeProvider>
+          <ClerkThemeSync>
+            {children}
+            <Toaster position="top-right" richColors />
+          </ClerkThemeSync>
+        </ThemeProvider>
       </body>
     </html>
   );

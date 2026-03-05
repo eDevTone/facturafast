@@ -1,7 +1,6 @@
 'use client'
 
 import { LucideIcon } from 'lucide-react'
-import { Card, CardContent } from '@shared/ui/card'
 
 interface StatsCardProps {
   title: string
@@ -16,33 +15,30 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, icon: Icon, trend, subtitle }: StatsCardProps) {
   return (
-    <Card className="border-border hover:border-primary transition-colors">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold text-foreground mt-2">{value}</p>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-            <Icon className="w-5 h-5 text-accent" />
-          </div>
-        </div>
-        
-        {trend && (
-          <p className={`text-sm mt-3 flex items-center gap-1 ${
-            trend.isPositive ? 'text-success' : 'text-destructive'
-          }`}>
-            <span>{trend.isPositive ? '↑' : '↓'}</span>
-            {trend.value}
-          </p>
-        )}
-        
-        {subtitle && (
-          <p className="text-sm text-muted-foreground mt-3">
-            {subtitle}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+    <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
+      <div className="flex items-center justify-between">
+        <p className="text-[13px] font-medium text-muted-foreground">{title}</p>
+        <Icon className="h-4 w-4 text-muted-foreground/60" />
+      </div>
+
+      <p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+        {value}
+      </p>
+
+      {trend && (
+        <p className={`mt-2 text-[13px] ${
+          trend.isPositive ? 'text-primary' : 'text-destructive'
+        }`}>
+          <span className="font-medium">{trend.isPositive ? '↑' : '↓'}</span>{' '}
+          {trend.value}
+        </p>
+      )}
+
+      {subtitle && (
+        <p className="mt-2 text-[13px] text-muted-foreground">
+          {subtitle}
+        </p>
+      )}
+    </div>
   )
 }

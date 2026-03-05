@@ -5,14 +5,13 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 
 import { Button } from '@shared/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@shared/ui/card'
 import { Input } from '@shared/ui/input'
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,6 +29,51 @@ import { CSFUpload } from './csf-upload'
 import { createClientAction } from '../actions/create-client.action'
 import { createClientFormSchema, type ClientFormData } from '../schemas/client-form.schema'
 
+const TAX_REGIMES = [
+  { value: '601', label: '601 - General de Ley Personas Morales' },
+  { value: '603', label: '603 - Personas Morales con Fines no Lucrativos' },
+  { value: '605', label: '605 - Sueldos y Salarios e Ingresos Asimilados' },
+  { value: '606', label: '606 - Arrendamiento' },
+  { value: '608', label: '608 - Demás ingresos' },
+  { value: '610', label: '610 - Residentes en el Extranjero' },
+  { value: '611', label: '611 - Ingresos por Dividendos' },
+  { value: '612', label: '612 - Personas Físicas con Actividades Empresariales' },
+  { value: '614', label: '614 - Ingresos por intereses' },
+  { value: '615', label: '615 - Régimen de los ingresos por obtención de premios' },
+  { value: '616', label: '616 - Sin obligaciones fiscales' },
+  { value: '621', label: '621 - Incorporación Fiscal' },
+  { value: '625', label: '625 - Actividades Empresariales con Plataformas Tecnológicas' },
+  { value: '626', label: '626 - Régimen Simplificado de Confianza' },
+] as const
+
+const CFDI_USAGES = [
+  { value: 'G01', label: 'G01 - Adquisición de mercancías' },
+  { value: 'G02', label: 'G02 - Devoluciones, descuentos o bonificaciones' },
+  { value: 'G03', label: 'G03 - Gastos en general' },
+  { value: 'I01', label: 'I01 - Construcciones' },
+  { value: 'I02', label: 'I02 - Mobiliario y equipo de oficina' },
+  { value: 'I03', label: 'I03 - Equipo de transporte' },
+  { value: 'I04', label: 'I04 - Equipo de cómputo y accesorios' },
+  { value: 'I05', label: 'I05 - Dados, troqueles, moldes, matrices' },
+  { value: 'I06', label: 'I06 - Comunicaciones telefónicas' },
+  { value: 'I07', label: 'I07 - Comunicaciones satelitales' },
+  { value: 'I08', label: 'I08 - Otra maquinaria y equipo' },
+  { value: 'D01', label: 'D01 - Honorarios médicos y gastos hospitalarios' },
+  { value: 'D02', label: 'D02 - Gastos médicos por incapacidad' },
+  { value: 'D03', label: 'D03 - Gastos funerales' },
+  { value: 'D04', label: 'D04 - Donativos' },
+  { value: 'D05', label: 'D05 - Intereses reales por créditos hipotecarios' },
+  { value: 'D06', label: 'D06 - Aportaciones voluntarias al SAR' },
+  { value: 'D07', label: 'D07 - Primas por seguros de gastos médicos' },
+  { value: 'D08', label: 'D08 - Gastos de transportación escolar' },
+  { value: 'D09', label: 'D09 - Depósitos en cuentas para el ahorro' },
+  { value: 'D10', label: 'D10 - Pagos por servicios educativos' },
+  { value: 'S01', label: 'S01 - Sin efectos fiscales' },
+  { value: 'P01', label: 'P01 - Por definir' },
+  { value: 'CP01', label: 'CP01 - Pagos' },
+  { value: 'CN01', label: 'CN01 - Nómina' },
+] as const
+
 export function ClientForm() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -38,35 +82,34 @@ export function ClientForm() {
     resolver: zodResolver(createClientFormSchema),
     defaultValues: {
       rfc: '',
-      razonSocial: '',
+      businessName: '',
       email: '',
-      telefono: '',
-      codigoPostal: '',
-      regimenFiscal: '',
-      usoCfdi: '',
+      phone: '',
+      postalCode: '',
+      taxRegime: '',
+      cfdiUsage: '',
     },
   })
 
   const handleCSFData = (data: {
     rfc: string
-    razonSocial: string
-    regimenFiscal?: string | null
-    codigoPostal: string
+    businessName: string
+    taxRegime?: string | null
+    postalCode: string
     email?: string
-    usoCfdi?: string
+    cfdiUsage?: string
   }) => {
-    // Auto-fill form fields with extracted data
     form.setValue('rfc', data.rfc, { shouldDirty: true })
-    form.setValue('razonSocial', data.razonSocial, { shouldDirty: true })
-    form.setValue('codigoPostal', data.codigoPostal, { shouldDirty: true })
-    if (data.regimenFiscal) {
-      form.setValue('regimenFiscal', data.regimenFiscal, { shouldDirty: true })
+    form.setValue('businessName', data.businessName, { shouldDirty: true })
+    form.setValue('postalCode', data.postalCode, { shouldDirty: true })
+    if (data.taxRegime) {
+      form.setValue('taxRegime', data.taxRegime, { shouldDirty: true })
     }
     if (data.email) {
       form.setValue('email', data.email, { shouldDirty: true })
     }
-    if (data.usoCfdi) {
-      form.setValue('usoCfdi', data.usoCfdi, { shouldDirty: true })
+    if (data.cfdiUsage) {
+      form.setValue('cfdiUsage', data.cfdiUsage, { shouldDirty: true })
     }
 
     toast.success('Datos extraídos del CSF', {
@@ -76,25 +119,21 @@ export function ClientForm() {
 
   async function onSubmit(data: ClientFormData) {
     setIsSubmitting(true)
-    
+
     const toastId = toast.loading('Creando cliente...')
-    
+
     try {
-      console.log('[create-client] submitting:', data)
       const result = await createClientAction(data)
-      console.log('[create-client] result:', result)
 
       if (result.success) {
         toast.success('Cliente creado exitosamente', {
           id: toastId,
           description: `RFC: ${data.rfc}`
         })
-        
-        // Reset form
+
+        router.push('/clients')
+        router.refresh()
         form.reset()
-        
-        // Redirect to clients list
-        router.push('/clientes')
       } else {
         toast.error('Error al crear cliente', {
           id: toastId,
@@ -114,59 +153,126 @@ export function ClientForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {/* CSF Upload */}
         <CSFUpload onDataExtracted={handleCSFData} />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Información del Cliente</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {/* Datos Fiscales */}
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+              Datos Fiscales
+            </h2>
+            <div className="mt-1 h-px bg-border/40" />
+          </div>
+
+          <div className="grid grid-cols-5 gap-4">
             {/* RFC */}
             <FormField
               control={form.control}
               name="rfc"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>RFC *</FormLabel>
+                <FormItem className="col-span-3">
+                  <FormLabel>RFC</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="XAXX010101000"
+                      className="font-mono tracking-wide"
                       {...field}
                       onChange={e => field.onChange(e.target.value.toUpperCase())}
                     />
                   </FormControl>
-                  <FormDescription>
-                    12 caracteres (Persona Moral) o 13 (Persona Física)
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Razón Social */}
+            {/* Código Postal */}
             <FormField
               control={form.control}
-              name="razonSocial"
+              name="postalCode"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Razón Social / Nombre *</FormLabel>
+                <FormItem className="col-span-2">
+                  <FormLabel>Código Postal</FormLabel>
                   <FormControl>
-                    <Input placeholder="EMPRESA EJEMPLO SA DE CV" {...field} />
+                    <Input
+                      placeholder="76000"
+                      maxLength={5}
+                      className="font-mono tracking-wide"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </div>
 
+          {/* Razón Social */}
+          <FormField
+            control={form.control}
+            name="businessName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Razón Social / Nombre</FormLabel>
+                <FormControl>
+                  <Input placeholder="EMPRESA EJEMPLO SA DE CV" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Régimen Fiscal */}
+          <FormField
+            control={form.control}
+            name="taxRegime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-muted-foreground">
+                  Régimen Fiscal
+                  <span className="ml-1.5 text-[11px] text-muted-foreground/50">opcional</span>
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona régimen fiscal" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {TAX_REGIMES.map(regime => (
+                      <SelectItem key={regime.value} value={regime.value}>
+                        {regime.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </section>
+
+        {/* Contacto */}
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+              Contacto
+            </h2>
+            <div className="mt-1 h-px bg-border/40" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             {/* Email */}
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-muted-foreground">
+                    Email
+                    <span className="ml-1.5 text-[11px] text-muted-foreground/50">opcional</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -182,212 +288,82 @@ export function ClientForm() {
             {/* Teléfono */}
             <FormField
               control={form.control}
-              name="telefono"
+              name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Teléfono</FormLabel>
+                  <FormLabel className="text-muted-foreground">
+                    Teléfono
+                    <span className="ml-1.5 text-[11px] text-muted-foreground/50">opcional</span>
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="4421234567" {...field} />
+                    <Input placeholder="442 123 4567" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </div>
+        </section>
 
-            {/* Código Postal */}
-            <FormField
-              control={form.control}
-              name="codigoPostal"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Código Postal *</FormLabel>
+        {/* Facturación */}
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+              Facturación
+            </h2>
+            <div className="mt-1 h-px bg-border/40" />
+          </div>
+
+          {/* Uso CFDI */}
+          <FormField
+            control={form.control}
+            name="cfdiUsage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-muted-foreground">
+                  Uso CFDI
+                  <span className="ml-1.5 text-[11px] text-muted-foreground/50">opcional</span>
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <Input placeholder="76000" maxLength={5} {...field} />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona uso CFDI" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Régimen Fiscal */}
-            <FormField
-              control={form.control}
-              name="regimenFiscal"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Régimen Fiscal</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona régimen fiscal" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="601">
-                        601 - General de Ley Personas Morales
+                  <SelectContent>
+                    {CFDI_USAGES.map(usage => (
+                      <SelectItem key={usage.value} value={usage.value}>
+                        {usage.label}
                       </SelectItem>
-                      <SelectItem value="603">
-                        603 - Personas Morales con Fines no Lucrativos
-                      </SelectItem>
-                      <SelectItem value="605">
-                        605 - Sueldos y Salarios e Ingresos Asimilados a Salarios
-                      </SelectItem>
-                      <SelectItem value="606">
-                        606 - Arrendamiento
-                      </SelectItem>
-                      <SelectItem value="608">
-                        608 - Demás ingresos
-                      </SelectItem>
-                      <SelectItem value="610">
-                        610 - Residentes en el Extranjero
-                      </SelectItem>
-                      <SelectItem value="611">
-                        611 - Ingresos por Dividendos
-                      </SelectItem>
-                      <SelectItem value="612">
-                        612 - Personas Físicas con Actividades Empresariales
-                      </SelectItem>
-                      <SelectItem value="614">
-                        614 - Ingresos por intereses
-                      </SelectItem>
-                      <SelectItem value="615">
-                        615 - Régimen de los ingresos por obtención de premios
-                      </SelectItem>
-                      <SelectItem value="616">
-                        616 - Sin obligaciones fiscales
-                      </SelectItem>
-                      <SelectItem value="621">
-                        621 - Incorporación Fiscal
-                      </SelectItem>
-                      <SelectItem value="625">
-                        625 - Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas
-                      </SelectItem>
-                      <SelectItem value="626">
-                        626 - Régimen Simplificado de Confianza
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Opcional - Se puede dejar vacío
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Uso CFDI */}
-            <FormField
-              control={form.control}
-              name="usoCfdi"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Uso CFDI *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona uso CFDI" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="P01">
-                        P01 - Por definir
-                      </SelectItem>
-                      <SelectItem value="G01">
-                        G01 - Adquisición de mercancias
-                      </SelectItem>
-                      <SelectItem value="G02">
-                        G02 - Devoluciones, descuentos o bonificaciones
-                      </SelectItem>
-                      <SelectItem value="G03">
-                        G03 - Gastos en general
-                      </SelectItem>
-                      <SelectItem value="I01">
-                        I01 - Construcciones
-                      </SelectItem>
-                      <SelectItem value="I02">
-                        I02 - Mobilario y equipo de oficina por inversiones
-                      </SelectItem>
-                      <SelectItem value="I03">
-                        I03 - Equipo de transporte
-                      </SelectItem>
-                      <SelectItem value="I04">
-                        I04 - Equipo de computo y accesorios
-                      </SelectItem>
-                      <SelectItem value="I05">
-                        I05 - Dados, troqueles, moldes, matrices y herramental
-                      </SelectItem>
-                      <SelectItem value="I06">
-                        I06 - Comunicaciones telefónicas
-                      </SelectItem>
-                      <SelectItem value="I07">
-                        I07 - Comunicaciones satelitales
-                      </SelectItem>
-                      <SelectItem value="I08">
-                        I08 - Otra maquinaria y equipo
-                      </SelectItem>
-                      <SelectItem value="D01">
-                        D01 - Honorarios médicos, dentales y gastos hospitalarios
-                      </SelectItem>
-                      <SelectItem value="D02">
-                        D02 - Gastos médicos por incapacidad o discapacidad
-                      </SelectItem>
-                      <SelectItem value="D03">
-                        D03 - Gastos funerales
-                      </SelectItem>
-                      <SelectItem value="D04">
-                        D04 - Donativos
-                      </SelectItem>
-                      <SelectItem value="D05">
-                        D05 - Intereses reales efectivamente pagados por créditos hipotecarios
-                      </SelectItem>
-                      <SelectItem value="D06">
-                        D06 - Aportaciones voluntarias al SAR
-                      </SelectItem>
-                      <SelectItem value="D07">
-                        D07 - Primas por seguros de gastos médicos
-                      </SelectItem>
-                      <SelectItem value="D08">
-                        D08 - Gastos de transportación escolar obligatoria
-                      </SelectItem>
-                      <SelectItem value="D09">
-                        D09 - Depósitos en cuentas para el ahorro, primas
-                      </SelectItem>
-                      <SelectItem value="D10">
-                        D10 - Pagos por servicios educativos (colegiaturas)
-                      </SelectItem>
-                      <SelectItem value="S01">
-                        S01 - Sin efectos fiscales
-                      </SelectItem>
-                      <SelectItem value="CP01">
-                        CP01 - Pagos
-                      </SelectItem>
-                      <SelectItem value="CN01">
-                        CN01 - Nómina
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Uso que el cliente dará a la factura
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </section>
 
         {/* Actions */}
-        <div className="flex gap-4">
+        <div className="flex items-center justify-between pt-2 border-t border-border/40">
           <Button
             type="button"
-            variant="outline"
-            onClick={() => router.push('/clientes')}
+            variant="ghost"
+            onClick={() => router.push('/clients')}
             disabled={isSubmitting}
+            className="text-muted-foreground"
           >
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Guardando...' : 'Guardar Cliente'}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              'Guardar Cliente'
+            )}
           </Button>
         </div>
       </form>

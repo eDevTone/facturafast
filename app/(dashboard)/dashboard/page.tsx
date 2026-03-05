@@ -1,13 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Receipt, Users, Package, TrendingUp } from "lucide-react";
+import { Receipt, Users, Package, TrendingUp, FileText, ArrowUpRight } from "lucide-react";
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Dashboard
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Resumen de tu actividad de facturación
         </p>
       </div>
@@ -15,79 +17,92 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Total Facturado */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-medium text-muted-foreground">
               Total Facturado
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$45,230.89</div>
-            <p className="text-xs text-muted-foreground">
-              +20.1% desde el mes pasado
             </p>
-          </CardContent>
-        </Card>
+            <TrendingUp className="h-4 w-4 text-muted-foreground/60" />
+          </div>
+          <p className="mt-3 text-2xl font-semibold tracking-tight">
+            $45,230
+          </p>
+          <p className="mt-2 text-[13px] text-primary">
+            <span className="font-medium">↑</span> +20.1% vs mes anterior
+          </p>
+        </div>
 
         {/* Facturas */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-medium text-muted-foreground">
               Facturas
-            </CardTitle>
-            <Receipt className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">145</div>
-            <p className="text-xs text-muted-foreground">
-              +18 este mes
             </p>
-          </CardContent>
-        </Card>
+            <Receipt className="h-4 w-4 text-muted-foreground/60" />
+          </div>
+          <p className="mt-3 text-2xl font-semibold tracking-tight">
+            145
+          </p>
+          <p className="mt-2 text-[13px] text-muted-foreground">
+            +18 este mes
+          </p>
+        </div>
 
         {/* Clientes */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-medium text-muted-foreground">
               Clientes
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">32</div>
-            <p className="text-xs text-muted-foreground">
-              +5 nuevos este mes
             </p>
-          </CardContent>
-        </Card>
+            <Users className="h-4 w-4 text-muted-foreground/60" />
+          </div>
+          <p className="mt-3 text-2xl font-semibold tracking-tight">
+            32
+          </p>
+          <p className="mt-2 text-[13px] text-muted-foreground">
+            +5 nuevos este mes
+          </p>
+        </div>
 
         {/* Productos */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-medium text-muted-foreground">
               Productos
-            </CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">89</div>
-            <p className="text-xs text-muted-foreground">
-              En catálogo
             </p>
-          </CardContent>
-        </Card>
+            <Package className="h-4 w-4 text-muted-foreground/60" />
+          </div>
+          <p className="mt-3 text-2xl font-semibold tracking-tight">
+            89
+          </p>
+          <p className="mt-2 text-[13px] text-muted-foreground">
+            En catálogo
+          </p>
+        </div>
       </div>
 
       {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Actividad Reciente</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Actividad Reciente</CardTitle>
+            <button className="flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+              Ver todo <ArrowUpRight className="h-3 w-3" />
+            </button>
+          </div>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No hay actividad reciente para mostrar
-          </p>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="mb-3 rounded-full bg-muted p-3">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              No hay actividad reciente
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground/60">
+              Tu actividad de facturación aparecerá aquí
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

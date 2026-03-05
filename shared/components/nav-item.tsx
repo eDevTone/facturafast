@@ -20,16 +20,21 @@ export function NavItem({ href, icon: Icon, label, badge }: NavItemProps) {
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
         isActive
-          ? "bg-accent text-accent-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          ? "bg-primary/10 text-primary"
+          : "text-sidebar-foreground hover:bg-muted hover:text-foreground"
       )}
     >
-      <Icon className="h-5 w-5" />
+      <Icon
+        className={cn(
+          "h-4 w-4 shrink-0",
+          isActive ? "text-primary" : "text-sidebar-foreground group-hover:text-foreground"
+        )}
+      />
       <span className="flex-1">{label}</span>
       {badge && (
-        <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+        <span className="ml-auto rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
           {badge}
         </span>
       )}

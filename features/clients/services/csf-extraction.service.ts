@@ -42,7 +42,7 @@ function extractRegimenCode(regimenText: string): string | null {
 }
 
 /** Suggest Uso CFDI based on regimen fiscal code */
-function suggestUsoCfdi(regimenCode: string | null): string {
+function suggestCfdiUsage(regimenCode: string | undefined): string {
   if (!regimenCode) return "G03";
 
   switch (regimenCode) {
@@ -78,10 +78,10 @@ export function mapCsfToClientData(csf: CsfPdfResponse) {
   const regimenes = ((fiscal as Record<string, unknown>)["regimenes"] ??
     fiscal["Régimen"]) as Array<{ Régimen: string }> | undefined;
 
-  let regimenFiscal: string | null = null;
+  let taxRegime: string | undefined;
   if (Array.isArray(regimenes) && regimenes.length > 0) {
     const regimenText = regimenes[0].Régimen ?? String(regimenes[0]);
-    regimenFiscal = extractRegimenCode(regimenText);
+    taxRegime = extractRegimenCode(regimenText) ?? undefined;
   }
 
   // Get name/razon social
@@ -91,31 +91,31 @@ export function mapCsfToClientData(csf: CsfPdfResponse) {
     if (Array.isArray(v)) return String(v[0] || "");
     return String(v || "");
   };
-  let razonSocial = firstString(identification["Denominación o Razón Social"]);
-  if (!razonSocial) {
+  let businessName = firstString(identification["Denominación o Razón Social"]);
+  if (!businessName) {
     const nombre = firstString(identification["Nombre"]);
     const apellidoPaterno = firstString(identification["Apellido Paterno"]);
     const apellidoMaterno = firstString(identification["Apellido Materno"]);
-    razonSocial = [nombre, apellidoPaterno, apellidoMaterno].filter(Boolean).join(" ");
+    businessName = [nombre, apellidoPaterno, apellidoMaterno].filter(Boolean).join(" ");
   }
 
   // Get CP
-  const codigoPostal = (location["CP"] as string) || "";
+  const postalCode = (location["CP"] as string) || "";
 
   // Get email - handle both string and array
   const rawEmail = location["Correo electrónico"];
   const email = Array.isArray(rawEmail) ? rawEmail[0] || "" : (rawEmail as string) || "";
 
   // Suggest Uso CFDI based on regimen
-  const usoCfdi = suggestUsoCfdi(regimenFiscal);
+  const cfdiUsage = suggestCfdiUsage(taxRegime);
 
   return {
     rfc: csf.rfc || "",
-    razonSocial,
-    codigoPostal,
-    regimenFiscal,
+    businessName,
+    postalCode,
+    taxRegime,
     email,
-    usoCfdi,
-    telefono: "",
+    cfdiUsage,
+    phone: "",
   };
 }

@@ -5,12 +5,12 @@ import type { CreateInvoiceItemInput } from '../types/invoice.types'
  */
 export function calculateInvoiceTotals(items: CreateInvoiceItemInput[]) {
   const subtotal = items.reduce((acc, item) => {
-    return acc + (item.cantidad * item.valorUnitario)
+    return acc + (item.quantity * item.unitPrice)
   }, 0)
-  
+
   const iva = subtotal * 0.16 // 16% IVA
   const total = subtotal + iva
-  
+
   return {
     subtotal: Number(subtotal.toFixed(2)),
     iva: Number(iva.toFixed(2)),
@@ -19,10 +19,10 @@ export function calculateInvoiceTotals(items: CreateInvoiceItemInput[]) {
 }
 
 /**
- * Calculate single item importe
+ * Calculate single item amount
  */
-export function calculateItemImporte(cantidad: number, valorUnitario: number) {
-  return Number((cantidad * valorUnitario).toFixed(2))
+export function calculateItemAmount(quantity: number, unitPrice: number) {
+  return Number((quantity * unitPrice).toFixed(2))
 }
 
 /**
@@ -30,7 +30,7 @@ export function calculateItemImporte(cantidad: number, valorUnitario: number) {
  */
 export function formatCurrency(amount: number | string) {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  
+
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
     currency: 'MXN'

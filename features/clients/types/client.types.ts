@@ -2,21 +2,21 @@ export interface Client {
   id: string
   userId: string
   rfc: string
-  razonSocial: string
+  businessName: string
   email: string | null
-  telefono: string | null
-  codigoPostal: string
-  regimenFiscal: string | null
-  usoCfdi: string
+  phone: string | null
+  postalCode: string
+  taxRegime: string | null
+  cfdiUsage: string
   createdAt: Date
 }
 
 export interface CreateClientInput {
   rfc: string
-  razonSocial: string
+  businessName: string
   email?: string
-  telefono?: string
-  codigoPostal: string
-  regimenFiscal?: string
-  usoCfdi?: string
+  phone?: string
+  postalCode: string
+  taxRegime?: string
+  cfdiUsage?: string
 }

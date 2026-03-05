@@ -5,10 +5,10 @@ import { StatsCard } from './stats-card'
 
 interface DashboardStatsProps {
   stats: {
-    totalFacturado: number
-    facturasEsteMes: number
-    clientesActivos: number
-    crecimiento: number
+    totalInvoiced: number
+    invoicesThisMonth: number
+    activeClients: number
+    growth: number
   }
 }
 
@@ -25,35 +25,35 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <StatsCard
         title="Total Facturado"
-        value={formatCurrency(stats.totalFacturado)}
+        value={formatCurrency(stats.totalInvoiced)}
         icon={DollarSign}
         trend={{
-          value: `+${stats.crecimiento}% vs mes anterior`,
-          isPositive: stats.crecimiento > 0
+          value: `+${stats.growth}% vs mes anterior`,
+          isPositive: stats.growth > 0
         }}
       />
-      
+
       <StatsCard
         title="Facturas Este Mes"
-        value={stats.facturasEsteMes}
+        value={stats.invoicesThisMonth}
         icon={FileText}
-        subtitle={`${Math.floor(stats.facturasEsteMes / 30)} promedio diario`}
+        subtitle={`${Math.floor(stats.invoicesThisMonth / 30)} promedio diario`}
       />
-      
+
       <StatsCard
         title="Clientes Activos"
-        value={stats.clientesActivos}
+        value={stats.activeClients}
         icon={Users}
         subtitle="3 nuevos este mes"
       />
-      
+
       <StatsCard
         title="Crecimiento"
-        value={`${stats.crecimiento}%`}
+        value={`${stats.growth}%`}
         icon={TrendingUp}
         trend={{
           value: "vs mes anterior",
-          isPositive: stats.crecimiento > 0
+          isPositive: stats.growth > 0
         }}
       />
     </div>

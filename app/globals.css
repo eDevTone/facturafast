@@ -3,44 +3,64 @@
 @layer clerk, components, utilities;
 
 @theme {
-  /* Cal.com inspired color palette */
-  --color-primary: #18181b;
-  --color-primary-foreground: #fafafa;
-  
-  --color-accent: #3f3f46;
-  --color-accent-foreground: #fafafa;
-  
+  /* FacturaFast — Shared tokens */
+  --color-primary: #10b981;
+  --color-primary-foreground: #022c22;
+  --color-ring: #10b981;
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-destructive: #ef4444;
-  --color-destructive-foreground: #ffffff;
-  
-  --color-background: #ffffff;
-  --color-foreground: #18181b;
-  
+  --radius: 0.5rem;
+
+  /* Sidebar */
+  --color-sidebar: #0c0c0e;
+  --color-sidebar-foreground: #a1a1aa;
+  --color-sidebar-active: #10b981;
+
+  /* Defaults (dark) — overridden via .light class */
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  --color-card: #111113;
+  --color-card-foreground: #fafafa;
+  --color-popover: #111113;
+  --color-popover-foreground: #fafafa;
+  --color-muted: #18181b;
+  --color-muted-foreground: #a1a1aa;
+  --color-secondary: #1a1a1e;
+  --color-secondary-foreground: #fafafa;
+  --color-accent: #1a1a1e;
+  --color-accent-foreground: #fafafa;
+  --color-border: #232328;
+  --color-input: #232328;
+  --color-destructive-foreground: #fafafa;
+}
+
+/* Light mode overrides */
+.light {
+  --color-background: #fafafa;
+  --color-foreground: #09090b;
   --color-card: #ffffff;
-  --color-card-foreground: #18181b;
-  
+  --color-card-foreground: #09090b;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #09090b;
   --color-muted: #f4f4f5;
   --color-muted-foreground: #71717a;
-  
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #09090b;
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #09090b;
   --color-border: #e4e4e7;
   --color-input: #e4e4e7;
-  --color-ring: #3f3f46;
-  
-  /* Additional semantic colors */
-  --color-secondary: #f4f4f5;
-  --color-secondary-foreground: #18181b;
-  
-  /* Border radius */
-  --radius: 0.5rem;
+  --color-destructive-foreground: #fafafa;
+  --color-sidebar: #ffffff;
+  --color-sidebar-foreground: #71717a;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground antialiased;
   }

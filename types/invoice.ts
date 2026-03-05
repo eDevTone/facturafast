@@ -2,14 +2,14 @@ export interface FiscalProfile {
   id: string
   user_id: string
   rfc: string
-  razon_social: string
-  regimen_fiscal: string
-  codigo_postal: string
-  direccion_fiscal: string
-  certificado_cer?: string
-  certificado_key?: string
-  certificado_password?: string
-  constancia_fiscal_url?: string
+  business_name: string
+  tax_regime: string
+  postal_code: string
+  fiscal_address: string
+  certificate_cer?: string
+  certificate_key?: string
+  certificate_password?: string
+  tax_certificate_url?: string
   created_at: string
   updated_at: string
 }
@@ -18,12 +18,12 @@ export interface Client {
   id: string
   user_id: string
   rfc: string
-  razon_social: string
+  business_name: string
   email?: string
-  telefono?: string
-  codigo_postal: string
-  regimen_fiscal: string
-  uso_cfdi: string // P01, G03, etc.
+  phone?: string
+  postal_code: string
+  tax_regime: string
+  cfdi_usage: string // P01, G03, etc.
   created_at: string
 }
 
@@ -34,12 +34,12 @@ export type PaymentForm = '01' | '02' | '03' | '04' | '28' | '99' // Efectivo, C
 export interface InvoiceItem {
   id: string
   invoice_id: string
-  clave_prod_serv: string // Clave SAT (ej: 80131600 para servicios)
-  descripcion: string
-  cantidad: number
-  unidad: string // E48, H87, etc.
-  valor_unitario: number
-  importe: number
+  product_service_code: string // Clave SAT (ej: 80131600 para servicios)
+  description: string
+  quantity: number
+  unit: string // E48, H87, etc.
+  unit_price: number
+  amount: number
   created_at: string
 }
 
@@ -49,23 +49,23 @@ export interface Invoice {
   client_id: string
   folio: number
   serie?: string
-  fecha_emision: string
+  issued_at: string
   subtotal: number
   iva: number
-  retenciones: number
+  withholdings: number
   total: number
-  moneda: string // MXN default
-  forma_pago: PaymentForm
-  metodo_pago: PaymentMethod
-  uso_cfdi: string
+  currency: string // MXN default
+  payment_form: PaymentForm
+  payment_method: PaymentMethod
+  cfdi_usage: string
   xml_url?: string
   pdf_url?: string
   uuid?: string // Folio Fiscal del SAT
-  estatus: InvoiceStatus
-  motivo_cancelacion?: string
-  fecha_cancelacion?: string
+  status: InvoiceStatus
+  cancellation_reason?: string
+  cancelled_at?: string
   created_at: string
-  
+
   // Relations
   client?: Client
   items?: InvoiceItem[]
@@ -75,20 +75,20 @@ export interface CreateInvoiceInput {
   client_id?: string
   client_data?: {
     rfc: string
-    razon_social: string
+    business_name: string
     email?: string
-    codigo_postal: string
-    regimen_fiscal: string
-    uso_cfdi: string
+    postal_code: string
+    tax_regime: string
+    cfdi_usage: string
   }
   items: {
-    descripcion: string
-    cantidad: number
-    valor_unitario: number
-    clave_prod_serv?: string
-    unidad?: string
+    description: string
+    quantity: number
+    unit_price: number
+    product_service_code?: string
+    unit?: string
   }[]
-  forma_pago: PaymentForm
-  metodo_pago: PaymentMethod
+  payment_form: PaymentForm
+  payment_method: PaymentMethod
   serie?: string
 }
