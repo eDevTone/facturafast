@@ -2,8 +2,8 @@
 
 import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
+import { createClientFormSchema } from '../schemas/client-form.schema'
 import { updateClient } from '../services/client.service'
-import { clientFormSchema } from '../schemas/client-form.schema'
 
 export async function updateClientAction(id: string, formData: FormData) {
   const { userId } = await auth()
@@ -21,7 +21,7 @@ export async function updateClientAction(id: string, formData: FormData) {
     taxRegime: (formData.get('taxRegime') as string) || null,
   }
 
-  const validation = clientFormSchema.safeParse(data)
+  const validation = createClientFormSchema.safeParse(data)
 
   if (!validation.success) {
     return {
