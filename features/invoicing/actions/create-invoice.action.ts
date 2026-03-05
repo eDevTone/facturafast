@@ -1,26 +1,27 @@
 'use server'
 
+import { auth } from '@clerk/nextjs/server'
 import { createInvoice } from '../services/invoice.service'
 import type { CreateInvoiceInput } from '../types/invoice.types'
 
-/**
- * Server Action: Create invoice
- */
 export async function createInvoiceAction(data: CreateInvoiceInput) {
-  // TODO: Get current user from Supabase auth
-  const userId = 'temp-user-id' // Placeholder
-  
+  const { userId } = await auth()
+
+  if (!userId) {
+    return { success: false as const, error: 'No autorizado' }
+  }
+
   try {
     const invoice = await createInvoice(userId, data)
-    
+
     return {
-      success: true,
-      data: invoice
+      success: true as const,
+      invoiceId: invoice.id,
     }
   } catch (error) {
     return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to create invoice'
+      success: false as const,
+      error: error instanceof Error ? error.message : 'Error al crear la factura',
     }
   }
 }

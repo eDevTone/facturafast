@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -13,27 +14,30 @@ import {
   DialogTrigger,
 } from '@/shared/ui/dialog'
 import { Button } from '@/shared/ui/button'
-import { deleteClientAction } from '../actions/delete-client.action'
+import { deleteInvoiceAction } from '../actions/delete-invoice.action'
 
-interface DeleteClientDialogProps {
-  clientId: string
-  clientName: string
+interface DeleteInvoiceDialogProps {
+  invoiceId: string
+  invoiceLabel: string
 }
 
-export function DeleteClientDialog({ clientId, clientName }: DeleteClientDialogProps) {
+export function DeleteInvoiceDialog({ invoiceId, invoiceLabel }: DeleteInvoiceDialogProps) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
     setIsDeleting(true)
 
-    const result = await deleteClientAction(clientId)
+    const result = await deleteInvoiceAction(invoiceId)
 
     if (result.success) {
-      toast.success('Cliente eliminado correctamente')
+      toast.success('Factura eliminada')
       setOpen(false)
+      router.push('/invoices')
+      router.refresh()
     } else {
-      toast.error(result.error || 'Error al eliminar el cliente')
+      toast.error(result.error || 'Error al eliminar la factura')
     }
 
     setIsDeleting(false)
@@ -42,16 +46,17 @@ export function DeleteClientDialog({ clientId, clientName }: DeleteClientDialogP
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-          <Trash2 className="h-4 w-4" />
+        <Button variant="ghost" className="text-muted-foreground hover:text-destructive">
+          <Trash2 className="h-4 w-4 mr-2" />
+          Eliminar
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Eliminar cliente</DialogTitle>
+          <DialogTitle>Eliminar factura</DialogTitle>
           <DialogDescription>
-            Estás a punto de eliminar a <strong className="text-foreground">{clientName}</strong>.
-            Esta acción se puede revertir desde la configuración.
+            Estás a punto de eliminar la factura <strong className="text-foreground">{invoiceLabel}</strong>.
+            Solo se pueden eliminar borradores.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

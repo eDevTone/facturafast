@@ -7,13 +7,19 @@ import { clerkLocalization, clerkAppearance } from '@/lib/clerk-config'
 
 export function ClerkThemeSync({ children }: { children: React.ReactNode }) {
   const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   return (
     <ClerkProvider
       localization={clerkLocalization}
       appearance={{
         ...clerkAppearance,
-        baseTheme: resolvedTheme === 'dark' ? dark : undefined,
+        baseTheme: isDark ? dark : undefined,
+        variables: {
+          ...clerkAppearance.variables,
+          colorPrimary: isDark ? '#10b981' : '#059669',
+          colorSuccess: isDark ? '#10b981' : '#059669',
+        },
       }}
     >
       {children}

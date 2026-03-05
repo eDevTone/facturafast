@@ -1,0 +1,122 @@
+'use client'
+
+import { useState, useCallback } from 'react'
+import { Eye, Download, Loader2 } from 'lucide-react'
+import { pdf } from '@react-pdf/renderer'
+import { toast } from 'sonner'
+import { Button } from '@shared/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/shared/ui/dialog'
+import { InvoicePdfDocument } from './invoice-pdf-document'
+import type { InvoiceWithRelations } from '../types/invoice.types'
+
+interface FiscalProfileData {
+  rfc: string
+  businessName: string
+  taxRegime: string
+  postalCode: string
+  fiscalAddress?: string | null
+}
+
+interface InvoicePreviewDialogProps {
+  invoice: InvoiceWithRelations
+  emisor?: FiscalProfileData | null
+}
+
+export function InvoicePreviewDialog({ invoice, emisor }: InvoicePreviewDialogProps) {
+  const [open, setOpen] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const folioLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
+
+  const generatePdf = useCallback(async () => {
+    setIsGenerating(true)
+    try {
+      const blob = await pdf(
+        <InvoicePdfDocument invoice={invoice} emisor={emisor} />
+      ).toBlob()
+      const url = URL.createObjectURL(blob)
+      setPdfUrl(url)
+    } catch (error) {
+      console.error('PDF generation error:', error)
+      toast.error('Error al generar el PDF')
+    } finally {
+      setIsGenerating(false)
+    }
+  }, [invoice, emisor])
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen)
+    if (isOpen) {
+      generatePdf()
+    } else {
+      // Cleanup blob URL
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl)
+        setPdfUrl(null)
+      }
+    }
+  }
+
+  const handleDownload = () => {
+    if (!pdfUrl) return
+    const link = document.createElement('a')
+    link.href = pdfUrl
+    link.download = `factura-${folioLabel}.pdf`
+    link.click()
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Eye className="h-4 w-4 mr-2" />
+          Vista Previa
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pr-14 pt-5 pb-3 border-b border-border/40 flex-row items-center justify-between space-y-0">
+          <DialogTitle className="text-base">
+            Vista Previa — {folioLabel}
+          </DialogTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            disabled={!pdfUrl}
+          >
+            <Download className="h-3.5 w-3.5 mr-1.5" />
+            Descargar PDF
+          </Button>
+        </DialogHeader>
+
+        <div className="flex-1 min-h-0 bg-muted/30">
+          {isGenerating ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Generando PDF...</p>
+              </div>
+            </div>
+          ) : pdfUrl ? (
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full border-0"
+              title={`Vista previa factura ${folioLabel}`}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-sm text-muted-foreground">Error al generar el PDF</p>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}

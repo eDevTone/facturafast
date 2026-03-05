@@ -28,8 +28,10 @@ export default async function ClientesPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Clientes
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gestiona todos tus clientes y sus datos fiscales
+          <p className="text-[13px] text-muted-foreground mt-1">
+            {clients.length > 0
+              ? `${clients.length} cliente${clients.length !== 1 ? "s" : ""} registrado${clients.length !== 1 ? "s" : ""}`
+              : "Gestiona los datos fiscales de tus clientes"}
           </p>
         </div>
         <Link href="/clients/new">

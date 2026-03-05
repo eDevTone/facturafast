@@ -95,27 +95,60 @@ export async function createInvoice(
 }
 
 /**
- * Update invoice
+ * Update invoice (only drafts)
  */
 export async function updateInvoice(
   id: string,
   userId: string,
-  data: Partial<CreateInvoiceInput>
+  data: CreateInvoiceInput
 ) {
-  // Verify ownership
-  const invoice = await getInvoiceById(id, userId)
-  if (!invoice) {
-    throw new Error('Invoice not found')
+  const existing = await getInvoiceById(id, userId)
+  if (!existing) {
+    throw new Error('Factura no encontrada')
   }
 
-  if (invoice.status !== 'draft') {
-    throw new Error('Cannot edit a timbrada or cancelled invoice')
+  if (existing.status !== 'draft') {
+    throw new Error('Solo se pueden editar borradores')
   }
 
-  // Update logic here
-  // TODO: Implement update with items
+  const { subtotal, iva, total } = calculateInvoiceTotals(data.items)
 
-  return invoice
+  const result = await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(invoices)
+      .set({
+        clientId: data.clientId,
+        serie: data.serie || null,
+        paymentForm: data.paymentForm,
+        paymentMethod: data.paymentMethod,
+        cfdiUsage: data.cfdiUsage,
+        currency: data.currency || 'MXN',
+        subtotal: subtotal.toString(),
+        iva: iva.toString(),
+        total: total.toString(),
+      })
+      .where(and(eq(invoices.id, id), eq(invoices.userId, userId)))
+      .returning()
+
+    // Replace items: delete old, insert new
+    await tx.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id))
+
+    const itemsToInsert = data.items.map(item => ({
+      invoiceId: id,
+      productServiceCode: item.productServiceCode || '84111506',
+      description: item.description,
+      quantity: item.quantity.toString(),
+      unit: item.unit || 'E48',
+      unitPrice: item.unitPrice.toString(),
+      amount: (item.quantity * item.unitPrice).toString()
+    }))
+
+    await tx.insert(invoiceItems).values(itemsToInsert)
+
+    return updated
+  })
+
+  return result
 }
 
 /**

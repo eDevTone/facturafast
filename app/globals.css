@@ -1,15 +1,19 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 @layer clerk, components, utilities;
 
 @theme {
-  /* FacturaFast — Shared tokens */
+  /* FacturaFast — Design tokens */
+
+  /* Brand — Emerald (dark mode defaults) */
   --color-primary: #10b981;
   --color-primary-foreground: #022c22;
   --color-ring: #10b981;
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
   --radius: 0.5rem;
 
   /* Sidebar */
@@ -17,7 +21,7 @@
   --color-sidebar-foreground: #a1a1aa;
   --color-sidebar-active: #10b981;
 
-  /* Defaults (dark) — overridden via .light class */
+  /* Surfaces (dark) */
   --color-background: #09090b;
   --color-foreground: #fafafa;
   --color-card: #111113;
@@ -32,11 +36,18 @@
   --color-accent-foreground: #fafafa;
   --color-border: #232328;
   --color-input: #232328;
-  --color-destructive-foreground: #fafafa;
 }
 
 /* Light mode overrides */
 .light {
+  /* Emerald tuned — darker for text contrast on white (5.1:1) */
+  --color-primary: #059669;
+  --color-primary-foreground: #ecfdf5;
+  --color-ring: #059669;
+  --color-success: #059669;
+  --color-sidebar-active: #059669;
+
+  /* Surfaces */
   --color-background: #fafafa;
   --color-foreground: #09090b;
   --color-card: #ffffff;
@@ -44,16 +55,18 @@
   --color-popover: #ffffff;
   --color-popover-foreground: #09090b;
   --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
+  --color-muted-foreground: #52525b;
   --color-secondary: #f4f4f5;
   --color-secondary-foreground: #09090b;
   --color-accent: #f4f4f5;
   --color-accent-foreground: #09090b;
   --color-border: #e4e4e7;
-  --color-input: #e4e4e7;
+  --color-input: #d4d4d8;
   --color-destructive-foreground: #fafafa;
+
+  /* Sidebar */
   --color-sidebar: #ffffff;
-  --color-sidebar-foreground: #71717a;
+  --color-sidebar-foreground: #52525b;
 }
 
 @layer base {
