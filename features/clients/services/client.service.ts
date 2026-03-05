@@ -1,20 +1,23 @@
-import { eq, and, ilike } from 'drizzle-orm'
+import { eq, and, ilike, isNull } from 'drizzle-orm'
 import { db } from '@database/client'
 import { clients } from '@database/schemas/clients.schema'
 import type { CreateClientInput, Client } from '../types/client.types'
 
 /**
- * Get all clients for a user
+ * Get all clients for a user (excluding soft-deleted)
  */
 export async function getClients(userId: string): Promise<Client[]> {
   return db.query.clients.findMany({
-    where: eq(clients.userId, userId),
+    where: and(
+      eq(clients.userId, userId),
+      isNull(clients.deletedAt)
+    ),
     orderBy: (clients, { desc }) => desc(clients.createdAt)
   })
 }
 
 /**
- * Get client by ID
+ * Get client by ID (excluding soft-deleted)
  */
 export async function getClientById(
   id: string,
@@ -23,13 +26,14 @@ export async function getClientById(
   return db.query.clients.findFirst({
     where: and(
       eq(clients.id, id),
-      eq(clients.userId, userId)
+      eq(clients.userId, userId),
+      isNull(clients.deletedAt)
     )
   })
 }
 
 /**
- * Get client by RFC
+ * Get client by RFC (excluding soft-deleted)
  */
 export async function getClientByRFC(
   rfc: string,
@@ -38,13 +42,14 @@ export async function getClientByRFC(
   return db.query.clients.findFirst({
     where: and(
       eq(clients.rfc, rfc.toUpperCase()),
-      eq(clients.userId, userId)
+      eq(clients.userId, userId),
+      isNull(clients.deletedAt)
     )
   })
 }
 
 /**
- * Search clients by name or RFC
+ * Search clients by name or RFC (excluding soft-deleted)
  */
 export async function searchClients(
   userId: string,
@@ -53,6 +58,7 @@ export async function searchClients(
   return db.query.clients.findMany({
     where: and(
       eq(clients.userId, userId),
+      isNull(clients.deletedAt),
       ilike(clients.businessName, `%${query}%`)
     ),
     limit: 10
@@ -66,7 +72,7 @@ export async function createClient(
   userId: string,
   data: CreateClientInput
 ): Promise<Client> {
-  // Check if RFC already exists
+  // Check if RFC already exists (excluding soft-deleted)
   const existing = await getClientByRFC(data.rfc, userId)
   if (existing) {
     throw new Error(`Client with RFC ${data.rfc} already exists`)
@@ -106,16 +112,20 @@ export async function updateClient(
     .update(clients)
     .set({
       ...data,
-      rfc: data.rfc ? data.rfc.toUpperCase() : undefined
+      rfc: data.rfc ? data.rfc.toUpperCase() : undefined,
+      updatedAt: new Date(),
     })
-    .where(eq(clients.id, id))
+    .where(and(
+      eq(clients.id, id),
+      isNull(clients.deletedAt)
+    ))
     .returning()
 
   return updated
 }
 
 /**
- * Delete client
+ * Soft delete client
  */
 export async function deleteClient(id: string, userId: string) {
   const client = await getClientById(id, userId)
@@ -123,9 +133,17 @@ export async function deleteClient(id: string, userId: string) {
     throw new Error('Client not found')
   }
 
-  // TODO: Check if client has invoices before deleting
-
-  await db.delete(clients).where(eq(clients.id, id))
+  // Soft delete: set deletedAt timestamp
+  await db
+    .update(clients)
+    .set({
+      deletedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(and(
+      eq(clients.id, id),
+      eq(clients.userId, userId)
+    ))
 
   return { success: true }
 }

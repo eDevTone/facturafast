@@ -74,13 +74,25 @@ const CFDI_USAGES = [
   { value: 'CN01', label: 'CN01 - Nómina' },
 ] as const
 
-export function ClientForm() {
+interface ClientFormProps {
+  defaultValues?: Partial<ClientFormData>
+  onSubmit?: (formData: FormData) => Promise<any>
+  submitLabel?: string
+  showCSFUpload?: boolean
+}
+
+export function ClientForm({ 
+  defaultValues, 
+  onSubmit: customOnSubmit,
+  submitLabel = 'Guardar Cliente',
+  showCSFUpload = true 
+}: ClientFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(createClientFormSchema),
-    defaultValues: {
+    defaultValues: defaultValues || {
       rfc: '',
       businessName: '',
       email: '',
@@ -120,22 +132,31 @@ export function ClientForm() {
   async function onSubmit(data: ClientFormData) {
     setIsSubmitting(true)
 
-    const toastId = toast.loading('Creando cliente...')
+    const toastId = toast.loading(defaultValues ? 'Actualizando cliente...' : 'Creando cliente...')
 
     try {
-      const result = await createClientAction(data)
+      const formData = new FormData()
+      Object.entries(data).forEach(([key, value]) => {
+        if (value) formData.append(key, value)
+      })
+
+      const result = customOnSubmit 
+        ? await customOnSubmit(formData)
+        : await createClientAction(data)
 
       if (result.success) {
-        toast.success('Cliente creado exitosamente', {
+        toast.success(defaultValues ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente', {
           id: toastId,
           description: `RFC: ${data.rfc}`
         })
 
-        router.push('/clients')
-        router.refresh()
+        if (!customOnSubmit) {
+          router.push('/clients')
+          router.refresh()
+        }
         form.reset()
       } else {
-        toast.error('Error al crear cliente', {
+        toast.error(defaultValues ? 'Error al actualizar cliente' : 'Error al crear cliente', {
           id: toastId,
           description: result.error || 'Intenta de nuevo'
         })
@@ -144,7 +165,7 @@ export function ClientForm() {
       console.error('Form error:', error)
       toast.error('Error inesperado', {
         id: toastId,
-        description: 'No se pudo crear el cliente'
+        description: defaultValues ? 'No se pudo actualizar el cliente' : 'No se pudo crear el cliente'
       })
     } finally {
       setIsSubmitting(false)
@@ -155,7 +176,7 @@ export function ClientForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {/* CSF Upload */}
-        <CSFUpload onDataExtracted={handleCSFData} />
+        {showCSFUpload && <CSFUpload onDataExtracted={handleCSFData} />}
 
         {/* Datos Fiscales */}
         <section className="space-y-4">
@@ -349,7 +370,7 @@ export function ClientForm() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => router.push('/clients')}
+            onClick={() => customOnSubmit ? null : router.push('/clients')}
             disabled={isSubmitting}
             className="text-muted-foreground"
           >
@@ -362,7 +383,7 @@ export function ClientForm() {
                 Guardando...
               </>
             ) : (
-              'Guardar Cliente'
+              submitLabel
             )}
           </Button>
         </div>

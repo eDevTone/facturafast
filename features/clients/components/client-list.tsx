@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Users, Phone, MapPin } from 'lucide-react'
 import { Button } from '@shared/ui/button'
 import { Badge } from '@shared/ui/badge'
+import { EditClientDialog } from './edit-client-dialog'
+import { DeleteClientDialog } from './delete-client-dialog'
 import type { Client } from '../types/client.types'
 
 interface ClientListProps {
@@ -48,12 +50,20 @@ export function ClientList({ clients }: ClientListProps) {
                 {client.rfc}
               </p>
             </div>
-            {client.taxRegime && (
-              <Badge variant="secondary" className="shrink-0 text-xs">
-                {client.taxRegime}
-              </Badge>
-            )}
+            <div className="flex items-center gap-1 shrink-0">
+              <EditClientDialog client={client} />
+              <DeleteClientDialog 
+                clientId={client.id} 
+                clientName={client.businessName} 
+              />
+            </div>
           </div>
+
+          {client.taxRegime && (
+            <Badge variant="secondary" className="mt-3 text-xs">
+              {client.taxRegime}
+            </Badge>
+          )}
 
           {client.email && (
             <p className="mt-3 text-xs text-muted-foreground truncate">

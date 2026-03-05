@@ -11,6 +11,8 @@ export const clients = pgTable('clients', {
   taxRegime: varchar('tax_regime', { length: 10 }),
   cfdiUsage: varchar('cfdi_usage', { length: 10 }).notNull().default('P01'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 })
 
 // Relations will be defined in invoices.schema.ts
