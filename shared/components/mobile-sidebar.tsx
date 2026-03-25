@@ -6,11 +6,11 @@ import { Menu, Receipt } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
-  Package,
-  BarChart3,
-  Settings,
-  FileText,
-  CreditCard,
+  // Package,
+  // BarChart3,
+  // Settings,
+  // FileText,
+  // CreditCard,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
@@ -67,8 +67,8 @@ export function MobileSidebar() {
                 Ventas
               </p>
               <NavItem href="/invoices" icon={Receipt} label="Facturas" />
-              <NavItem href="/quotes" icon={FileText} label="Cotizaciones" />
-              <NavItem href="/credit-notes" icon={CreditCard} label="Notas de Crédito" />
+              {/* <NavItem href="/quotes" icon={FileText} label="Cotizaciones" /> */}
+              {/* <NavItem href="/credit-notes" icon={CreditCard} label="Notas de Crédito" /> */}
             </div>
 
             <div className="space-y-1">
@@ -76,19 +76,19 @@ export function MobileSidebar() {
                 Catálogos
               </p>
               <NavItem href="/clients" icon={Users} label="Clientes" />
-              <NavItem href="/products" icon={Package} label="Productos" />
+              {/* <NavItem href="/products" icon={Package} label="Productos" /> */}
             </div>
 
-            <div className="space-y-1">
+            {/* <div className="space-y-1">
               <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
                 Análisis
               </p>
               <NavItem href="/reports" icon={BarChart3} label="Reportes" />
-            </div>
+            </div> */}
 
-            <div>
+            {/* <div>
               <NavItem href="/settings" icon={Settings} label="Configuración" />
-            </div>
+            </div> */}
           </nav>
         </div>
       </SheetContent>

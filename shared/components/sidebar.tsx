@@ -6,11 +6,11 @@ import {
   LayoutDashboard,
   Receipt,
   Users,
-  Package,
-  BarChart3,
-  Settings,
-  FileText,
-  CreditCard,
+  // Package,
+  // BarChart3,
+  // Settings,
+  // FileText,
+  // CreditCard,
 } from "lucide-react";
 import { NavItem } from "./nav-item";
 
@@ -43,8 +43,8 @@ export function Sidebar() {
             Ventas
           </p>
           <NavItem href="/invoices" icon={Receipt} label="Facturas" />
-          <NavItem href="/quotes" icon={FileText} label="Cotizaciones" />
-          <NavItem href="/credit-notes" icon={CreditCard} label="Notas de Crédito" />
+          {/* <NavItem href="/quotes" icon={FileText} label="Cotizaciones" /> */}
+          {/* <NavItem href="/credit-notes" icon={CreditCard} label="Notas de Crédito" /> */}
         </div>
 
         {/* Catálogos */}
@@ -53,21 +53,21 @@ export function Sidebar() {
             Catálogos
           </p>
           <NavItem href="/clients" icon={Users} label="Clientes" />
-          <NavItem href="/products" icon={Package} label="Productos" />
+          {/* <NavItem href="/products" icon={Package} label="Productos" /> */}
         </div>
 
         {/* Análisis */}
-        <div className="space-y-1">
+        {/* <div className="space-y-1">
           <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
             Análisis
           </p>
           <NavItem href="/reports" icon={BarChart3} label="Reportes" />
-        </div>
+        </div> */}
 
         {/* Config */}
-        <div>
+        {/* <div>
           <NavItem href="/settings" icon={Settings} label="Configuración" />
-        </div>
+        </div> */}
       </nav>
 
       {/* User */}
