@@ -9,6 +9,7 @@ export const invoices = pgTable('invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: text('user_id').notNull(),
   clientId: uuid('client_id').notNull().references(() => clients.id),
+  issuingProfileId: uuid('issuing_profile_id'),
   folio: integer('folio').notNull(),
   serie: varchar('serie', { length: 25 }),
   issuedAt: timestamp('issued_at', { withTimezone: true }).defaultNow().notNull(),

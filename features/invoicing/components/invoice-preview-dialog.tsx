@@ -1,10 +1,5 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Eye, Download, Loader2 } from 'lucide-react'
-import { pdf } from '@react-pdf/renderer'
-import { toast } from 'sonner'
-import { Button } from '@shared/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -12,8 +7,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/shared/ui/dialog'
-import { InvoicePdfDocument } from './invoice-pdf-document'
+import { pdf } from '@react-pdf/renderer'
+import { Button } from '@shared/ui/button'
+import { Download, Eye, Loader2 } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { toast } from 'sonner'
 import type { InvoiceWithRelations } from '../types/invoice.types'
+import { InvoicePdfDocument } from './invoice-pdf-document'
 
 interface FiscalProfileData {
   rfc: string
@@ -26,9 +26,14 @@ interface FiscalProfileData {
 interface InvoicePreviewDialogProps {
   invoice: InvoiceWithRelations
   emisor?: FiscalProfileData | null
+  labels: {
+    paymentForms: Record<string, string>
+    paymentMethods: Record<string, string>
+    cfdiUsages: Record<string, string>
+  }
 }
 
-export function InvoicePreviewDialog({ invoice, emisor }: InvoicePreviewDialogProps) {
+export function InvoicePreviewDialog({ invoice, emisor, labels }: InvoicePreviewDialogProps) {
   const [open, setOpen] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -39,7 +44,7 @@ export function InvoicePreviewDialog({ invoice, emisor }: InvoicePreviewDialogPr
     setIsGenerating(true)
     try {
       const blob = await pdf(
-        <InvoicePdfDocument invoice={invoice} emisor={emisor} />
+        <InvoicePdfDocument invoice={invoice} emisor={emisor} labels={labels} />
       ).toBlob()
       const url = URL.createObjectURL(blob)
       setPdfUrl(url)
@@ -49,7 +54,7 @@ export function InvoicePreviewDialog({ invoice, emisor }: InvoicePreviewDialogPr
     } finally {
       setIsGenerating(false)
     }
-  }, [invoice, emisor])
+  }, [invoice, emisor, labels])
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen)

@@ -1,8 +1,11 @@
 import { ClientForm } from '@features/clients/components/client-form'
+import { getClientFormCatalogs } from '@shared/services/sat-catalog.service'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-export default function NewClientPage() {
+export default async function NewClientPage() {
+  const catalogs = await getClientFormCatalogs()
+
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       {/* Page Header */}
@@ -23,7 +26,7 @@ export default function NewClientPage() {
       </div>
 
       {/* Client Form */}
-      <ClientForm />
+      <ClientForm catalogs={catalogs} />
     </div>
   )
 }

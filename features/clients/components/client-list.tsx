@@ -1,36 +1,25 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import Link from 'next/link'
-import { Users, Search, Mail, Phone, MapPin } from 'lucide-react'
+import type { CatalogOption } from '@shared/services/sat-catalog.service'
 import { Button } from '@shared/ui/button'
 import { Input } from '@shared/ui/input'
-import { EditClientDialog } from './edit-client-dialog'
-import { DeleteClientDialog } from './delete-client-dialog'
+import { Mail, MapPin, Phone, Search, Users } from 'lucide-react'
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
 import type { Client } from '../types/client.types'
-
-const TAX_REGIME_LABELS: Record<string, string> = {
-  '601': 'General Ley PM',
-  '603': 'Fines no Lucrativos',
-  '605': 'Sueldos y Salarios',
-  '606': 'Arrendamiento',
-  '608': 'Demás ingresos',
-  '610': 'Residentes Extranjero',
-  '611': 'Dividendos',
-  '612': 'Act. Empresariales PF',
-  '614': 'Intereses',
-  '615': 'Premios',
-  '616': 'Sin obligaciones',
-  '621': 'Incorporación Fiscal',
-  '625': 'Plataformas Tec.',
-  '626': 'RESICO',
-}
+import { DeleteClientDialog } from './delete-client-dialog'
+import { EditClientDialog } from './edit-client-dialog'
 
 interface ClientListProps {
   clients: Client[]
+  taxRegimeLabels: Record<string, string>
+  catalogs: {
+    taxRegimes: CatalogOption[]
+    cfdiUsages: CatalogOption[]
+  }
 }
 
-export function ClientList({ clients }: ClientListProps) {
+export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListProps) {
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {
@@ -81,7 +70,7 @@ export function ClientList({ clients }: ClientListProps) {
       {/* List */}
       <div className="rounded-xl border border-border/60 bg-card divide-y divide-border/40">
         {/* Column header */}
-        <div className="hidden md:grid md:grid-cols-[1fr_140px_160px_180px_80px] items-center gap-4 px-5 py-2.5">
+        <div className="hidden md:grid md:grid-cols-[1fr_140px_220px_200px_80px] items-center gap-4 px-5 py-2.5">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
             Cliente
           </span>
@@ -107,7 +96,7 @@ export function ClientList({ clients }: ClientListProps) {
           filtered.map(client => (
             <div
               key={client.id}
-              className="group grid grid-cols-1 md:grid-cols-[1fr_140px_160px_180px_80px] items-center gap-2 md:gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30"
+              className="group grid grid-cols-1 md:grid-cols-[1fr_140px_220px_200px_80px] items-center gap-2 md:gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30"
             >
               {/* Name + Email */}
               <div className="min-w-0">
@@ -131,7 +120,7 @@ export function ClientList({ clients }: ClientListProps) {
               <div>
                 {client.taxRegime ? (
                   <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                    {TAX_REGIME_LABELS[client.taxRegime] || client.taxRegime}
+                    {taxRegimeLabels[client.taxRegime] || client.taxRegime}
                   </span>
                 ) : (
                   <span className="text-[12px] text-muted-foreground/40">—</span>
@@ -165,7 +154,7 @@ export function ClientList({ clients }: ClientListProps) {
 
               {/* Actions */}
               <div className="flex items-center justify-end gap-0.5">
-                <EditClientDialog client={client} />
+                <EditClientDialog client={client} catalogs={catalogs} />
                 <DeleteClientDialog
                   clientId={client.id}
                   clientName={client.businessName}

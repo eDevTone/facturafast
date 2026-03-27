@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { getInvoiceById } from '@features/invoicing/services/invoice.service'
 import { getClients } from '@features/clients/services/client.service'
+import { getAllIssuingProfiles, getDefaultIssuingProfile } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { getInvoiceFormCatalogs } from '@shared/services/sat-catalog.service'
 import { InvoiceForm } from '@features/invoicing/components/invoice-form'
 
 export const dynamic = 'force-dynamic'
@@ -20,9 +22,12 @@ export default async function EditInvoicePage({
     notFound()
   }
 
-  const [invoice, clients] = await Promise.all([
+  const [invoice, clients, catalogs, profiles, defaultProfile] = await Promise.all([
     getInvoiceById(id, userId),
     getClients(userId),
+    getInvoiceFormCatalogs(),
+    getAllIssuingProfiles(userId),
+    getDefaultIssuingProfile(userId),
   ])
 
   if (!invoice || invoice.status !== 'draft') {
@@ -49,7 +54,13 @@ export default async function EditInvoicePage({
         </p>
       </div>
 
-      <InvoiceForm clients={clients} invoice={invoice} />
+      <InvoiceForm
+        clients={clients}
+        invoice={invoice}
+        catalogs={catalogs}
+        profiles={profiles}
+        defaultProfileId={defaultProfile?.id}
+      />
     </div>
   )
 }

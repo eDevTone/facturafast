@@ -1,27 +1,27 @@
 import { InvoiceForm } from '@features/invoicing/components/invoice-form'
 import { getClients } from '@features/clients/services/client.service'
+import { getAllIssuingProfiles, getDefaultIssuingProfile } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { getInvoiceFormCatalogs } from '@shared/services/sat-catalog.service'
 import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import type { Client } from '@features/clients/types/client.types'
 
 export const dynamic = 'force-dynamic'
 
 export default async function NewInvoicePage() {
   const { userId } = await auth()
+  if (!userId) redirect('/sign-in')
 
-  let clients: Client[] = []
-  if (userId) {
-    try {
-      clients = await getClients(userId)
-    } catch (error) {
-      console.error('Error fetching clients:', error)
-    }
-  }
+  const [clients, catalogs, profiles, defaultProfile] = await Promise.all([
+    getClients(userId),
+    getInvoiceFormCatalogs(),
+    getAllIssuingProfiles(userId),
+    getDefaultIssuingProfile(userId),
+  ])
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
-      {/* Page Header */}
       <div className="mb-8">
         <Link
           href="/invoices"
@@ -38,8 +38,12 @@ export default async function NewInvoicePage() {
         </p>
       </div>
 
-      {/* Invoice Form */}
-      <InvoiceForm clients={clients} />
+      <InvoiceForm
+        clients={clients}
+        catalogs={catalogs}
+        profiles={profiles}
+        defaultProfileId={defaultProfile?.id}
+      />
     </div>
   )
 }

@@ -15,10 +15,11 @@ export async function updateClientAction(id: string, formData: FormData) {
   const data = {
     rfc: formData.get('rfc') as string,
     businessName: formData.get('businessName') as string,
-    email: (formData.get('email') as string) || null,
-    phone: (formData.get('phone') as string) || null,
+    email: (formData.get('email') as string) || '',
+    phone: (formData.get('phone') as string) || '',
     postalCode: formData.get('postalCode') as string,
-    taxRegime: (formData.get('taxRegime') as string) || null,
+    taxRegime: (formData.get('taxRegime') as string) || '',
+    cfdiUsage: (formData.get('cfdiUsage') as string) || '',
   }
 
   const validation = createClientFormSchema.safeParse(data)

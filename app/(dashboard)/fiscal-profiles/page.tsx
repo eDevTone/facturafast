@@ -1,13 +1,17 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getAllIssuingProfiles } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { getTaxRegimeOptions } from '@shared/services/sat-catalog.service'
 import { FiscalProfilesClient } from './fiscal-profiles-client'
 
 export default async function FiscalProfilesPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  const profiles = await getAllIssuingProfiles(userId)
+  const [profiles, taxRegimes] = await Promise.all([
+    getAllIssuingProfiles(userId),
+    getTaxRegimeOptions(),
+  ])
 
   return (
     <div className="space-y-6">
@@ -17,7 +21,7 @@ export default async function FiscalProfilesPage() {
           Gestiona los RFC desde los que puedes emitir facturas.
         </p>
       </div>
-      <FiscalProfilesClient profiles={profiles} />
+      <FiscalProfilesClient profiles={profiles} taxRegimes={taxRegimes} />
     </div>
   )
 }

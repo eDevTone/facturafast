@@ -1,5 +1,6 @@
 import { ClientList } from "@/features/clients/components/client-list";
 import { getClients } from "@/features/clients/services/client.service";
+import { getClientFormCatalogs, getTaxRegimeLabels } from "@/shared/services/sat-catalog.service";
 import { Button } from "@/shared/ui/button";
 import { auth } from "@clerk/nextjs/server";
 import { Plus } from "lucide-react";
@@ -19,6 +20,11 @@ export default async function ClientesPage() {
       console.error("Error fetching clients:", error);
     }
   }
+
+  const [catalogs, taxRegimeLabels] = await Promise.all([
+    getClientFormCatalogs(),
+    getTaxRegimeLabels(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -43,7 +49,11 @@ export default async function ClientesPage() {
       </div>
 
       {/* Clients List */}
-      <ClientList clients={clients} />
+      <ClientList
+        clients={clients}
+        taxRegimeLabels={taxRegimeLabels}
+        catalogs={catalogs}
+      />
     </div>
   );
 }

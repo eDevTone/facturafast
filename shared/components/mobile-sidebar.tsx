@@ -6,6 +6,7 @@ import { Menu, Receipt } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
+  Building2,
   // Package,
   // BarChart3,
   // Settings,
@@ -77,6 +78,13 @@ export function MobileSidebar() {
               </p>
               <NavItem href="/clients" icon={Users} label="Clientes" />
               {/* <NavItem href="/products" icon={Package} label="Productos" /> */}
+            </div>
+
+            <div className="space-y-1">
+              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                Configuración
+              </p>
+              <NavItem href="/fiscal-profiles" icon={Building2} label="Perfiles Fiscales" />
             </div>
 
             {/* <div className="space-y-1">

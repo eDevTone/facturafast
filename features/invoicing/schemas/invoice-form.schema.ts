@@ -12,6 +12,7 @@ export const invoiceItemSchema = z.object({
 // Create invoice form schema
 export const createInvoiceFormSchema = z.object({
   clientId: z.string().uuid('Cliente requerido'),
+  issuingProfileId: z.string().uuid('Perfil fiscal requerido'),
   serie: z.string().optional(),
   paymentForm: z.string().min(1, 'Forma de pago requerida'),
   paymentMethod: z.string().min(1, 'Método de pago requerido'),

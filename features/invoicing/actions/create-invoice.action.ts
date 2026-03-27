@@ -1,6 +1,7 @@
 'use server'
 
 import { auth } from '@clerk/nextjs/server'
+import { revalidatePath } from 'next/cache'
 import { createInvoice } from '../services/invoice.service'
 import type { CreateInvoiceInput } from '../types/invoice.types'
 
@@ -13,6 +14,9 @@ export async function createInvoiceAction(data: CreateInvoiceInput) {
 
   try {
     const invoice = await createInvoice(userId, data)
+
+    revalidatePath('/invoices')
+    revalidatePath(`/invoices/${invoice.id}`)
 
     return {
       success: true as const,

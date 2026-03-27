@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { getInvoiceById } from '@features/invoicing/services/invoice.service'
-import { getFiscalProfile } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { getIssuingProfileById, getDefaultIssuingProfile } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { getPaymentFormLabels, getPaymentMethodLabels, getCfdiUsageLabels } from '@shared/services/sat-catalog.service'
 import { InvoiceDetail } from '@features/invoicing/components/invoice-detail'
 
 export const dynamic = 'force-dynamic'
@@ -20,22 +21,28 @@ export default async function InvoiceDetailPage({
     notFound()
   }
 
-  const [invoice, fiscalProfile] = await Promise.all([
+  const [invoice, paymentFormLabels, paymentMethodLabels, cfdiUsageLabels] = await Promise.all([
     getInvoiceById(id, userId),
-    getFiscalProfile(userId),
+    getPaymentFormLabels(),
+    getPaymentMethodLabels(),
+    getCfdiUsageLabels(),
   ])
 
   if (!invoice) {
     notFound()
   }
 
-  const emisor = fiscalProfile
+  // Buscar el perfil emisor: primero el asociado a la factura, luego el default
+  const profile = invoice.issuingProfileId
+    ? await getIssuingProfileById(invoice.issuingProfileId, userId)
+    : await getDefaultIssuingProfile(userId)
+
+  const emisor = profile
     ? {
-        rfc: fiscalProfile.rfc,
-        businessName: fiscalProfile.businessName,
-        taxRegime: fiscalProfile.taxRegime,
-        postalCode: fiscalProfile.postalCode,
-        fiscalAddress: fiscalProfile.fiscalAddress,
+        rfc: profile.rfc,
+        businessName: profile.businessName,
+        taxRegime: profile.taxRegime,
+        postalCode: profile.postalCode,
       }
     : null
 
@@ -51,7 +58,15 @@ export default async function InvoiceDetailPage({
         </Link>
       </div>
 
-      <InvoiceDetail invoice={invoice} emisor={emisor} />
+      <InvoiceDetail
+        invoice={invoice}
+        emisor={emisor}
+        labels={{
+          paymentForms: paymentFormLabels,
+          paymentMethods: paymentMethodLabels,
+          cfdiUsages: cfdiUsageLabels,
+        }}
+      />
     </div>
   )
 }

@@ -1,17 +1,13 @@
 "use client";
 
 import { Show, UserButton } from "@clerk/nextjs";
-import Link from "next/link";
 import {
+  Building2,
   LayoutDashboard,
   Receipt,
   Users,
-  // Package,
-  // BarChart3,
-  // Settings,
-  // FileText,
-  // CreditCard,
 } from "lucide-react";
+import Link from "next/link";
 import { NavItem } from "./nav-item";
 
 export function Sidebar() {
@@ -54,6 +50,14 @@ export function Sidebar() {
           </p>
           <NavItem href="/clients" icon={Users} label="Clientes" />
           {/* <NavItem href="/products" icon={Package} label="Productos" /> */}
+        </div>
+
+        {/* Configuración */}
+        <div className="space-y-1">
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+            Configuración
+          </p>
+          <NavItem href="/fiscal-profiles" icon={Building2} label="Perfiles Fiscales" />
         </div>
 
         {/* Análisis */}

@@ -1,14 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { Button } from '@shared/ui/button'
-import { Input } from '@shared/ui/input'
 import {
   Form,
   FormControl,
@@ -17,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@shared/ui/form'
+import { Input } from '@shared/ui/input'
 import {
   Select,
   SelectContent,
@@ -25,67 +25,30 @@ import {
   SelectValue,
 } from '@shared/ui/select'
 
-import { CSFUpload } from './csf-upload'
+import type { CatalogOption } from '@shared/services/sat-catalog.service'
 import { createClientAction } from '../actions/create-client.action'
 import { createClientFormSchema, type ClientFormData } from '../schemas/client-form.schema'
-
-const TAX_REGIMES = [
-  { value: '601', label: '601 - General de Ley Personas Morales' },
-  { value: '603', label: '603 - Personas Morales con Fines no Lucrativos' },
-  { value: '605', label: '605 - Sueldos y Salarios e Ingresos Asimilados' },
-  { value: '606', label: '606 - Arrendamiento' },
-  { value: '608', label: '608 - Demás ingresos' },
-  { value: '610', label: '610 - Residentes en el Extranjero' },
-  { value: '611', label: '611 - Ingresos por Dividendos' },
-  { value: '612', label: '612 - Personas Físicas con Actividades Empresariales' },
-  { value: '614', label: '614 - Ingresos por intereses' },
-  { value: '615', label: '615 - Régimen de los ingresos por obtención de premios' },
-  { value: '616', label: '616 - Sin obligaciones fiscales' },
-  { value: '621', label: '621 - Incorporación Fiscal' },
-  { value: '625', label: '625 - Actividades Empresariales con Plataformas Tecnológicas' },
-  { value: '626', label: '626 - Régimen Simplificado de Confianza' },
-] as const
-
-const CFDI_USAGES = [
-  { value: 'G01', label: 'G01 - Adquisición de mercancías' },
-  { value: 'G02', label: 'G02 - Devoluciones, descuentos o bonificaciones' },
-  { value: 'G03', label: 'G03 - Gastos en general' },
-  { value: 'I01', label: 'I01 - Construcciones' },
-  { value: 'I02', label: 'I02 - Mobiliario y equipo de oficina' },
-  { value: 'I03', label: 'I03 - Equipo de transporte' },
-  { value: 'I04', label: 'I04 - Equipo de cómputo y accesorios' },
-  { value: 'I05', label: 'I05 - Dados, troqueles, moldes, matrices' },
-  { value: 'I06', label: 'I06 - Comunicaciones telefónicas' },
-  { value: 'I07', label: 'I07 - Comunicaciones satelitales' },
-  { value: 'I08', label: 'I08 - Otra maquinaria y equipo' },
-  { value: 'D01', label: 'D01 - Honorarios médicos y gastos hospitalarios' },
-  { value: 'D02', label: 'D02 - Gastos médicos por incapacidad' },
-  { value: 'D03', label: 'D03 - Gastos funerales' },
-  { value: 'D04', label: 'D04 - Donativos' },
-  { value: 'D05', label: 'D05 - Intereses reales por créditos hipotecarios' },
-  { value: 'D06', label: 'D06 - Aportaciones voluntarias al SAR' },
-  { value: 'D07', label: 'D07 - Primas por seguros de gastos médicos' },
-  { value: 'D08', label: 'D08 - Gastos de transportación escolar' },
-  { value: 'D09', label: 'D09 - Depósitos en cuentas para el ahorro' },
-  { value: 'D10', label: 'D10 - Pagos por servicios educativos' },
-  { value: 'S01', label: 'S01 - Sin efectos fiscales' },
-  { value: 'P01', label: 'P01 - Por definir' },
-  { value: 'CP01', label: 'CP01 - Pagos' },
-  { value: 'CN01', label: 'CN01 - Nómina' },
-] as const
+import { CSFUpload } from './csf-upload'
 
 interface ClientFormProps {
   defaultValues?: Partial<ClientFormData>
   onSubmit?: (formData: FormData) => Promise<any>
+  onCancel?: () => void
   submitLabel?: string
   showCSFUpload?: boolean
+  catalogs: {
+    taxRegimes: CatalogOption[]
+    cfdiUsages: CatalogOption[]
+  }
 }
 
-export function ClientForm({ 
-  defaultValues, 
+export function ClientForm({
+  defaultValues,
   onSubmit: customOnSubmit,
+  onCancel,
   submitLabel = 'Guardar Cliente',
-  showCSFUpload = true 
+  showCSFUpload = true,
+  catalogs,
 }: ClientFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -153,8 +116,8 @@ export function ClientForm({
         if (!customOnSubmit) {
           router.push('/clients')
           router.refresh()
+          form.reset()
         }
-        form.reset()
       } else {
         toast.error(defaultValues ? 'Error al actualizar cliente' : 'Error al crear cliente', {
           id: toastId,
@@ -174,9 +137,12 @@ export function ClientForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* CSF Upload */}
         {showCSFUpload && <CSFUpload onDataExtracted={handleCSFData} />}
+
+        {/* Main form card */}
+        <div className="rounded-xl border border-border/60 bg-card p-5 space-y-8">
 
         {/* Datos Fiscales */}
         <section className="space-y-4">
@@ -261,7 +227,7 @@ export function ClientForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {TAX_REGIMES.map(regime => (
+                    {catalogs.taxRegimes.map(regime => (
                       <SelectItem key={regime.value} value={regime.value}>
                         {regime.label}
                       </SelectItem>
@@ -352,7 +318,7 @@ export function ClientForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {CFDI_USAGES.map(usage => (
+                    {catalogs.cfdiUsages.map(usage => (
                       <SelectItem key={usage.value} value={usage.value}>
                         {usage.label}
                       </SelectItem>
@@ -365,12 +331,14 @@ export function ClientForm({
           />
         </section>
 
+        </div>{/* end main form card */}
+
         {/* Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-border/40">
+        <div className="flex items-center justify-between">
           <Button
             type="button"
             variant="ghost"
-            onClick={() => customOnSubmit ? null : router.push('/clients')}
+            onClick={() => onCancel ? onCancel() : router.push('/clients')}
             disabled={isSubmitting}
             className="text-muted-foreground"
           >

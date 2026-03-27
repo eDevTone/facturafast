@@ -61,6 +61,7 @@ export async function createInvoice(
       .values({
         userId,
         clientId: data.clientId,
+        issuingProfileId: data.issuingProfileId || null,
         serie: data.serie || null,
         paymentForm: data.paymentForm,
         paymentMethod: data.paymentMethod,

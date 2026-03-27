@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Loader2, Upload, ShieldCheck, ShieldOff, X } from 'lucide-react'
+import { Loader2, Upload, ShieldCheck, X, KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@shared/ui/button'
@@ -25,28 +24,10 @@ import {
   SelectValue,
 } from '@shared/ui/select'
 
-import { TAX_REGIME_OPTIONS } from '../types/fiscal-profile.types'
+import { CSFUpload } from '@features/clients/components/csf-upload'
 import type { IssuingProfile, CreateIssuingProfileInput } from '../types/fiscal-profile.types'
-
-// ── Schema ────────────────────────────────────────────────────────────────────
-
-const formSchema = z.object({
-  rfc: z
-    .string()
-    .min(12, 'Mínimo 12 caracteres')
-    .max(13, 'Máximo 13 caracteres')
-    .regex(/^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$/i, 'Formato RFC inválido'),
-  businessName: z.string().min(3, 'Mínimo 3 caracteres'),
-  taxRegime: z.string().min(1, 'Selecciona un régimen fiscal'),
-  postalCode: z
-    .string()
-    .length(5, 'Debe tener 5 dígitos')
-    .regex(/^[0-9]{5}$/, 'Solo números'),
-  email: z.string().email('Correo inválido'),
-  phone: z.string().optional(),
-})
-
-type FormValues = z.infer<typeof formSchema>
+import type { CatalogOption } from '@shared/services/sat-catalog.service'
+import { issuingProfileFormSchema, type IssuingProfileIssuingProfileFormValues } from '../schemas/issuing-profile-form.schema'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -55,6 +36,7 @@ interface IssuingProfileFormProps {
   initialData?: IssuingProfile | null
   onSubmit: (input: CreateIssuingProfileInput) => Promise<void>
   onCancel?: () => void
+  taxRegimes: CatalogOption[]
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -63,6 +45,7 @@ export function IssuingProfileForm({
   initialData,
   onSubmit,
   onCancel,
+  taxRegimes,
 }: IssuingProfileFormProps) {
   const [submitting, setSubmitting] = useState(false)
 
@@ -77,10 +60,10 @@ export function IssuingProfileForm({
       ? { name: initialData.keyFilename, base64: initialData.keyBase64 }
       : null,
   )
-  const [keyPassword, setKeyPassword] = useState(initialData?.keyPassword ?? '')
+  const [keyPassword, setKeyPassword] = useState('')
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<IssuingProfileFormValues>({
+    resolver: zodResolver(issuingProfileFormSchema),
     defaultValues: {
       rfc: initialData?.rfc ?? '',
       businessName: initialData?.businessName ?? '',
@@ -91,6 +74,23 @@ export function IssuingProfileForm({
     },
   })
 
+  // ── CSF auto-fill ─────────────────────────────────────────────────────────
+
+  const handleCsfExtracted = (data: {
+    rfc: string
+    businessName: string
+    taxRegime?: string
+    postalCode: string
+    email?: string
+  }) => {
+    if (data.rfc) form.setValue('rfc', data.rfc.toUpperCase())
+    if (data.businessName) form.setValue('businessName', data.businessName)
+    if (data.taxRegime) form.setValue('taxRegime', data.taxRegime)
+    if (data.postalCode) form.setValue('postalCode', data.postalCode)
+    if (data.email) form.setValue('email', data.email)
+    toast.success('Datos extraídos de la constancia')
+  }
+
   // ── File readers ────────────────────────────────────────────────────────────
 
   const readFileAsBase64 = (file: File): Promise<string> =>
@@ -98,7 +98,6 @@ export function IssuingProfileForm({
       const reader = new FileReader()
       reader.onload = () => {
         const result = reader.result as string
-        // Strip data URL prefix if present
         const base64 = result.includes(',') ? result.split(',')[1] : result
         resolve(base64)
       }
@@ -130,7 +129,17 @@ export function IssuingProfileForm({
 
   // ── Submit ──────────────────────────────────────────────────────────────────
 
-  const handleSubmit = async (values: FormValues) => {
+  const handleSubmit = async (values: IssuingProfileFormValues) => {
+    // Validar que si hay archivos CSD, estén completos
+    const hasCer = !!cerFile
+    const hasKey = !!keyFile
+    const hasPassword = !!keyPassword
+
+    if ((hasCer || hasKey) && !(hasCer && hasKey && hasPassword)) {
+      toast.error('Para subir certificados necesitas el .cer, .key y la contraseña')
+      return
+    }
+
     setSubmitting(true)
     try {
       const input: CreateIssuingProfileInput = {
@@ -154,9 +163,16 @@ export function IssuingProfileForm({
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
+  const showCsdPassword = !!(cerFile || keyFile)
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+        {/* CSF Upload — solo en modo creación */}
+        {!initialData && (
+          <CSFUpload onDataExtracted={handleCsfExtracted} />
+        )}
+
         {/* Row: RFC + Razón social */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
@@ -208,7 +224,7 @@ export function IssuingProfileForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {TAX_REGIME_OPTIONS.map((opt) => (
+                    {taxRegimes.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
                       </SelectItem>
@@ -284,19 +300,19 @@ export function IssuingProfileForm({
                 Certificado (.cer)
               </label>
               {cerFile ? (
-                <div className="flex items-center gap-2 rounded-md border border-green-300 bg-green-50 px-3 py-2">
-                  <ShieldCheck className="h-4 w-4 text-green-600 shrink-0" />
-                  <span className="text-xs text-green-700 truncate flex-1">{cerFile.name}</span>
+                <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
+                  <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-xs text-foreground truncate flex-1">{cerFile.name}</span>
                   <button
                     type="button"
                     onClick={() => setCerFile(null)}
-                    className="text-green-500 hover:text-green-700"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </div>
               ) : (
-                <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-gray-300 px-3 py-2 hover:border-gray-400 transition-colors">
+                <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 hover:border-muted-foreground/50 transition-colors">
                   <Upload className="h-4 w-4 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground">Subir .cer</span>
                   <input
@@ -315,19 +331,19 @@ export function IssuingProfileForm({
                 Llave privada (.key)
               </label>
               {keyFile ? (
-                <div className="flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-3 py-2">
-                  <ShieldCheck className="h-4 w-4 text-blue-600 shrink-0" />
-                  <span className="text-xs text-blue-700 truncate flex-1">{keyFile.name}</span>
+                <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
+                  <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-xs text-foreground truncate flex-1">{keyFile.name}</span>
                   <button
                     type="button"
                     onClick={() => setKeyFile(null)}
-                    className="text-blue-500 hover:text-blue-700"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </div>
               ) : (
-                <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-gray-300 px-3 py-2 hover:border-gray-400 transition-colors">
+                <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 hover:border-muted-foreground/50 transition-colors">
                   <Upload className="h-4 w-4 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground">Subir .key</span>
                   <input
@@ -341,20 +357,22 @@ export function IssuingProfileForm({
             </div>
           </div>
 
-          {/* Password — only show when .key is uploaded */}
-          {keyFile && (
+          {/* Contraseña del .key — aparece cuando se sube .cer o .key */}
+          {showCsdPassword && (
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                Contraseña del .key
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                <KeyRound className="h-3.5 w-3.5" />
+                Contraseña del certificado
               </label>
               <Input
                 type="password"
+                togglePassword
                 placeholder="Contraseña de la llave privada"
                 value={keyPassword}
                 onChange={(e) => setKeyPassword(e.target.value)}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                ⚠️ Se guardará localmente. Cifrado en producción.
+                Se almacena encriptada con AES-256. Nunca en texto plano.
               </p>
             </div>
           )}

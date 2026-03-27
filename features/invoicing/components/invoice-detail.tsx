@@ -1,47 +1,13 @@
 'use client'
 
-import Link from 'next/link'
-import { Pencil, Send } from 'lucide-react'
-import { toast } from 'sonner'
 import { Button } from '@shared/ui/button'
-import { DeleteInvoiceDialog } from './delete-invoice-dialog'
-import { InvoicePreviewDialog } from './invoice-preview-dialog'
+import { Pencil, Send } from 'lucide-react'
+import Link from 'next/link'
+import { toast } from 'sonner'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { formatCurrency } from '../utils/invoice-calculations'
-
-const PAYMENT_FORM_LABELS: Record<string, string> = {
-  '01': 'Efectivo',
-  '02': 'Cheque nominativo',
-  '03': 'Transferencia electrónica',
-  '04': 'Tarjeta de crédito',
-  '05': 'Monedero electrónico',
-  '06': 'Dinero electrónico',
-  '08': 'Vales de despensa',
-  '28': 'Tarjeta de débito',
-  '29': 'Tarjeta de servicios',
-  '99': 'Por definir',
-}
-
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  PUE: 'Pago en Una Exhibición',
-  PPD: 'Pago en Parcialidades',
-}
-
-const CFDI_USAGE_LABELS: Record<string, string> = {
-  G01: 'Adquisición de mercancías',
-  G02: 'Devoluciones, descuentos o bonificaciones',
-  G03: 'Gastos en general',
-  I01: 'Construcciones',
-  I02: 'Mobiliario y equipo de oficina',
-  I03: 'Equipo de transporte',
-  I04: 'Equipo de cómputo y accesorios',
-  I08: 'Otra maquinaria y equipo',
-  D01: 'Honorarios médicos y gastos hospitalarios',
-  D10: 'Pagos por servicios educativos',
-  S01: 'Sin efectos fiscales',
-  P01: 'Por definir',
-  CP01: 'Pagos',
-}
+import { DeleteInvoiceDialog } from './delete-invoice-dialog'
+import { InvoicePreviewDialog } from './invoice-preview-dialog'
 
 interface FiscalProfileData {
   rfc: string
@@ -54,15 +20,20 @@ interface FiscalProfileData {
 interface InvoiceDetailProps {
   invoice: InvoiceWithRelations
   emisor?: FiscalProfileData | null
+  labels: {
+    paymentForms: Record<string, string>
+    paymentMethods: Record<string, string>
+    cfdiUsages: Record<string, string>
+  }
 }
 
-export function InvoiceDetail({ invoice, emisor }: InvoiceDetailProps) {
+export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
   const invoiceLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
   const isDraft = invoice.status === 'draft'
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="space-y-6">
+      {/* Header — outside de la card */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -89,7 +60,7 @@ export function InvoiceDetail({ invoice, emisor }: InvoiceDetailProps) {
               invoiceLabel={invoiceLabel}
             />
           )}
-          <InvoicePreviewDialog invoice={invoice} emisor={emisor} />
+          <InvoicePreviewDialog invoice={invoice} emisor={emisor} labels={labels} />
           {isDraft && (
             <>
               <Link href={`/invoices/${invoice.id}/edit`}>
@@ -113,6 +84,9 @@ export function InvoiceDetail({ invoice, emisor }: InvoiceDetailProps) {
         </div>
       </div>
 
+      {/* Content card */}
+      <div className="rounded-xl border border-border/60 bg-card p-5 space-y-8">
+
       {/* Receptor */}
       <section className="space-y-3">
         <div>
@@ -133,7 +107,7 @@ export function InvoiceDetail({ invoice, emisor }: InvoiceDetailProps) {
           <div>
             <p className="text-[11px] text-muted-foreground/60 mb-0.5">Uso CFDI</p>
             <p className="text-sm text-foreground">
-              {invoice.cfdiUsage} — {CFDI_USAGE_LABELS[invoice.cfdiUsage] || invoice.cfdiUsage}
+              {invoice.cfdiUsage} — {labels.cfdiUsages[invoice.cfdiUsage] || invoice.cfdiUsage}
             </p>
           </div>
         </div>
@@ -151,13 +125,13 @@ export function InvoiceDetail({ invoice, emisor }: InvoiceDetailProps) {
           <div>
             <p className="text-[11px] text-muted-foreground/60 mb-0.5">Forma de Pago</p>
             <p className="text-sm text-foreground">
-              {invoice.paymentForm} — {PAYMENT_FORM_LABELS[invoice.paymentForm] || invoice.paymentForm}
+              {invoice.paymentForm} — {labels.paymentForms[invoice.paymentForm] || invoice.paymentForm}
             </p>
           </div>
           <div>
             <p className="text-[11px] text-muted-foreground/60 mb-0.5">Método de Pago</p>
             <p className="text-sm text-foreground">
-              {invoice.paymentMethod} — {PAYMENT_METHOD_LABELS[invoice.paymentMethod] || invoice.paymentMethod}
+              {invoice.paymentMethod} — {labels.paymentMethods[invoice.paymentMethod] || invoice.paymentMethod}
             </p>
           </div>
           <div>
@@ -176,7 +150,7 @@ export function InvoiceDetail({ invoice, emisor }: InvoiceDetailProps) {
           <div className="mt-1 h-px bg-border/40" />
         </div>
 
-        <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+        <div className="rounded-lg border border-border/40 overflow-hidden">
           {/* Table header */}
           <div className="grid grid-cols-[1fr_80px_120px_120px] gap-4 px-5 py-2.5 border-b border-border/40">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
@@ -247,6 +221,8 @@ export function InvoiceDetail({ invoice, emisor }: InvoiceDetailProps) {
           </div>
         </div>
       </section>
+
+      </div>{/* end content card */}
     </div>
   )
 }

@@ -7,40 +7,6 @@ import {
 } from '@react-pdf/renderer'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 
-const PAYMENT_FORM_LABELS: Record<string, string> = {
-  '01': 'Efectivo',
-  '02': 'Cheque nominativo',
-  '03': 'Transferencia electrónica',
-  '04': 'Tarjeta de crédito',
-  '05': 'Monedero electrónico',
-  '06': 'Dinero electrónico',
-  '08': 'Vales de despensa',
-  '28': 'Tarjeta de débito',
-  '29': 'Tarjeta de servicios',
-  '99': 'Por definir',
-}
-
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  PUE: 'Pago en Una Exhibición',
-  PPD: 'Pago en Parcialidades',
-}
-
-const CFDI_USAGE_LABELS: Record<string, string> = {
-  G01: 'Adquisición de mercancías',
-  G02: 'Devoluciones, descuentos o bonificaciones',
-  G03: 'Gastos en general',
-  I01: 'Construcciones',
-  I02: 'Mobiliario y equipo de oficina',
-  I03: 'Equipo de transporte',
-  I04: 'Equipo de cómputo y accesorios',
-  I08: 'Otra maquinaria y equipo',
-  D01: 'Honorarios médicos y gastos hospitalarios',
-  D10: 'Pagos por servicios educativos',
-  S01: 'Sin efectos fiscales',
-  P01: 'Por definir',
-  CP01: 'Pagos',
-}
-
 interface FiscalProfileData {
   rfc: string
   businessName: string
@@ -52,6 +18,11 @@ interface FiscalProfileData {
 interface InvoicePdfDocumentProps {
   invoice: InvoiceWithRelations
   emisor?: FiscalProfileData | null
+  labels: {
+    paymentForms: Record<string, string>
+    paymentMethods: Record<string, string>
+    cfdiUsages: Record<string, string>
+  }
 }
 
 const emerald = '#059669'
@@ -252,7 +223,7 @@ function formatCurrency(value: number): string {
   return `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-export function InvoicePdfDocument({ invoice, emisor }: InvoicePdfDocumentProps) {
+export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocumentProps) {
   const folioLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
   const isDraft = invoice.status === 'draft'
 
@@ -307,7 +278,7 @@ export function InvoicePdfDocument({ invoice, emisor }: InvoicePdfDocumentProps)
             <View style={styles.col}>
               <Text style={styles.label}>Uso CFDI</Text>
               <Text style={styles.value}>
-                {invoice.cfdiUsage} — {CFDI_USAGE_LABELS[invoice.cfdiUsage] || invoice.cfdiUsage}
+                {invoice.cfdiUsage} — {labels.cfdiUsages[invoice.cfdiUsage] || invoice.cfdiUsage}
               </Text>
             </View>
           </View>
@@ -320,13 +291,13 @@ export function InvoicePdfDocument({ invoice, emisor }: InvoicePdfDocumentProps)
             <View style={styles.col}>
               <Text style={styles.label}>Forma de Pago</Text>
               <Text style={styles.value}>
-                {invoice.paymentForm} — {PAYMENT_FORM_LABELS[invoice.paymentForm] || invoice.paymentForm}
+                {invoice.paymentForm} — {labels.paymentForms[invoice.paymentForm] || invoice.paymentForm}
               </Text>
             </View>
             <View style={styles.col}>
               <Text style={styles.label}>Método de Pago</Text>
               <Text style={styles.value}>
-                {invoice.paymentMethod} — {PAYMENT_METHOD_LABELS[invoice.paymentMethod] || invoice.paymentMethod}
+                {invoice.paymentMethod} — {labels.paymentMethods[invoice.paymentMethod] || invoice.paymentMethod}
               </Text>
             </View>
             <View style={styles.col}>

@@ -3,6 +3,7 @@ export interface Invoice {
   id: string
   userId: string
   clientId: string
+  issuingProfileId: string | null
   folio: number
   serie: string | null
   issuedAt: Date
@@ -38,6 +39,7 @@ export interface InvoiceItem {
 // Input Types
 export interface CreateInvoiceInput {
   clientId: string
+  issuingProfileId?: string
   serie?: string
   paymentForm: string
   paymentMethod: string

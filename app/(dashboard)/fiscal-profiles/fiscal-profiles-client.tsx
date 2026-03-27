@@ -12,26 +12,38 @@ import { IssuingProfileForm } from '@features/fiscal-profile/components/issuing-
 import { createIssuingProfileAction } from '@features/fiscal-profile/actions/create-issuing-profile.action'
 import { updateIssuingProfileAction } from '@features/fiscal-profile/actions/update-issuing-profile.action'
 import type { IssuingProfile } from '@features/fiscal-profile/types/fiscal-profile.types'
+import type { CatalogOption } from '@shared/services/sat-catalog.service'
 
 interface FiscalProfilesClientProps {
   profiles: IssuingProfile[]
+  taxRegimes: CatalogOption[]
 }
 
-export function FiscalProfilesClient({ profiles }: FiscalProfilesClientProps) {
+export function FiscalProfilesClient({ profiles, taxRegimes }: FiscalProfilesClientProps) {
   const [showCreate, setShowCreate] = useState(false)
   const [editTarget, setEditTarget] = useState<IssuingProfile | null>(null)
 
   const handleCreate = async (input: Parameters<typeof createIssuingProfileAction>[0]) => {
-    await createIssuingProfileAction(input)
-    toast.success('Perfil creado')
-    setShowCreate(false)
+    try {
+      await createIssuingProfileAction(input)
+      toast.success('Perfil creado')
+      setShowCreate(false)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al crear el perfil')
+      throw error
+    }
   }
 
   const handleEdit = async (input: Parameters<typeof updateIssuingProfileAction>[1]) => {
     if (!editTarget) return
-    await updateIssuingProfileAction(editTarget.id, input)
-    toast.success('Perfil actualizado')
-    setEditTarget(null)
+    try {
+      await updateIssuingProfileAction(editTarget.id, input)
+      toast.success('Perfil actualizado')
+      setEditTarget(null)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al actualizar el perfil')
+      throw error
+    }
   }
 
   return (
@@ -67,20 +79,21 @@ export function FiscalProfilesClient({ profiles }: FiscalProfilesClientProps) {
 
       {/* Create dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nuevo perfil fiscal</DialogTitle>
           </DialogHeader>
           <IssuingProfileForm
             onSubmit={handleCreate}
             onCancel={() => setShowCreate(false)}
+            taxRegimes={taxRegimes}
           />
         </DialogContent>
       </Dialog>
 
       {/* Edit dialog */}
       <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar perfil — {editTarget?.rfc}</DialogTitle>
           </DialogHeader>
@@ -88,6 +101,7 @@ export function FiscalProfilesClient({ profiles }: FiscalProfilesClientProps) {
             initialData={editTarget}
             onSubmit={handleEdit}
             onCancel={() => setEditTarget(null)}
+            taxRegimes={taxRegimes}
           />
         </DialogContent>
       </Dialog>
