@@ -1,0 +1,1 @@
+ALTER TABLE "invoices" ADD COLUMN "cancellation_acuse_url" text;

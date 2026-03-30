@@ -9,8 +9,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { NavItem } from "./nav-item";
+import { UsageIndicator } from "@features/billing/components/usage-indicator";
+import type { PlanId } from "@features/billing/types/billing.types";
 
-export function Sidebar() {
+interface SidebarProps {
+  plan: PlanId;
+  stampsUsed: number;
+  stampsLimit: number;
+  periodEnd: Date;
+}
+
+export function Sidebar({ plan, stampsUsed, stampsLimit, periodEnd }: SidebarProps) {
   return (
     <aside className="flex h-screen w-60 flex-col border-r border-border/50 bg-sidebar">
       {/* Logo */}
@@ -73,6 +82,14 @@ export function Sidebar() {
           <NavItem href="/settings" icon={Settings} label="Configuración" />
         </div> */}
       </nav>
+
+      {/* Usage */}
+      <UsageIndicator
+        plan={plan}
+        stampsUsed={stampsUsed}
+        stampsLimit={stampsLimit}
+        periodEnd={periodEnd}
+      />
 
       {/* User */}
       <div className="border-t border-border/50 px-4 py-3">

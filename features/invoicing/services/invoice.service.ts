@@ -18,6 +18,7 @@ import { stampInvoice as swStampInvoice, cancelInvoice as swCancelInvoice } from
 import type { StampingResult, CancellationResult } from '@features/stamping/types/stamping.types'
 import { uploadFile } from '@features/storage/services/r2.service'
 import { generateInvoicePdf } from '@features/storage/services/pdf-generator.service'
+import { checkUsageLimit, incrementStampsUsed } from '@features/billing/services/subscription.service'
 
 /**
  * Get all invoices for a user
@@ -188,6 +189,15 @@ export async function stampInvoice(
   invoiceId: string,
   userId: string,
 ): Promise<StampingResult> {
+  // Check usage limits before stamping
+  const usage = await checkUsageLimit(userId)
+  if (!usage.canStamp) {
+    return {
+      success: false,
+      error: `Límite de timbres alcanzado (${usage.used}/${usage.limit}). Actualiza tu plan para continuar.`,
+    }
+  }
+
   const invoice = await getInvoiceById(invoiceId, userId)
   if (!invoice) throw new Error('Factura no encontrada')
   if (invoice.status !== 'draft') throw new Error('Solo se pueden timbrar borradores')
@@ -237,6 +247,9 @@ export async function stampInvoice(
       stampedAt: result.stampedAt ? new Date(result.stampedAt) : new Date(),
     })
     .where(eq(invoices.id, invoiceId))
+
+  // Increment stamps used
+  await incrementStampsUsed(userId)
 
   // Upload XML + PDF to R2 (non-blocking — invoice is already timbrada)
   try {
@@ -306,6 +319,21 @@ export async function cancelInvoice(
       cancelledAt: new Date(),
     })
     .where(eq(invoices.id, invoiceId))
+
+  // Upload cancellation acknowledgment to R2
+  if (result.acknowledgment && invoice.uuid) {
+    try {
+      const acuseBuffer = Buffer.from(result.acknowledgment, 'utf-8')
+      const acuseKey = await uploadFile(userId, `${invoice.uuid}-acuse`, acuseBuffer, 'xml')
+
+      await db
+        .update(invoices)
+        .set({ cancellationAcuseUrl: acuseKey })
+        .where(eq(invoices.id, invoiceId))
+    } catch (error) {
+      console.error('R2 acuse upload failed (invoice is still cancelada):', error)
+    }
+  }
 
   return result
 }

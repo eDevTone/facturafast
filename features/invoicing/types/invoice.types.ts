@@ -27,6 +27,7 @@ export interface Invoice {
   stampedAt: Date | null
   status: 'draft' | 'timbrada' | 'cancelada'
   cancellationReason: string | null
+  cancellationAcuseUrl: string | null
   cancelledAt: Date | null
   createdAt: Date
 }

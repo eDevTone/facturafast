@@ -1,9 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { MoreHorizontal, Eye, Download, Copy, Ban, Pencil, Trash2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +7,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@shared/ui/dropdown-menu'
+import { Ban, Copy, Download, Eye, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { toast } from 'sonner'
+import { getInvoiceDownloadUrlAction } from '../actions/get-download-url.action'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { formatCurrency } from '../utils/invoice-calculations'
-import { getInvoiceDownloadUrlAction } from '../actions/get-download-url.action'
 import { CancelInvoiceDialog } from './cancel-invoice-dialog'
 import { DeleteInvoiceDialog } from './delete-invoice-dialog'
 import { StatusBadge } from './status-badge'
@@ -24,11 +24,16 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
   const folioLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
   const isDraft = invoice.status === 'draft'
   const isStamped = invoice.status === 'timbrada'
+  const isCancelled = invoice.status === 'cancelada'
   const [cancelOpen, setCancelOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  const handleDownload = async (type: 'xml' | 'pdf') => {
-    const key = type === 'xml' ? invoice.xmlUrl : invoice.pdfUrl
+  const handleDownload = async (type: 'xml' | 'pdf' | 'acuse') => {
+    const key = type === 'xml'
+      ? invoice.xmlUrl
+      : type === 'pdf'
+        ? invoice.pdfUrl
+        : invoice.cancellationAcuseUrl
     if (key) {
       const result = await getInvoiceDownloadUrlAction(key)
       if (result.url) {
@@ -40,7 +45,9 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
           a.href = url
-          a.download = `factura-${folioLabel}.xml`
+          a.download = type === 'acuse'
+            ? `acuse-cancelacion-${folioLabel}.xml`
+            : `factura-${folioLabel}.xml`
           a.click()
           URL.revokeObjectURL(url)
         }
@@ -130,7 +137,7 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
                 </DropdownMenuItem>
               )}
 
-              {isStamped && (
+              {(isStamped || isCancelled) && (
                 <>
                   <DropdownMenuSeparator />
                   {(invoice.xmlUrl || invoice.xmlContent) && (
@@ -145,12 +152,22 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
                       Descargar PDF
                     </DropdownMenuItem>
                   )}
+                  {isCancelled && invoice.cancellationAcuseUrl && (
+                    <DropdownMenuItem onClick={() => handleDownload('acuse')}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Acuse de cancelación
+                    </DropdownMenuItem>
+                  )}
                   {invoice.uuid && (
                     <DropdownMenuItem onClick={handleCopyUuid}>
                       <Copy className="h-4 w-4 mr-2" />
                       Copiar UUID
                     </DropdownMenuItem>
                   )}
+                </>
+              )}
+              {isStamped && (
+                <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => setCancelOpen(true)}

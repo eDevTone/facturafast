@@ -13,6 +13,7 @@ import { InvoicePreviewDialog } from './invoice-preview-dialog'
 import { stampInvoiceAction } from '../actions/stamp-invoice.action'
 import { getInvoiceDownloadUrlAction } from '../actions/get-download-url.action'
 import { StatusBadge } from './status-badge'
+import { InvoiceHelpDialog } from './invoice-help-dialog'
 
 interface FiscalProfileData {
   rfc: string
@@ -37,6 +38,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
   const invoiceLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
   const isDraft = invoice.status === 'draft'
   const isStamped = invoice.status === 'timbrada'
+  const isCancelled = invoice.status === 'cancelada'
 
   const handleStamp = () => {
     startStamping(async () => {
@@ -53,8 +55,12 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
     })
   }
 
-  const handleDownload = async (type: 'xml' | 'pdf') => {
-    const key = type === 'xml' ? invoice.xmlUrl : invoice.pdfUrl
+  const handleDownload = async (type: 'xml' | 'pdf' | 'acuse') => {
+    const key = type === 'xml'
+      ? invoice.xmlUrl
+      : type === 'pdf'
+        ? invoice.pdfUrl
+        : invoice.cancellationAcuseUrl
 
     // If R2 key exists, get a signed URL
     if (key) {
@@ -68,7 +74,9 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
           a.href = url
-          a.download = `factura-${invoiceLabel}.xml`
+          a.download = type === 'acuse'
+            ? `acuse-cancelacion-${invoiceLabel}.xml`
+            : `factura-${invoiceLabel}.xml`
           a.click()
           URL.revokeObjectURL(url)
         }
@@ -98,6 +106,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
               {invoiceLabel}
             </h1>
             <StatusBadge status={invoice.status} size="md" />
+            <InvoiceHelpDialog status={invoice.status} />
           </div>
           <p className="text-[13px] text-muted-foreground mt-1">
             Creada el{' '}
@@ -130,16 +139,22 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
               invoiceLabel={invoiceLabel}
             />
           )}
-          {isStamped && (invoice.xmlUrl || invoice.xmlContent) && (
+          {(isStamped || isCancelled) && (invoice.xmlUrl || invoice.xmlContent) && (
             <Button variant="outline" onClick={() => handleDownload('xml')}>
               <Download className="h-4 w-4 mr-2" />
               XML
             </Button>
           )}
-          {isStamped && invoice.pdfUrl && (
+          {(isStamped || isCancelled) && invoice.pdfUrl && (
             <Button variant="outline" onClick={() => handleDownload('pdf')}>
               <Download className="h-4 w-4 mr-2" />
               PDF
+            </Button>
+          )}
+          {isCancelled && invoice.cancellationAcuseUrl && (
+            <Button variant="outline" onClick={() => handleDownload('acuse')}>
+              <Download className="h-4 w-4 mr-2" />
+              Acuse
             </Button>
           )}
           <InvoicePreviewDialog invoice={invoice} emisor={emisor} labels={labels} />

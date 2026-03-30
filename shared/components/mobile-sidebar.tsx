@@ -22,8 +22,17 @@ import {
   SheetTrigger,
 } from "@/shared/ui/sheet";
 import { NavItem } from "./nav-item";
+import { UsageIndicator } from "@features/billing/components/usage-indicator";
+import type { PlanId } from "@features/billing/types/billing.types";
 
-export function MobileSidebar() {
+interface MobileSidebarProps {
+  plan?: PlanId;
+  stampsUsed?: number;
+  stampsLimit?: number;
+  periodEnd?: Date;
+}
+
+export function MobileSidebar({ plan = 'free', stampsUsed = 0, stampsLimit = 5, periodEnd = new Date() }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -98,6 +107,14 @@ export function MobileSidebar() {
               <NavItem href="/settings" icon={Settings} label="Configuración" />
             </div> */}
           </nav>
+
+          {/* Usage */}
+          <UsageIndicator
+            plan={plan}
+            stampsUsed={stampsUsed}
+            stampsLimit={stampsLimit}
+            periodEnd={periodEnd}
+          />
         </div>
       </SheetContent>
     </Sheet>

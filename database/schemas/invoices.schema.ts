@@ -33,6 +33,7 @@ export const invoices = pgTable('invoices', {
   stampedAt: timestamp('stamped_at', { withTimezone: true }),
   status: invoiceStatusEnum('status').notNull().default('draft'),
   cancellationReason: varchar('cancellation_reason', { length: 2 }),
+  cancellationAcuseUrl: text('cancellation_acuse_url'),
   cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })

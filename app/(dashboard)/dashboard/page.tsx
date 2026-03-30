@@ -1,18 +1,21 @@
 import { auth } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import {
-  Receipt,
-  Users,
-  TrendingUp,
-  TrendingDown,
-  FileText,
-  ArrowUpRight,
-  Plus,
-  CircleDot,
-} from 'lucide-react'
 import { getDashboardStats, getRecentInvoices } from '@features/dashboard/services/dashboard.service'
 import { formatCurrency } from '@features/invoicing/utils/invoice-calculations'
+import {
+  ArrowUpRight,
+  CircleDot,
+  FileText,
+  Plus,
+  Receipt,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from 'lucide-react'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { PlanUsageBanner } from '@features/billing/components/plan-usage-banner'
+import { getOrCreateSubscription } from '@features/billing/services/subscription.service'
+import { StatusBadge } from '@features/invoicing/components/status-badge'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,9 +23,10 @@ export default async function DashboardPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  const [stats, recentInvoices] = await Promise.all([
+  const [stats, recentInvoices, subscription] = await Promise.all([
     getDashboardStats(userId),
     getRecentInvoices(userId, 7),
+    getOrCreateSubscription(userId),
   ])
 
   const growthPercent =
@@ -39,6 +43,8 @@ export default async function DashboardPage() {
 
   const totalInvoices = stats.draftCount + stats.timbradaCount + stats.canceladaCount
   const hasData = totalInvoices > 0 || stats.totalClients > 0
+
+  const { plan: currentPlan, stampsUsed, stampsLimit } = subscription
 
   return (
     <div className="space-y-8">
@@ -60,6 +66,9 @@ export default async function DashboardPage() {
           Nueva Factura
         </Link>
       </div>
+
+      {/* Plan usage */}
+      <PlanUsageBanner plan={currentPlan} stampsUsed={stampsUsed} stampsLimit={stampsLimit} />
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -155,7 +164,7 @@ export default async function DashboardPage() {
         <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
           <div className="flex items-center justify-between">
             <p className="text-[13px] font-medium text-muted-foreground">
-              Por Cobrar / Timbrado
+              Timbrado / Por Cobrar 
             </p>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
               <CircleDot className="h-4 w-4 text-muted-foreground" />
@@ -303,27 +312,3 @@ export default async function DashboardPage() {
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { label: string; className: string }> = {
-    draft: {
-      label: 'Borrador',
-      className: 'bg-muted text-muted-foreground',
-    },
-    timbrada: {
-      label: 'Timbrada',
-      className: 'bg-primary/15 text-primary',
-    },
-    cancelada: {
-      label: 'Cancelada',
-      className: 'bg-destructive/15 text-destructive',
-    },
-  }
-
-  const { label, className } = config[status] ?? config.draft
-
-  return (
-    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ${className}`}>
-      {label}
-    </span>
-  )
-}
