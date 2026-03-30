@@ -1,6 +1,6 @@
 # FacturaFast - ROADMAP
 
-**Actualizado:** 2026-03-30  
+**Actualizado:** 2026-03-30 (v2)  
 **Strategy:** Launch Early Access sin beta users externos
 
 ---
@@ -70,19 +70,56 @@
 
 ## 🔴 CRITICAL PATH — Sin esto NO hay launch
 
-- [ ] **R2 / Supabase Storage** — Upload/Download XML + PDF timbrados (2h)
-- [ ] **Timbrado flow completo** — Conectar UI → stamping service → Storage (3h)
-  - Botón "Timbrar" en invoice detail
-  - Guardar UUID + sello en DB después de timbrar
-  - Mostrar estado: borrador → timbrada
-- [ ] **Cancelación CFDI** — UI para cancelar (trigger ya está en el service) (1h)
-- [ ] **Stripe integration** — Billing + planes (3h)
+### Storage (Cloudflare R2) — decisión confirmada
+- [ ] **Configurar bucket R2** — Crear bucket en Cloudflare dashboard (5 min)
+  - Necesitas: Account ID + R2 Access Key + R2 Secret Key
+  - Bucket name sugerido: `facturafast-invoices`
+- [ ] **Instalar AWS SDK** — R2 es S3-compatible (`npm install @aws-sdk/client-s3`) (5 min)
+- [ ] **r2.service.ts** — Service para upload/download/delete (1h)
+  - `uploadFile(userId, uuid, buffer, type: 'xml'|'pdf'): Promise<string>`
+  - `getSignedUrl(key): Promise<string>` — URLs temporales para descarga
+  - `deleteFiles(uuid)` — cleanup si falla timbrado
+- [ ] **Columnas en DB** — Agregar `xmlUrl` + `pdfUrl` a `invoices` schema + migrar (15 min)
+- [ ] **Flujo post-timbrado:**
+  ```
+  PAC → XML firmado + UUID
+       ↓
+  Generar PDF (server-side con @react-pdf/renderer)
+       ↓
+  Upload XML  → R2: {userId}/{uuid}.xml
+  Upload PDF  → R2: {userId}/{uuid}.pdf
+       ↓
+  Guardar URLs en DB
+       ↓
+  Preview/Download = URL firmada de R2 (no regenerar)
+  ```
+- [ ] **Actualizar InvoicePreviewDialog** — Si `invoice.pdfUrl` existe → usar R2, si no → generar al vuelo (pre-timbrado) (30 min)
+
+### Timbrado flow completo — UI → PAC → R2 → DB
+- [ ] **Botón "Timbrar"** en invoice detail (solo facturas en borrador) (1h)
+  - Spinner mientras procesa
+  - Manejo de errores del PAC (RFC inválido, cert expirado, etc.)
+- [ ] **Guardar en DB post-timbrado** — UUID, sello SAT, fechaTimbrado, xmlUrl, pdfUrl (incluido en el flujo R2)
+- [ ] **Estado visual** — Badge: Borrador → Timbrada → Cancelada (30 min)
+
+### Cancelación CFDI — UI
+- [ ] **Botón "Cancelar"** en invoice detail (solo facturas timbradas) (1h)
+  - Modal con motivo de cancelación (SAT requiere motivo)
+  - Confirmar → llama al service que ya existe
+  - Actualizar estado en DB
+
+### Billing
+- [ ] **Stripe integration** — Checkout + webhooks (3h)
   - Free tier: 10 facturas/mes
   - Starter / Pro / Business
 - [ ] **Usage limits** — Check límites por plan antes de timbrar (2h)
-- [ ] **Email notifications (Resend)** — Envío de factura al cliente (2h)
-  - Trigger post-timbrado
-  - Template con XML + PDF adjunto
+  - Columna `invoicesThisMonth` en users o query COUNT
+  - Bloquear timbrado si superó plan + prompt de upgrade
+
+### Notificaciones
+- [ ] **Email (Resend)** — Post-timbrado, enviar XML + PDF al receptor (2h)
+  - Template HTML profesional
+  - Adjuntar XML + link de descarga PDF desde R2
 
 ---
 
@@ -106,11 +143,15 @@
 
 ## 📅 PLAN DE EJECUCIÓN (Semana restante)
 
-### Día 1-2 — Core restante
-- [ ] R2/Supabase Storage integration
-- [ ] Timbrado flow completo end-to-end (UI → PAC → Storage → DB)
+### Día 1 — R2 + Timbrado UI
+- [ ] Configurar R2 (Cloudflare dashboard + credenciales)
+- [ ] `r2.service.ts` + columnas en DB
+- [ ] Botón "Timbrar" + flujo completo (UI → PAC → R2 → DB)
+- [ ] Estado visual Borrador/Timbrada/Cancelada
+
+### Día 2 — Cancelación + Billing
 - [ ] Cancelación CFDI desde UI
-- [ ] Stripe + usage limits
+- [ ] Stripe integration + usage limits
 
 ### Día 3 — Notifications + Polish
 - [ ] Email (Resend) post-timbrado
