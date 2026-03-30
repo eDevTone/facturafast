@@ -1,176 +1,205 @@
-# FacturaFast - Fast Track Roadmap (2 Semanas)
+# FacturaFast - ROADMAP
 
+**Actualizado:** 2026-03-30  
 **Strategy:** Launch Early Access sin beta users externos
 
-**Start:** Domingo/Lunes próxima semana  
-**Launch:** Sábado (2 semanas)
+---
+
+## ✅ COMPLETADO (Ya implementado en el repo)
+
+### Infraestructura & Auth
+- ✅ Next.js 16 + React 19 + TypeScript strict mode
+- ✅ Tailwind CSS 4 + Shadcn/ui design system (Cal.com aesthetic)
+- ✅ Clerk Auth — sign-in/sign-up con tema custom emerald, dark/light sync
+- ✅ Supabase (Postgres + Auth + Storage) integrado
+- ✅ Drizzle ORM + migraciones
+- ✅ Screaming Architecture (feature-based)
+- ✅ Path aliases (@features, @shared, @database)
+
+### Database Schemas (Drizzle)
+- ✅ `clients` — catálogo de receptores con soft delete
+- ✅ `invoices` — facturas con UUID, sellos, cancelación
+- ✅ `issuing_profiles` — multi-RFC emisores con CSD
+- ✅ `sat_catalogs` — catálogos SAT (formas pago, usos CFDI, etc.)
+- ✅ Seeds para catálogos SAT
+
+### Feature: Clients
+- ✅ CRUD completo (create, update, soft delete)
+- ✅ Búsqueda por RFC / nombre
+- ✅ Validación RFC con regex
+- ✅ Confirmation dialog para delete
+- ✅ Toast notifications (sonner)
+
+### Feature: Fiscal Profile (Perfil Emisor)
+- ✅ Multi-RFC — múltiples perfiles emisores por usuario
+- ✅ Upload .cer + .key (CSD)
+- ✅ CSD status badge + default badge
+- ✅ IssuingProfilePicker (dialog para seleccionar RFC al crear factura)
+- ✅ CRUD completo (create, update, set default, delete)
+- ✅ Cascade default promotion al eliminar perfil default
+- ✅ `/dashboard/fiscal-profiles` route
+
+### Feature: Invoicing
+- ✅ CRUD completo (create, update, delete)
+- ✅ Invoice detail page `/invoices/[id]`
+- ✅ Edit flow `/invoices/[id]/edit`
+- ✅ PDF preview con @react-pdf/renderer (modal + download)
+- ✅ Cálculos automáticos IVA 16% (incluyendo IVA incluido)
+- ✅ Tabla con búsqueda y column headers
+- ✅ Modelo extendido: UUID, SAT cert number, sellos, fechas timbrado
+
+### Feature: Stamping (Timbrado PAC)
+- ✅ SW Sapien PAC integration (producción)
+- ✅ `cfdi-xml-builder.service.ts` — construye CFDI XML CFDI 4.0
+- ✅ `xml-seal.service.ts` — sella XML con certificado
+- ✅ `sw-client.service.ts` — cliente HTTP SW Sapien
+- ✅ Cancelación CFDI implementada
+- ✅ Error handling en timbrado
+
+### Feature: Notifications
+- ✅ Mock service para desarrollo (sin APIs reales)
+
+### Dashboard & UI
+- ✅ Dashboard con analytics básico
+- ✅ Dark/Light mode toggle (next-themes)
+- ✅ Sidebar + mobile sidebar
+- ✅ Responsive design
+- ✅ SAT catalogs service con opciones detalladas de uso CFDI
 
 ---
 
-## 🎯 SEMANA 1: Build Core Features
+## 🔴 CRITICAL PATH — Sin esto NO hay launch
 
-### Día 1 (Domingo/Lunes)
-- [ ] Neon setup (5 min)
-- [ ] Clerk setup (10 min)
-- [ ] Auth integration (2h)
-  - getCurrentUser() helper
-  - Replace 'temp-user-id' everywhere
-  - Middleware protect routes
-- [ ] Test end-to-end (30 min)
-- [ ] Deploy to Vercel (30 min)
-
-### Día 2-3 (Martes-Miércoles)
-- [ ] XML Generator CFDI 4.0 (4-6h)
-  - Validar contra XSD del SAT
-  - Test casos reales
-- [ ] PDF Generator (2-3h)
-  - Template profesional
-  - Datos fiscales completos
-
-### Día 4 (Jueves)
-- [ ] R2 Storage integration (2h)
-- [ ] Upload/Download PDFs + XMLs (1h)
-- [ ] PAC integration Finkok test mode (3h)
-
-### Día 5 (Viernes)
-- [ ] Fiscal Profile setup (2-3h)
-  - Upload CSF
-  - Extract data (API)
-  - Upload .cer + .key
-  - Encrypt & store
-- [ ] Timbrado flow completo (2h)
-
-### Fin de Semana
-- [ ] Stripe integration (3h)
-- [ ] Usage limits + billing (2h)
-- [ ] Cancelación CFDI (2h)
-- [ ] Email notifications (Resend) (2h)
-
----
-
-## 🎯 SEMANA 2: Polish + Launch
-
-### Día 6-7 (Lunes-Martes)
-- [ ] Error handling exhaustivo (2h)
-- [ ] Loading states everywhere (1h)
-- [ ] Toast notifications (sonner) (1h)
-- [ ] Search & filters básicos (2h)
-- [ ] Landing page (3-4h)
-  - Hero + Features + Pricing + FAQ
-  - Screenshots
-  - CTA claro
-
-### Día 8 (Miércoles)
-- [ ] Documentation básica (2h)
-- [ ] Legal pages (T&C, Privacy) (1h)
-- [ ] Onboarding wizard (2h)
-- [ ] Sentry setup (1h)
-- [ ] Analytics (PostHog) (1h)
-
-### Día 9 (Jueves) - TESTING DAY 🧪
-- [ ] **Self-testing exhaustivo (full day)**
-  - [ ] Happy path: signup → CSF → create client → invoice → timbrar
-  - [ ] Error cases: invalid RFC, wrong cert password, PAC fail
-  - [ ] Edge cases: 50 items, special chars, $0.01, $9,999,999
-  - [ ] Billing: free tier → upgrade → downgrade
-  - [ ] Mobile: iPhone + Android
-  - [ ] Fix ALL critical bugs
-  - [ ] Re-test until 0 blockers
-
-### Día 10 (Viernes)
-- [ ] Production checklist (mañana)
-  - [ ] Rate limiting
-  - [ ] Security review
-  - [ ] Performance check
-- [ ] Final deploy + smoke test (tarde)
-- [ ] Prepare launch materials (tweets, posts)
-
-### Día 11 (Sábado) - LAUNCH 🚀
-- [ ] Publish landing page
-- [ ] Early Access launch
-  - 50% OFF pricing (early adopter)
+- [ ] **R2 / Supabase Storage** — Upload/Download XML + PDF timbrados (2h)
+- [ ] **Timbrado flow completo** — Conectar UI → stamping service → Storage (3h)
+  - Botón "Timbrar" en invoice detail
+  - Guardar UUID + sello en DB después de timbrar
+  - Mostrar estado: borrador → timbrada
+- [ ] **Cancelación CFDI** — UI para cancelar (trigger ya está en el service) (1h)
+- [ ] **Stripe integration** — Billing + planes (3h)
   - Free tier: 10 facturas/mes
-  - "Beta" badge
-- [ ] Tweet announcement
-- [ ] LinkedIn post
-- [ ] Product Hunt (opcional)
-- [ ] Communities (r/mexico, Facebook groups)
+  - Starter / Pro / Business
+- [ ] **Usage limits** — Check límites por plan antes de timbrar (2h)
+- [ ] **Email notifications (Resend)** — Envío de factura al cliente (2h)
+  - Trigger post-timbrado
+  - Template con XML + PDF adjunto
 
-### Día 12 (Domingo)
-- [ ] Monitor 24/7
-- [ ] Fix critical bugs ASAP
-- [ ] Respond to all support requests
-- [ ] Engage early users (thank you emails)
+---
+
+## 🟡 NECESARIO PARA LAUNCH (pero no blocker)
+
+### UX & Polish
+- [ ] Error handling exhaustivo (error boundaries) (2h)
+- [ ] Loading states en todas las acciones críticas (1h)
+- [ ] Onboarding wizard (signup → fiscal profile → primera factura) (3h)
+- [ ] Search & filters en lista de facturas (1h)
+
+### Monitoring
+- [ ] Sentry setup (1h)
+- [ ] PostHog analytics (1h)
+
+### Legal & Marketing
+- [ ] Landing page (Hero + Features + Pricing + FAQ) (3-4h)
+- [ ] Legal pages (T&C, Privacy) (1h)
+
+---
+
+## 📅 PLAN DE EJECUCIÓN (Semana restante)
+
+### Día 1-2 — Core restante
+- [ ] R2/Supabase Storage integration
+- [ ] Timbrado flow completo end-to-end (UI → PAC → Storage → DB)
+- [ ] Cancelación CFDI desde UI
+- [ ] Stripe + usage limits
+
+### Día 3 — Notifications + Polish
+- [ ] Email (Resend) post-timbrado
+- [ ] Error handling + loading states
+- [ ] Onboarding wizard
+
+### Día 4 — TESTING DAY 🧪
+- [ ] Happy path: signup → CSF → cliente → factura → timbrar
+- [ ] Error cases: RFC inválido, cert equivocado, PAC fail
+- [ ] Edge cases: precios con IVA incluido, importes extremos
+- [ ] Billing: free tier → upgrade → límites
+- [ ] Mobile: iOS + Android
+- [ ] Fix ALL critical bugs
+- [ ] Re-test hasta 0 blockers
+
+### Día 5 — Pre-launch
+- [ ] Landing page + legal pages
+- [ ] Sentry + PostHog
+- [ ] Rate limiting + security review
+- [ ] Final deploy + smoke test en producción
+- [ ] Materiales de launch (tweets, posts)
+
+### Día 6 — 🚀 LAUNCH
+- [ ] Publicar landing
+- [ ] Early Access con 50% OFF (primeros 100 usuarios precio permanente)
+- [ ] Tweet + LinkedIn + communities (r/mexico, grupos Facebook)
+- [ ] Product Hunt (opcional)
+
+### Día 7 — Post-launch
+- [ ] Monitor bugs y support
+- [ ] Fix críticos ASAP
+- [ ] Engage early users
 
 ---
 
 ## 💰 PRICING (Early Access)
 
 ```
-Free Tier (Always):
+Free Tier (Siempre gratis):
 ✅ 10 facturas timbradas/mes
 ✅ 5 clientes
-✅ No credit card required
+✅ Sin tarjeta de crédito
 
-Starter - $99 MXN/mes (50% OFF):
+Starter — $99 MXN/mes (50% OFF, regular $199):
 ✅ 50 facturas/mes
 ✅ Clientes ilimitados
 ✅ Email support
-(Regular: $199 MXN)
 
-Pro - $199 MXN/mes (50% OFF):
+Pro — $199 MXN/mes (50% OFF, regular $399):
 ✅ 200 facturas/mes
 ✅ Priority support
 ✅ WhatsApp notifications
-(Regular: $399 MXN)
 
-Business - $499 MXN/mes (50% OFF):
+Business — $499 MXN/mes (50% OFF, regular $999):
 ✅ Ilimitado
 ✅ Dedicated support
-(Regular: $999 MXN)
 ```
 
-**Early Adopter Promise:**  
-"Primeros 100 usuarios mantienen este precio forever"
+**Early Adopter Promise:** Primeros 100 usuarios mantienen precio para siempre.
 
 ---
 
-## 🔥 CRITICAL PATH (No Launch Sin Esto)
-
-1. ✅ PAC integration (timbrado real)
-2. ✅ XML CFDI 4.0 válido
-3. ✅ Fiscal profile + certificados
-4. ✅ Stripe billing
-5. ✅ Storage (R2) para PDFs/XMLs
-6. ✅ Cancelación CFDI
-
----
-
-## 📊 SUCCESS METRICS (Week 1 Post-Launch)
+## 📊 SUCCESS METRICS (Semana 1 Post-launch)
 
 ```
-Signups: 10+ (realistic)
-Paying users: 1-3 (realistic)
-Facturas timbradas: 20+ (across all users)
-Critical bugs: 0
-Support response time: <4h
-Uptime: 99.9%
+Signups:              10+ (realista)
+Paying users:         1-3 (realista)
+Facturas timbradas:   20+ (todos los usuarios)
+Critical bugs:        0
+Support response:     <4h
+Uptime:               99.9%
 ```
 
 ---
 
-## 🎯 POST-LAUNCH (Week 3)
+## 🎯 POST-LAUNCH (Semana 3+)
 
-- Fix bugs reported by users
-- Improve onboarding based on drop-off
-- Add small requested features
-- Iterate UX
-- More marketing
+- Fix bugs de usuarios reales
+- Mejorar onboarding según drop-off analytics
+- WhatsApp notifications (Twilio) — pospuesto a post-launch
+- Multi-user / equipos
+- Role-based access
+- Reportes & analytics avanzados
+- Exportar a Excel
 
 ---
 
-**Approach:** Build fast, launch early, iterate with real users.  
-**Risk:** Managed with free tier + "Beta" badge + fast support.  
-**Upside:** Real feedback, real revenue, real validation.
+**Approach:** Build fast, launch early, iterate con usuarios reales.  
+**Risk mitigation:** Free tier + badge "Beta" + soporte rápido.  
+**Upside:** Revenue real, feedback real, validación real.
 
-Let's go! 🚀
+Let's ship it. 🚀
