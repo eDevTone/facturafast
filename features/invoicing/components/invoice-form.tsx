@@ -27,7 +27,7 @@ import {
 
 import type { IssuingProfile } from '@features/fiscal-profile/types/fiscal-profile.types'
 import { profileHasCSD } from '@features/fiscal-profile/types/fiscal-profile.types'
-import type { CatalogOption } from '@shared/services/sat-catalog.service'
+import type { CatalogOption, CfdiUsageOption } from '@shared/services/sat-catalog.service'
 import { createInvoiceAction } from '../actions/create-invoice.action'
 import { updateInvoiceAction } from '../actions/update-invoice.action'
 import { createInvoiceFormSchema, type InvoiceFormData } from '../schemas/invoice-form.schema'
@@ -35,12 +35,12 @@ import type { InvoiceWithRelations } from '../types/invoice.types'
 import { calculateInvoiceTotals, formatCurrency } from '../utils/invoice-calculations'
 
 interface InvoiceFormProps {
-  clients: Array<{ id: string; businessName: string }>
+  clients: Array<{ id: string; businessName: string; rfc: string }>
   invoice?: InvoiceWithRelations
   catalogs: {
     paymentForms: CatalogOption[]
     paymentMethods: CatalogOption[]
-    cfdiUsages: CatalogOption[]
+    cfdiUsages: CfdiUsageOption[]
   }
   profiles: IssuingProfile[]
   defaultProfileId?: string
@@ -94,8 +94,16 @@ export function InvoiceForm({ clients, invoice, catalogs, profiles, defaultProfi
 
   const items = form.watch('items')
   const selectedProfileId = form.watch('issuingProfileId')
+  const selectedClientId = form.watch('clientId')
   const selectedProfile = profiles.find(p => p.id === selectedProfileId)
+  const selectedClient = clients.find(c => c.id === selectedClientId)
   const { subtotal, iva, total } = calculateInvoiceTotals(items)
+
+  // Filter CFDI usages based on client type (persona física = 13 chars, moral = 12 chars)
+  const isFisica = selectedClient ? selectedClient.rfc.length === 13 : null
+  const filteredCfdiUsages = isFisica === null
+    ? catalogs.cfdiUsages
+    : catalogs.cfdiUsages.filter(u => isFisica ? u.applicableToFisica : u.applicableToMoral)
 
   async function onSubmit(data: InvoiceFormData) {
     setIsSubmitting(true)
@@ -320,14 +328,17 @@ export function InvoiceForm({ clients, invoice, catalogs, profiles, defaultProfi
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Uso CFDI</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={filteredCfdiUsages.some(u => u.value === field.value) ? field.value : ''}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Selecciona uso CFDI" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {catalogs.cfdiUsages.map(u => (
+                        {filteredCfdiUsages.map(u => (
                           <SelectItem key={u.value} value={u.value}>
                             {u.label}
                           </SelectItem>
@@ -376,7 +387,7 @@ export function InvoiceForm({ clients, invoice, catalogs, profiles, defaultProfi
                 Cant.
               </span>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                P. Unitario
+                P. Unitario <span className="normal-case tracking-normal font-normal text-muted-foreground/40">(IVA incl.)</span>
               </span>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-right">
                 Importe
@@ -472,7 +483,7 @@ export function InvoiceForm({ clients, invoice, catalogs, profiles, defaultProfi
             </div>
           </section>
 
-          {/* Totales */}
+          {/* Totales — desglose IVA incluido */}
           <section>
             <div className="ml-auto max-w-xs space-y-1.5 rounded-lg border border-border/40 bg-muted/30 p-4">
               <div className="flex items-center justify-between text-sm">
@@ -490,6 +501,11 @@ export function InvoiceForm({ clients, invoice, catalogs, profiles, defaultProfi
                   {formatCurrency(total)}
                 </span>
               </div>
+              {total > 0 && (
+                <p className="text-[11px] text-muted-foreground/50 text-right pt-1">
+                  Precios con IVA incluido
+                </p>
+              )}
             </div>
           </section>
         </div>

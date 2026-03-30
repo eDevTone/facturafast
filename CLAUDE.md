@@ -26,7 +26,7 @@ Each domain has a self-contained module under `features/`:
 - **clients** — Client/receptor management with soft delete, CSF upload for auto-fill
 - **fiscal-profile** — Multi-RFC issuing profiles, CSD certificate upload/validation/encryption
 - **dashboard** — Analytics with real DB queries
-- **timbrado** — PAC integration (planned)
+- **stamping** — SW Sapien PAC integration for CFDI stamping (JSON emission) and cancellation
 
 Each module follows: `components/` → `actions/` → `services/` → `types/` → `schemas/`
 
@@ -88,4 +88,6 @@ DATABASE_URL                        # Neon PostgreSQL connection string
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY   # Clerk public key
 CLERK_SECRET_KEY                    # Clerk secret key
 CERTIFICATE_ENCRYPTION_KEY          # AES-256 key for CSD passwords (64 hex chars)
+SW_URL                              # SW Sapien API URL (test: https://services.test.sw.com.mx)
+SW_TOKEN                            # SW Sapien infinite token from ADT portal
 ```

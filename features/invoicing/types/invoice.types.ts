@@ -16,8 +16,15 @@ export interface Invoice {
   paymentMethod: string
   cfdiUsage: string
   xmlUrl: string | null
+  xmlContent: string | null
   pdfUrl: string | null
   uuid: string | null
+  satCertificateNumber: string | null
+  cfdiSignature: string | null
+  satSignature: string | null
+  satOriginalChain: string | null
+  qrCode: string | null
+  stampedAt: Date | null
   status: 'draft' | 'timbrada' | 'cancelada'
   cancellationReason: string | null
   cancelledAt: Date | null
@@ -62,6 +69,8 @@ export interface InvoiceWithRelations extends Invoice {
     id: string
     businessName: string
     rfc: string
+    postalCode: string
+    taxRegime: string | null
   }
   items: InvoiceItem[]
 }

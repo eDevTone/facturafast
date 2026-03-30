@@ -62,10 +62,10 @@ export function parseCerFile(cerBase64: string): CertificateMetadata {
   const asn1 = forge.asn1.fromDer(derBytes)
   const cert = forge.pki.certificateFromAsn1(asn1)
 
-  // Serial number — SAT lo usa como string decimal largo
-  const serialNumber = cert.serialNumber
-    .replace(/^0+/, '') // quitar leading zeros del hex
-    .toUpperCase()
+  // Serial number — node-forge returns hex, SAT expects the ASCII representation
+  // e.g. hex "3330303031..." → ASCII "30001..."
+  const rawHex = cert.serialNumber.replace(/^0+/, '')
+  const serialNumber = Buffer.from(rawHex, 'hex').toString('ascii')
 
   const validFrom = cert.validity.notBefore.toISOString()
   const validUntil = cert.validity.notAfter.toISOString()

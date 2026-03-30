@@ -9,6 +9,13 @@ import type {
   InvoiceWithRelations
 } from '../types/invoice.types'
 import { calculateInvoiceTotals } from '../utils/invoice-calculations'
+import { getIssuingProfileById } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { profileHasCSD, isCertExpired } from '@features/fiscal-profile/types/fiscal-profile.types'
+import { decryptString } from '@features/fiscal-profile/services/certificate.service'
+import { buildCfdiXml } from '@features/stamping/services/cfdi-xml-builder.service'
+import { sealXml } from '@features/stamping/services/xml-seal.service'
+import { stampInvoice as swStampInvoice, cancelInvoice as swCancelInvoice } from '@features/stamping/services/sw-client.service'
+import type { StampingResult, CancellationResult } from '@features/stamping/types/stamping.types'
 
 /**
  * Get all invoices for a user
@@ -119,6 +126,7 @@ export async function updateInvoice(
       .update(invoices)
       .set({
         clientId: data.clientId,
+        issuingProfileId: data.issuingProfileId || null,
         serie: data.serie || null,
         paymentForm: data.paymentForm,
         paymentMethod: data.paymentMethod,
@@ -169,4 +177,110 @@ export async function deleteInvoice(id: string, userId: string) {
   await db.delete(invoices).where(eq(invoices.id, id))
 
   return { success: true }
+}
+
+/**
+ * Stamp an invoice via SW Sapien PAC (pre-sealed XML)
+ */
+export async function stampInvoice(
+  invoiceId: string,
+  userId: string,
+): Promise<StampingResult> {
+  const invoice = await getInvoiceById(invoiceId, userId)
+  if (!invoice) throw new Error('Factura no encontrada')
+  if (invoice.status !== 'draft') throw new Error('Solo se pueden timbrar borradores')
+  if (!invoice.issuingProfileId) throw new Error('La factura no tiene un perfil emisor asignado')
+
+  const profile = await getIssuingProfileById(invoice.issuingProfileId, userId)
+  if (!profile) throw new Error('Perfil emisor no encontrado')
+  if (!profileHasCSD(profile)) throw new Error('El perfil emisor no tiene certificados CSD configurados')
+  if (isCertExpired(profile)) throw new Error('El certificado CSD ha expirado')
+
+  const keyPassword = decryptString(profile.keyPassword!)
+
+  // Build unsigned XML
+  const unsignedXml = buildCfdiXml({
+    invoice,
+    profile,
+    certificateBase64: profile.cerBase64!,
+    certificateNumber: profile.certSerialNumber!,
+  })
+
+  // Seal: generate cadena original, sign, and set Sello attribute
+  const sealedXml = sealXml({
+    xml: unsignedXml,
+    cerBase64: profile.cerBase64!,
+    keyBase64: profile.keyBase64!,
+    keyPassword,
+  })
+
+  const result = await swStampInvoice(sealedXml)
+
+  if (!result.success) {
+    return result
+  }
+
+  await db
+    .update(invoices)
+    .set({
+      status: 'timbrada',
+      uuid: result.uuid,
+      xmlContent: result.cfdi,
+      satCertificateNumber: result.satCertificateNumber,
+      cfdiSignature: result.cfdiSignature,
+      satSignature: result.satSignature,
+      satOriginalChain: result.satOriginalChain,
+      qrCode: result.qrCode,
+      stampedAt: result.stampedAt ? new Date(result.stampedAt) : new Date(),
+    })
+    .where(eq(invoices.id, invoiceId))
+
+  return result
+}
+
+/**
+ * Cancel a stamped invoice via SW Sapien PAC
+ */
+export async function cancelInvoice(
+  invoiceId: string,
+  userId: string,
+  reason: '01' | '02' | '03' | '04',
+  replacementUuid?: string,
+): Promise<CancellationResult> {
+  const invoice = await getInvoiceById(invoiceId, userId)
+  if (!invoice) throw new Error('Factura no encontrada')
+  if (invoice.status !== 'timbrada') throw new Error('Solo se pueden cancelar facturas timbradas')
+  if (!invoice.uuid) throw new Error('La factura no tiene UUID fiscal')
+  if (!invoice.issuingProfileId) throw new Error('La factura no tiene perfil emisor')
+
+  const profile = await getIssuingProfileById(invoice.issuingProfileId, userId)
+  if (!profile) throw new Error('Perfil emisor no encontrado')
+  if (!profileHasCSD(profile)) throw new Error('El perfil emisor no tiene certificados CSD configurados')
+
+  const keyPassword = decryptString(profile.keyPassword!)
+
+  const result = await swCancelInvoice({
+    uuid: invoice.uuid,
+    issuerRfc: profile.rfc,
+    reason,
+    replacementUuid,
+    cerBase64: profile.cerBase64!,
+    keyBase64: profile.keyBase64!,
+    keyPassword,
+  })
+
+  if (!result.success) {
+    return result
+  }
+
+  await db
+    .update(invoices)
+    .set({
+      status: 'cancelada',
+      cancellationReason: reason,
+      cancelledAt: new Date(),
+    })
+    .where(eq(invoices.id, invoiceId))
+
+  return result
 }

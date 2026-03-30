@@ -9,6 +9,7 @@ import {
 } from '@database/schemas/sat-catalogs.schema';
 
 export type CatalogOption = { value: string; label: string }
+export type CfdiUsageOption = CatalogOption & { applicableToMoral: boolean; applicableToFisica: boolean }
 
 // ── Tax Regimes ─────────────────────────────────────────────────────────────
 
@@ -42,11 +43,13 @@ export async function getPaymentMethodOptions(): Promise<CatalogOption[]> {
 
 // ── CFDI Usage ──────────────────────────────────────────────────────────────
 
-export async function getCfdiUsageOptions(): Promise<CatalogOption[]> {
+export async function getCfdiUsageOptions(): Promise<CfdiUsageOption[]> {
   const rows = await db.select().from(cfdiUsageTypes).orderBy(cfdiUsageTypes.code)
   return rows.map((r) => ({
     value: r.code,
     label: `${r.code} - ${r.description}`,
+    applicableToMoral: r.applicableToMoral,
+    applicableToFisica: r.applicableToFisica,
   }))
 }
 
@@ -75,7 +78,7 @@ export async function getProductServiceCodeOptions(): Promise<CatalogOption[]> {
 export interface InvoiceFormCatalogs {
   paymentForms: CatalogOption[]
   paymentMethods: CatalogOption[]
-  cfdiUsages: CatalogOption[]
+  cfdiUsages: CfdiUsageOption[]
 }
 
 export async function getInvoiceFormCatalogs(): Promise<InvoiceFormCatalogs> {

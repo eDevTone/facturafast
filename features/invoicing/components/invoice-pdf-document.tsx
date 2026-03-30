@@ -1,5 +1,6 @@
 import {
   Document,
+  Image,
   Page,
   View,
   Text,
@@ -201,6 +202,46 @@ const styles = StyleSheet.create({
     fontFamily: 'Courier-Bold',
     color: emerald,
   },
+  // Fiscal stamp section
+  stampSection: {
+    marginTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: emerald,
+    paddingTop: 12,
+  },
+  stampRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
+  },
+  stampQr: {
+    width: 100,
+    height: 100,
+  },
+  stampInfo: {
+    flex: 1,
+  },
+  stampLabel: {
+    fontSize: 6,
+    fontFamily: 'Helvetica-Bold',
+    color: emerald,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+    marginTop: 6,
+  },
+  stampValue: {
+    fontSize: 6,
+    fontFamily: 'Courier',
+    color: gray[700],
+    lineHeight: 1.4,
+  },
+  stampUuid: {
+    fontSize: 9,
+    fontFamily: 'Courier-Bold',
+    color: gray[900],
+    marginBottom: 2,
+  },
   // Footer
   footer: {
     position: 'absolute',
@@ -223,9 +264,18 @@ function formatCurrency(value: number): string {
   return `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+function breakString(str: string, chunkSize: number): string {
+  const chunks: string[] = []
+  for (let i = 0; i < str.length; i += chunkSize) {
+    chunks.push(str.substring(i, i + chunkSize))
+  }
+  return chunks.join('\n')
+}
+
 export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocumentProps) {
   const folioLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
   const isDraft = invoice.status === 'draft'
+  const isStamped = invoice.status === 'timbrada' || invoice.status === 'cancelada'
 
   return (
     <Document title={`Factura ${folioLabel}`} author={emisor?.businessName || 'FacturaFast'}>
@@ -365,6 +415,62 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
             </View>
           </View>
         </View>
+
+        {/* Fiscal stamp */}
+        {isStamped && invoice.uuid && (
+          <View style={styles.stampSection}>
+            <Text style={styles.sectionTitle}>Sello Digital</Text>
+            <View style={styles.stampRow}>
+              {invoice.qrCode && (
+                <Image
+                  style={styles.stampQr}
+                  src={`data:image/png;base64,${invoice.qrCode}`}
+                />
+              )}
+              <View style={styles.stampInfo}>
+                <Text style={styles.stampLabel}>UUID Fiscal</Text>
+                <Text style={styles.stampUuid}>{invoice.uuid}</Text>
+
+                {invoice.stampedAt && (
+                  <>
+                    <Text style={styles.stampLabel}>Fecha de Timbrado</Text>
+                    <Text style={styles.stampValue}>
+                      {new Date(invoice.stampedAt).toLocaleString('es-MX')}
+                    </Text>
+                  </>
+                )}
+
+                {invoice.satCertificateNumber && (
+                  <>
+                    <Text style={styles.stampLabel}>No. Certificado SAT</Text>
+                    <Text style={styles.stampValue}>{invoice.satCertificateNumber}</Text>
+                  </>
+                )}
+
+                {invoice.cfdiSignature && (
+                  <>
+                    <Text style={styles.stampLabel}>Sello Digital del CFDI</Text>
+                    <Text style={styles.stampValue}>{breakString(invoice.cfdiSignature, 120)}</Text>
+                  </>
+                )}
+
+                {invoice.satSignature && (
+                  <>
+                    <Text style={styles.stampLabel}>Sello del SAT</Text>
+                    <Text style={styles.stampValue}>{breakString(invoice.satSignature, 120)}</Text>
+                  </>
+                )}
+
+                {invoice.satOriginalChain && (
+                  <>
+                    <Text style={styles.stampLabel}>Cadena Original del Timbre</Text>
+                    <Text style={styles.stampValue}>{breakString(invoice.satOriginalChain, 120)}</Text>
+                  </>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Footer */}
         <View style={styles.footer} fixed>

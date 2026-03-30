@@ -1,13 +1,16 @@
 'use client'
 
+import { useTransition } from 'react'
 import { Button } from '@shared/ui/button'
-import { Pencil, Send } from 'lucide-react'
+import { Pencil, Send, Download, Copy } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { formatCurrency } from '../utils/invoice-calculations'
 import { DeleteInvoiceDialog } from './delete-invoice-dialog'
+import { CancelInvoiceDialog } from './cancel-invoice-dialog'
 import { InvoicePreviewDialog } from './invoice-preview-dialog'
+import { stampInvoiceAction } from '../actions/stamp-invoice.action'
 
 interface FiscalProfileData {
   rfc: string
@@ -28,12 +31,40 @@ interface InvoiceDetailProps {
 }
 
 export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
+  const [isStamping, startStamping] = useTransition()
   const invoiceLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
   const isDraft = invoice.status === 'draft'
+  const isStamped = invoice.status === 'timbrada'
+
+  const handleStamp = () => {
+    startStamping(async () => {
+      const result = await stampInvoiceAction(invoice.id)
+      if (result.success) {
+        toast.success('Factura timbrada correctamente', {
+          description: `UUID: ${result.uuid}`,
+        })
+      } else {
+        toast.error('Error al timbrar', {
+          description: result.error,
+        })
+      }
+    })
+  }
+
+  const handleDownloadXml = () => {
+    if (!invoice.xmlContent) return
+    const blob = new Blob([invoice.xmlContent], { type: 'application/xml' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `factura-${invoiceLabel}.xml`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header — outside de la card */}
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -50,6 +81,19 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
               day: 'numeric',
             })}
           </p>
+          {isStamped && invoice.uuid && (
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(invoice.uuid!)
+                toast.success('UUID copiado')
+              }}
+              className="flex items-center gap-1.5 mt-1 text-[12px] font-mono text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              <Copy className="h-3 w-3" />
+              {invoice.uuid}
+            </button>
+          )}
         </div>
 
         {/* Actions */}
@@ -60,6 +104,12 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
               invoiceLabel={invoiceLabel}
             />
           )}
+          {isStamped && invoice.xmlContent && (
+            <Button variant="outline" onClick={handleDownloadXml}>
+              <Download className="h-4 w-4 mr-2" />
+              XML
+            </Button>
+          )}
           <InvoicePreviewDialog invoice={invoice} emisor={emisor} labels={labels} />
           {isDraft && (
             <>
@@ -69,17 +119,17 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
                   Editar
                 </Button>
               </Link>
-              <Button
-                onClick={() =>
-                  toast.info('Próximamente', {
-                    description: 'La integración con el PAC se implementará después.',
-                  })
-                }
-              >
+              <Button onClick={handleStamp} disabled={isStamping}>
                 <Send className="h-4 w-4 mr-2" />
-                Timbrar
+                {isStamping ? 'Timbrando...' : 'Timbrar'}
               </Button>
             </>
+          )}
+          {isStamped && (
+            <CancelInvoiceDialog
+              invoiceId={invoice.id}
+              invoiceLabel={invoiceLabel}
+            />
           )}
         </div>
       </div>

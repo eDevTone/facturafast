@@ -1,15 +1,22 @@
 import type { CreateInvoiceItemInput } from '../types/invoice.types'
 
+const IVA_RATE = 0.16
+const IVA_DIVISOR = 1 + IVA_RATE // 1.16
+
 /**
- * Calculate invoice totals (subtotal, IVA 16%, total)
+ * Calculate invoice totals from IVA-included prices.
+ * Unit prices entered by the user already include IVA.
+ * total = sum(qty * unitPrice)
+ * subtotal = total / 1.16
+ * iva = total - subtotal
  */
 export function calculateInvoiceTotals(items: CreateInvoiceItemInput[]) {
-  const subtotal = items.reduce((acc, item) => {
+  const total = items.reduce((acc, item) => {
     return acc + (item.quantity * item.unitPrice)
   }, 0)
 
-  const iva = subtotal * 0.16 // 16% IVA
-  const total = subtotal + iva
+  const subtotal = total / IVA_DIVISOR
+  const iva = total - subtotal
 
   return {
     subtotal: Number(subtotal.toFixed(2)),
@@ -19,7 +26,7 @@ export function calculateInvoiceTotals(items: CreateInvoiceItemInput[]) {
 }
 
 /**
- * Calculate single item amount
+ * Calculate single item amount (IVA included)
  */
 export function calculateItemAmount(quantity: number, unitPrice: number) {
   return Number((quantity * unitPrice).toFixed(2))
