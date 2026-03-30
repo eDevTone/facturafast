@@ -71,36 +71,21 @@
 ## 🔴 CRITICAL PATH — Sin esto NO hay launch
 
 ### Storage (Cloudflare R2) — decisión confirmada
-- [ ] **Configurar bucket R2** — Crear bucket en Cloudflare dashboard (5 min)
-  - Necesitas: Account ID + R2 Access Key + R2 Secret Key
-  - Bucket name sugerido: `facturafast-invoices`
-- [ ] **Instalar AWS SDK** — R2 es S3-compatible (`npm install @aws-sdk/client-s3`) (5 min)
-- [ ] **r2.service.ts** — Service para upload/download/delete (1h)
-  - `uploadFile(userId, uuid, buffer, type: 'xml'|'pdf'): Promise<string>`
-  - `getSignedUrl(key): Promise<string>` — URLs temporales para descarga
-  - `deleteFiles(uuid)` — cleanup si falla timbrado
-- [ ] **Columnas en DB** — Agregar `xmlUrl` + `pdfUrl` a `invoices` schema + migrar (15 min)
-- [ ] **Flujo post-timbrado:**
-  ```
-  PAC → XML firmado + UUID
-       ↓
-  Generar PDF (server-side con @react-pdf/renderer)
-       ↓
-  Upload XML  → R2: {userId}/{uuid}.xml
-  Upload PDF  → R2: {userId}/{uuid}.pdf
-       ↓
-  Guardar URLs en DB
-       ↓
-  Preview/Download = URL firmada de R2 (no regenerar)
-  ```
-- [ ] **Actualizar InvoicePreviewDialog** — Si `invoice.pdfUrl` existe → usar R2, si no → generar al vuelo (pre-timbrado) (30 min)
+- [x] **Configurar bucket R2** — Bucket `facturafast-invoices` creado + CORS configurado
+- [x] **Instalar AWS SDK** — `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` instalados
+- [x] **r2.service.ts** — `features/storage/services/r2.service.ts` con uploadFile, getFileSignedUrl, deleteFiles
+- [x] **Columnas en DB** — `xmlUrl` + `pdfUrl` ya existían en schema
+- [x] **Flujo post-timbrado** — Integrado en `stampInvoice`: PAC → save DB → genera PDF server-side → upload XML+PDF a R2 → guarda keys en DB
+- [x] **pdf-generator.service.ts** — Genera PDF server-side con `renderToBuffer` reutilizando `InvoicePdfDocument`
+- [x] **Descarga desde R2** — Botones XML/PDF con signed URLs + fallback a xmlContent en memoria
+- [x] **Credenciales R2** — Configuradas en `.env.local`
 
 ### Timbrado flow completo — UI → PAC → R2 → DB
-- [ ] **Botón "Timbrar"** en invoice detail (solo facturas en borrador) (1h)
-  - Spinner mientras procesa
-  - Manejo de errores del PAC (RFC inválido, cert expirado, etc.)
-- [ ] **Guardar en DB post-timbrado** — UUID, sello SAT, fechaTimbrado, xmlUrl, pdfUrl (incluido en el flujo R2)
-- [ ] **Estado visual** — Badge: Borrador → Timbrada → Cancelada (30 min)
+- [x] **Timbrado funcional en sandbox** — Factura timbrada exitosamente vía SW Sapien (sandbox) ✅
+- [x] **Botón "Timbrar"** en invoice detail con spinner + error handling
+- [x] **Guardar en DB post-timbrado** — UUID, sello SAT, fechaTimbrado, xmlUrl, pdfUrl
+- [x] **Estado visual** — Badges: Borrador / Timbrada / Cancelada
+- [x] **Menú de acciones rápidas** en listado de facturas (descargar XML/PDF, copiar UUID, cancelar)
 
 ### Cancelación CFDI — UI
 - [ ] **Botón "Cancelar"** en invoice detail (solo facturas timbradas) (1h)

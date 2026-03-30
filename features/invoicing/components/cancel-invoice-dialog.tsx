@@ -34,14 +34,20 @@ const CANCELLATION_REASONS = [
 interface CancelInvoiceDialogProps {
   invoiceId: string
   invoiceLabel: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function CancelInvoiceDialog({ invoiceId, invoiceLabel }: CancelInvoiceDialogProps) {
+export function CancelInvoiceDialog({ invoiceId, invoiceLabel, open: controlledOpen, onOpenChange: controlledOnOpenChange }: CancelInvoiceDialogProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const [reason, setReason] = useState<string>('')
   const [replacementUuid, setReplacementUuid] = useState('')
+
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = isControlled ? (controlledOnOpenChange ?? (() => {})) : setInternalOpen
 
   const handleCancel = async () => {
     if (!reason) {
@@ -83,12 +89,14 @@ export function CancelInvoiceDialog({ invoiceId, invoiceLabel }: CancelInvoiceDi
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="text-destructive hover:text-destructive">
-          <Ban className="h-4 w-4 mr-2" />
-          Cancelar
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="outline" className="text-destructive hover:text-destructive">
+            <Ban className="h-4 w-4 mr-2" />
+            Cancelar
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Cancelar factura</DialogTitle>

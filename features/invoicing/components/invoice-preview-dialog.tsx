@@ -14,6 +14,7 @@ import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { InvoicePdfDocument } from './invoice-pdf-document'
+import { getInvoiceDownloadUrlAction } from '../actions/get-download-url.action'
 
 interface FiscalProfileData {
   rfc: string
@@ -36,18 +37,31 @@ interface InvoicePreviewDialogProps {
 export function InvoicePreviewDialog({ invoice, emisor, labels }: InvoicePreviewDialogProps) {
   const [open, setOpen] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [isR2Url, setIsR2Url] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
 
   const folioLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
 
-  const generatePdf = useCallback(async () => {
+  const loadPdf = useCallback(async () => {
     setIsGenerating(true)
     try {
+      // If stamped and has R2 PDF, use signed URL
+      if (invoice.pdfUrl) {
+        const result = await getInvoiceDownloadUrlAction(invoice.pdfUrl)
+        if (result.url) {
+          setPdfUrl(result.url)
+          setIsR2Url(true)
+          return
+        }
+      }
+
+      // Fallback: generate on-the-fly
       const blob = await pdf(
         <InvoicePdfDocument invoice={invoice} emisor={emisor} labels={labels} />
       ).toBlob()
       const url = URL.createObjectURL(blob)
       setPdfUrl(url)
+      setIsR2Url(false)
     } catch (error) {
       console.error('PDF generation error:', error)
       toast.error('Error al generar el PDF')
@@ -59,13 +73,14 @@ export function InvoicePreviewDialog({ invoice, emisor, labels }: InvoicePreview
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen)
     if (isOpen) {
-      generatePdf()
+      loadPdf()
     } else {
-      // Cleanup blob URL
-      if (pdfUrl) {
+      // Cleanup blob URL only (R2 signed URLs don't need cleanup)
+      if (pdfUrl && !isR2Url) {
         URL.revokeObjectURL(pdfUrl)
-        setPdfUrl(null)
       }
+      setPdfUrl(null)
+      setIsR2Url(false)
     }
   }
 
@@ -106,7 +121,9 @@ export function InvoicePreviewDialog({ invoice, emisor, labels }: InvoicePreview
             <div className="flex items-center justify-center h-full">
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Generando PDF...</p>
+                <p className="text-sm text-muted-foreground">
+                  {invoice.pdfUrl ? 'Cargando PDF...' : 'Generando PDF...'}
+                </p>
               </div>
             </div>
           ) : pdfUrl ? (

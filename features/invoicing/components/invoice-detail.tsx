@@ -11,6 +11,8 @@ import { DeleteInvoiceDialog } from './delete-invoice-dialog'
 import { CancelInvoiceDialog } from './cancel-invoice-dialog'
 import { InvoicePreviewDialog } from './invoice-preview-dialog'
 import { stampInvoiceAction } from '../actions/stamp-invoice.action'
+import { getInvoiceDownloadUrlAction } from '../actions/get-download-url.action'
+import { StatusBadge } from './status-badge'
 
 interface FiscalProfileData {
   rfc: string
@@ -51,15 +53,39 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
     })
   }
 
-  const handleDownloadXml = () => {
-    if (!invoice.xmlContent) return
-    const blob = new Blob([invoice.xmlContent], { type: 'application/xml' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `factura-${invoiceLabel}.xml`
-    a.click()
-    URL.revokeObjectURL(url)
+  const handleDownload = async (type: 'xml' | 'pdf') => {
+    const key = type === 'xml' ? invoice.xmlUrl : invoice.pdfUrl
+
+    // If R2 key exists, get a signed URL
+    if (key) {
+      const result = await getInvoiceDownloadUrlAction(key)
+      if (result.url) {
+        if (type === 'pdf') {
+          window.open(result.url, '_blank')
+        } else {
+          const res = await fetch(result.url)
+          const blob = await res.blob()
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `factura-${invoiceLabel}.xml`
+          a.click()
+          URL.revokeObjectURL(url)
+        }
+        return
+      }
+    }
+
+    // Fallback: generate from xmlContent in memory
+    if (type === 'xml' && invoice.xmlContent) {
+      const blob = new Blob([invoice.xmlContent], { type: 'application/xml' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `factura-${invoiceLabel}.xml`
+      a.click()
+      URL.revokeObjectURL(url)
+    }
   }
 
   return (
@@ -71,7 +97,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
             <h1 className="text-2xl font-semibold tracking-tight text-foreground font-mono">
               {invoiceLabel}
             </h1>
-            <StatusBadge status={invoice.status} />
+            <StatusBadge status={invoice.status} size="md" />
           </div>
           <p className="text-[13px] text-muted-foreground mt-1">
             Creada el{' '}
@@ -104,10 +130,16 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
               invoiceLabel={invoiceLabel}
             />
           )}
-          {isStamped && invoice.xmlContent && (
-            <Button variant="outline" onClick={handleDownloadXml}>
+          {isStamped && (invoice.xmlUrl || invoice.xmlContent) && (
+            <Button variant="outline" onClick={() => handleDownload('xml')}>
               <Download className="h-4 w-4 mr-2" />
               XML
+            </Button>
+          )}
+          {isStamped && invoice.pdfUrl && (
+            <Button variant="outline" onClick={() => handleDownload('pdf')}>
+              <Download className="h-4 w-4 mr-2" />
+              PDF
             </Button>
           )}
           <InvoicePreviewDialog invoice={invoice} emisor={emisor} labels={labels} />
@@ -277,27 +309,3 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const config = {
-    draft: {
-      label: 'Borrador',
-      className: 'bg-muted text-muted-foreground',
-    },
-    timbrada: {
-      label: 'Timbrada',
-      className: 'bg-primary/15 text-primary',
-    },
-    cancelada: {
-      label: 'Cancelada',
-      className: 'bg-destructive/15 text-destructive',
-    },
-  }
-
-  const { label, className } = config[status as keyof typeof config] ?? config.draft
-
-  return (
-    <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-medium ${className}`}>
-      {label}
-    </span>
-  )
-}

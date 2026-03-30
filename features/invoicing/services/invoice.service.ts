@@ -16,6 +16,8 @@ import { buildCfdiXml } from '@features/stamping/services/cfdi-xml-builder.servi
 import { sealXml } from '@features/stamping/services/xml-seal.service'
 import { stampInvoice as swStampInvoice, cancelInvoice as swCancelInvoice } from '@features/stamping/services/sw-client.service'
 import type { StampingResult, CancellationResult } from '@features/stamping/types/stamping.types'
+import { uploadFile } from '@features/storage/services/r2.service'
+import { generateInvoicePdf } from '@features/storage/services/pdf-generator.service'
 
 /**
  * Get all invoices for a user
@@ -220,6 +222,7 @@ export async function stampInvoice(
     return result
   }
 
+  // Save stamping result to DB first
   await db
     .update(invoices)
     .set({
@@ -234,6 +237,28 @@ export async function stampInvoice(
       stampedAt: result.stampedAt ? new Date(result.stampedAt) : new Date(),
     })
     .where(eq(invoices.id, invoiceId))
+
+  // Upload XML + PDF to R2 (non-blocking — invoice is already timbrada)
+  try {
+    const stampedInvoice = await getInvoiceById(invoiceId, userId)
+    if (stampedInvoice && result.uuid && result.cfdi) {
+      const xmlBuffer = Buffer.from(result.cfdi, 'utf-8')
+      const pdfBuffer = await generateInvoicePdf(stampedInvoice, userId)
+
+      const [xmlKey, pdfKey] = await Promise.all([
+        uploadFile(userId, result.uuid, xmlBuffer, 'xml'),
+        uploadFile(userId, result.uuid, pdfBuffer, 'pdf'),
+      ])
+
+      await db
+        .update(invoices)
+        .set({ xmlUrl: xmlKey, pdfUrl: pdfKey })
+        .where(eq(invoices.id, invoiceId))
+    }
+  } catch (error) {
+    // R2 upload failure should not break the stamping flow
+    console.error('R2 upload failed (invoice is still timbrada):', error)
+  }
 
   return result
 }

@@ -19,12 +19,18 @@ import { deleteInvoiceAction } from '../actions/delete-invoice.action'
 interface DeleteInvoiceDialogProps {
   invoiceId: string
   invoiceLabel: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function DeleteInvoiceDialog({ invoiceId, invoiceLabel }: DeleteInvoiceDialogProps) {
+export function DeleteInvoiceDialog({ invoiceId, invoiceLabel, open: controlledOpen, onOpenChange: controlledOnOpenChange }: DeleteInvoiceDialogProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = isControlled ? (controlledOnOpenChange ?? (() => {})) : setInternalOpen
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -45,12 +51,14 @@ export function DeleteInvoiceDialog({ invoiceId, invoiceLabel }: DeleteInvoiceDi
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" className="text-muted-foreground hover:text-destructive">
-          <Trash2 className="h-4 w-4 mr-2" />
-          Eliminar
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" className="text-muted-foreground hover:text-destructive">
+            <Trash2 className="h-4 w-4 mr-2" />
+            Eliminar
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Eliminar factura</DialogTitle>
