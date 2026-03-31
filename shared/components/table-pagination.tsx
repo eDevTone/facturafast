@@ -46,7 +46,7 @@ export function TablePagination({
 
   return (
     <div className="flex items-center justify-between px-5 py-3 border-t border-border/40">
-      <p className="text-[11px] text-muted-foreground/40 tabular-nums">
+      <p className="text-[11px] text-muted-foreground/40 tabular-nums whitespace-nowrap shrink-0">
         {start}–{end} de {totalItems}
       </p>
 

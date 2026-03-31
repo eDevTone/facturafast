@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/shared/ui/dialog'
-import type { CatalogOption } from '@shared/services/sat-catalog.service'
+import type { CatalogOption, TaxRegimeOption } from '@shared/services/sat-catalog.service'
 import { Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -19,7 +19,7 @@ import { ClientForm } from './client-form'
 interface EditClientDialogProps {
   client: Client
   catalogs: {
-    taxRegimes: CatalogOption[]
+    taxRegimes: TaxRegimeOption[]
     cfdiUsages: CatalogOption[]
   }
 }

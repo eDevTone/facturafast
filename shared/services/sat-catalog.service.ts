@@ -13,11 +13,15 @@ export type CfdiUsageOption = CatalogOption & { applicableToMoral: boolean; appl
 
 // ── Tax Regimes ─────────────────────────────────────────────────────────────
 
-export async function getTaxRegimeOptions(): Promise<CatalogOption[]> {
+export type TaxRegimeOption = CatalogOption & { applicableToMoral: boolean; applicableToFisica: boolean }
+
+export async function getTaxRegimeOptions(): Promise<TaxRegimeOption[]> {
   const rows = await db.select().from(taxRegimes).orderBy(taxRegimes.code)
   return rows.map((r) => ({
     value: r.code,
     label: `${r.code} - ${r.description}`,
+    applicableToMoral: r.applicableToMoral,
+    applicableToFisica: r.applicableToFisica,
   }))
 }
 
@@ -91,7 +95,7 @@ export async function getInvoiceFormCatalogs(): Promise<InvoiceFormCatalogs> {
 }
 
 export interface ClientFormCatalogs {
-  taxRegimes: CatalogOption[]
+  taxRegimes: TaxRegimeOption[]
   cfdiUsages: CatalogOption[]
 }
 

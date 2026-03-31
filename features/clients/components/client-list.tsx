@@ -1,6 +1,6 @@
 'use client'
 
-import type { CatalogOption } from '@shared/services/sat-catalog.service'
+import type { CatalogOption, TaxRegimeOption } from '@shared/services/sat-catalog.service'
 import { Button } from '@shared/ui/button'
 import { Input } from '@shared/ui/input'
 import { Mail, MapPin, Phone, Search, Users } from 'lucide-react'
@@ -16,7 +16,7 @@ interface ClientListProps {
   clients: Client[]
   taxRegimeLabels: Record<string, string>
   catalogs: {
-    taxRegimes: CatalogOption[]
+    taxRegimes: TaxRegimeOption[]
     cfdiUsages: CatalogOption[]
   }
 }

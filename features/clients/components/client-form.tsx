@@ -3,8 +3,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useMemo, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Button } from '@shared/ui/button'
@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@shared/ui/select'
 
-import type { CatalogOption } from '@shared/services/sat-catalog.service'
+import type { CatalogOption, TaxRegimeOption } from '@shared/services/sat-catalog.service'
 import { createClientAction } from '../actions/create-client.action'
 import { createClientFormSchema, type ClientFormData } from '../schemas/client-form.schema'
 import { CSFUpload } from './csf-upload'
@@ -37,7 +37,7 @@ interface ClientFormProps {
   submitLabel?: string
   showCSFUpload?: boolean
   catalogs: {
-    taxRegimes: CatalogOption[]
+    taxRegimes: TaxRegimeOption[]
     cfdiUsages: CatalogOption[]
   }
 }
@@ -65,6 +65,17 @@ export function ClientForm({
       cfdiUsage: '',
     },
   })
+
+  // Watch RFC to determine person type and filter tax regimes
+  const rfcValue = useWatch({ control: form.control, name: 'rfc' })
+  const personType = rfcValue?.length === 12 ? 'moral' : rfcValue?.length === 13 ? 'fisica' : null
+
+  const filteredTaxRegimes = useMemo(() => {
+    if (!personType) return catalogs.taxRegimes
+    return catalogs.taxRegimes.filter(r =>
+      personType === 'moral' ? r.applicableToMoral : r.applicableToFisica
+    )
+  }, [catalogs.taxRegimes, personType])
 
   const handleCSFData = (data: {
     rfc: string
@@ -216,9 +227,13 @@ export function ClientForm({
             name="taxRegime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-muted-foreground">
+                <FormLabel>
                   Régimen Fiscal
-                  <span className="ml-1.5 text-[11px] text-muted-foreground/50">opcional</span>
+                  {personType && (
+                    <span className="ml-1.5 text-[10px] font-normal text-muted-foreground/50">
+                      Persona {personType === 'moral' ? 'Moral' : 'Física'}
+                    </span>
+                  )}
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
@@ -227,7 +242,7 @@ export function ClientForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {catalogs.taxRegimes.map(regime => (
+                    {filteredTaxRegimes.map(regime => (
                       <SelectItem key={regime.value} value={regime.value}>
                         {regime.label}
                       </SelectItem>

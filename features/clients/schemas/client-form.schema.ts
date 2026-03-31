@@ -18,7 +18,7 @@ export const createClientFormSchema = z.object({
     .min(5, 'Código postal debe tener 5 dígitos')
     .max(5, 'Código postal debe tener 5 dígitos')
     .regex(/^\d{5}$/, 'Código postal debe ser numérico'),
-  taxRegime: z.string().optional(),
+  taxRegime: z.string().min(1, 'Régimen fiscal requerido'),
   cfdiUsage: z.string().optional() // Optional, Select has defaultValue
 })
 
