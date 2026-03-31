@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Building2, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@shared/ui/button'
@@ -17,9 +17,10 @@ import type { CatalogOption } from '@shared/services/sat-catalog.service'
 interface FiscalProfilesClientProps {
   profiles: IssuingProfile[]
   taxRegimes: CatalogOption[]
+  logoUrls?: Record<string, string>
 }
 
-export function FiscalProfilesClient({ profiles, taxRegimes }: FiscalProfilesClientProps) {
+export function FiscalProfilesClient({ profiles, taxRegimes, logoUrls = {} }: FiscalProfilesClientProps) {
   const [showCreate, setShowCreate] = useState(false)
   const [editTarget, setEditTarget] = useState<IssuingProfile | null>(null)
 
@@ -56,14 +57,22 @@ export function FiscalProfilesClient({ profiles, taxRegimes }: FiscalProfilesCli
       </div>
 
       {profiles.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center">
-          <p className="text-muted-foreground text-sm">
-            Aún no tienes perfiles fiscales.
-          </p>
-          <Button className="mt-4" onClick={() => setShowCreate(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Crear primer perfil
-          </Button>
+        <div className="rounded-xl border border-border/60 bg-card">
+          <div className="flex flex-col items-center justify-center p-16 text-center">
+            <div className="mb-4 rounded-full bg-muted p-4">
+              <Building2 className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h3 className="text-base font-semibold text-foreground">
+              No hay perfiles fiscales
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground max-w-xs">
+              Configura tu primer RFC emisor para comenzar a timbrar facturas.
+            </p>
+            <Button className="mt-5" onClick={() => setShowCreate(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Crear primer perfil
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -99,6 +108,7 @@ export function FiscalProfilesClient({ profiles, taxRegimes }: FiscalProfilesCli
           </DialogHeader>
           <IssuingProfileForm
             initialData={editTarget}
+            logoPreviewUrl={editTarget ? logoUrls[editTarget.id] : undefined}
             onSubmit={handleEdit}
             onCancel={() => setEditTarget(null)}
             taxRegimes={taxRegimes}

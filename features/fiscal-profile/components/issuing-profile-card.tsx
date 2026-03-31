@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Building2, ShieldCheck, ShieldOff, Star, Trash2, Pencil, MoreHorizontal } from 'lucide-react'
+import { Building2, ShieldCheck, ShieldOff, Star, Trash2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@shared/ui/button'
-import { Badge } from '@shared/ui/badge'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +25,6 @@ import type { IssuingProfile } from '../types/fiscal-profile.types'
 interface IssuingProfileCardProps {
   profile: IssuingProfile
   onEdit?: (profile: IssuingProfile) => void
-  /** Picker mode: card is selectable, no edit/delete actions */
   selectable?: boolean
   selected?: boolean
   onSelect?: (profile: IssuingProfile) => void
@@ -66,54 +64,60 @@ export function IssuingProfileCard({
   }
 
   const cardClass = selectable
-    ? `cursor-pointer transition-all ${selected ? 'ring-2 ring-primary bg-primary/5' : 'hover:ring-1 hover:ring-border'}`
-    : ''
+    ? `cursor-pointer transition-all ${selected ? 'ring-2 ring-primary bg-primary/[0.03]' : 'hover:border-border'}`
+    : 'hover:border-border'
 
   return (
     <div
-      className={`rounded-xl border bg-card p-4 ${cardClass}`}
+      className={`rounded-xl border border-border/60 bg-card p-5 transition-colors ${cardClass}`}
       onClick={() => selectable && onSelect?.(profile)}
     >
+      {/* Top: icon + RFC + badges */}
       <div className="flex items-start justify-between gap-3">
-        {/* Left: icon + info */}
         <div className="flex items-start gap-3 min-w-0">
-          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${profile.isDefault ? 'bg-primary/10' : 'bg-muted'}`}>
-            <Building2 className={`h-5 w-5 ${profile.isDefault ? 'text-primary' : 'text-muted-foreground'}`} />
+          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${profile.isDefault ? 'bg-primary/10' : 'bg-muted/60'}`}>
+            <Building2 className={`h-4 w-4 ${profile.isDefault ? 'text-primary' : 'text-muted-foreground/60'}`} />
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono font-semibold text-sm">{profile.rfc}</span>
+              <span className="font-mono font-semibold text-[13px] text-foreground">{profile.rfc}</span>
               {profile.isDefault && (
-                <Badge variant="secondary" className="gap-1 text-xs">
-                  <Star className="h-3 w-3" />
-                  Predeterminado
-                </Badge>
+                <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                  <Star className="h-2.5 w-2.5" />
+                  Default
+                </span>
               )}
               {selected && (
-                <Badge className="text-xs">Seleccionado</Badge>
+                <span className="inline-flex items-center rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
+                  Seleccionado
+                </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground truncate">{profile.businessName}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-sm text-muted-foreground truncate mt-0.5">{profile.businessName}</p>
+            <p className="text-[11px] text-muted-foreground/40 mt-1">
               Régimen {profile.taxRegime} · CP {profile.postalCode}
             </p>
           </div>
         </div>
 
-        {/* Right: CSD badge + actions */}
+        {/* CSD badge */}
         {!selectable && (
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="shrink-0">
             {hasCSD ? (
-              <Badge variant="outline" className={`gap-1 text-xs ${expired ? 'border-red-300 text-red-600' : 'border-green-300 text-green-700'}`}>
+              <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium ${
+                expired
+                  ? 'bg-destructive/10 text-destructive'
+                  : 'bg-primary/10 text-primary'
+              }`}>
                 {expired ? <ShieldOff className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />}
                 {expired ? 'CSD vencido' : 'CSD listo'}
-              </Badge>
+              </span>
             ) : (
-              <Badge variant="outline" className="gap-1 text-xs border-yellow-300 text-yellow-700">
+              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
                 <ShieldOff className="h-3 w-3" />
                 Sin CSD
-              </Badge>
+              </span>
             )}
           </div>
         )}
@@ -121,14 +125,14 @@ export function IssuingProfileCard({
 
       {/* Actions (non-selectable mode) */}
       {!selectable && (
-        <div className="mt-3 flex items-center gap-2 pt-3 border-t">
+        <div className="mt-4 flex items-center gap-1.5 pt-3 border-t border-border/40">
           {!profile.isDefault && (
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               onClick={handleSetDefault}
               disabled={pending}
-              className="text-xs h-7"
+              className="text-[11px] h-7 text-muted-foreground hover:text-foreground"
             >
               <Star className="h-3 w-3 mr-1" />
               Predeterminar
@@ -138,9 +142,9 @@ export function IssuingProfileCard({
           {onEdit && (
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               onClick={() => onEdit(profile)}
-              className="text-xs h-7"
+              className="text-[11px] h-7 text-muted-foreground hover:text-foreground"
             >
               <Pencil className="h-3 w-3 mr-1" />
               Editar
@@ -151,12 +155,11 @@ export function IssuingProfileCard({
             <AlertDialogTrigger asChild>
               <Button
                 size="sm"
-                variant="outline"
-                className="text-xs h-7 text-destructive hover:text-destructive ml-auto"
+                variant="ghost"
+                className="text-[11px] h-7 text-muted-foreground/40 hover:text-destructive ml-auto"
                 disabled={pending}
               >
-                <Trash2 className="h-3 w-3 mr-1" />
-                Eliminar
+                <Trash2 className="h-3 w-3" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -179,14 +182,14 @@ export function IssuingProfileCard({
 
       {/* CSD status in selectable mode */}
       {selectable && (
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-2">
           {hasCSD ? (
-            <span className={`text-xs flex items-center gap-1 ${expired ? 'text-red-500' : 'text-green-600'}`}>
+            <span className={`text-[11px] flex items-center gap-1 ${expired ? 'text-destructive' : 'text-primary'}`}>
               <ShieldCheck className="h-3 w-3" />
               {expired ? 'CSD vencido' : 'CSD cargado'}
             </span>
           ) : (
-            <span className="text-xs text-yellow-600 flex items-center gap-1">
+            <span className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
               <ShieldOff className="h-3 w-3" />
               Sin CSD
             </span>

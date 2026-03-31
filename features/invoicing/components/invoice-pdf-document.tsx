@@ -14,6 +14,7 @@ interface FiscalProfileData {
   taxRegime: string
   postalCode: string
   fiscalAddress?: string | null
+  logoUrl?: string | null
 }
 
 interface InvoicePdfDocumentProps {
@@ -26,23 +27,27 @@ interface InvoicePdfDocumentProps {
   }
 }
 
-const emerald = '#059669'
-const gray = {
-  50: '#f9fafb',
-  100: '#f3f4f6',
-  200: '#e5e7eb',
-  300: '#d1d5db',
-  500: '#6b7280',
-  700: '#374151',
-  900: '#111827',
+// Color palette — neutral blue/gray from Pencil design
+const c = {
+  dark: '#19213d',
+  text: '#19213d',
+  label: '#868da6',
+  sublabel: '#5d6481',
+  cardBg: '#f6f8fc',
+  border: '#ebeff6',
+  accent: '#2388ff',
+  white: '#ffffff',
+  watermark: '#e5e7eb',
+  destructive: '#ef4444',
 }
 
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 48,
     fontSize: 9,
     fontFamily: 'Helvetica',
-    color: gray[900],
+    color: c.text,
+    backgroundColor: c.white,
   },
   // Watermark
   watermark: {
@@ -50,173 +55,213 @@ const styles = StyleSheet.create({
     top: '40%',
     left: '15%',
     fontSize: 72,
-    color: '#e5e7eb',
+    color: c.watermark,
     fontFamily: 'Helvetica-Bold',
     transform: 'rotate(-35deg)',
-    opacity: 0.4,
+    opacity: 0.35,
   },
   // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
-    paddingBottom: 16,
-    borderBottomWidth: 2,
-    borderBottomColor: emerald,
+    alignItems: 'flex-start',
+    marginBottom: 28,
   },
   headerLeft: {
     flex: 1,
   },
-  headerRight: {
-    alignItems: 'flex-end',
-  },
   companyName: {
-    fontSize: 16,
+    fontSize: 24,
     fontFamily: 'Helvetica-Bold',
-    color: gray[900],
-    marginBottom: 4,
+    color: c.dark,
+    marginBottom: 6,
   },
   companyDetail: {
-    fontSize: 8,
-    color: gray[500],
-    marginBottom: 2,
+    fontSize: 9,
+    color: c.label,
+    marginBottom: 1,
   },
-  invoiceTitle: {
-    fontSize: 20,
-    fontFamily: 'Helvetica-Bold',
-    color: emerald,
-    marginBottom: 4,
+  logo: {
+    width: 52,
+    height: 52,
   },
-  folioText: {
-    fontSize: 12,
-    fontFamily: 'Helvetica-Bold',
-    color: gray[900],
-    marginBottom: 2,
-  },
-  dateText: {
-    fontSize: 8,
-    color: gray[500],
-  },
-  // Sections
-  sectionTitle: {
-    fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    color: emerald,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 8,
-  },
-  section: {
+  // Info cards row
+  infoRow: {
+    flexDirection: 'row',
+    gap: 10,
     marginBottom: 20,
   },
-  row: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  col: {
+  infoCard: {
     flex: 1,
+    backgroundColor: c.cardBg,
+    borderRadius: 8,
+    padding: 12,
   },
-  label: {
+  infoCardWhite: {
+    flex: 1,
+    backgroundColor: c.white,
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 0.6,
+    borderColor: c.border,
+  },
+  infoCardSmall: {
+    width: 110,
+    backgroundColor: c.cardBg,
+    borderRadius: 8,
+    padding: 12,
+  },
+  infoLabel: {
     fontSize: 7,
-    color: gray[500],
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
+    fontFamily: 'Helvetica-Bold',
+    color: c.sublabel,
+    marginBottom: 6,
   },
-  value: {
+  infoValue: {
+    fontSize: 11,
+    fontFamily: 'Helvetica',
+    color: c.text,
+  },
+  infoValueBold: {
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold',
+    color: c.text,
+  },
+  infoValueSmall: {
     fontSize: 9,
-    color: gray[900],
+    color: c.text,
   },
-  valueBold: {
+  infoValueMuted: {
+    fontSize: 9,
+    color: c.label,
+  },
+  amountLarge: {
+    fontSize: 16,
+    fontFamily: 'Helvetica-Bold',
+    color: c.text,
+  },
+  amountCurrency: {
+    fontSize: 11,
+    color: c.text,
+    marginTop: 2,
+  },
+  amountDate: {
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    color: gray[900],
+    color: c.label,
+    marginTop: 6,
   },
-  valueMono: {
-    fontSize: 9,
-    fontFamily: 'Courier',
-    color: gray[900],
+  // Concepts section
+  conceptsCard: {
+    backgroundColor: c.cardBg,
+    borderRadius: 12,
+    padding: 12,
+    paddingTop: 16,
+    marginBottom: 16,
   },
   // Table
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: gray[50],
-    borderBottomWidth: 1,
-    borderBottomColor: gray[200],
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
+    paddingBottom: 8,
+    marginBottom: 4,
   },
   tableRow: {
     flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderBottomWidth: 0.5,
-    borderBottomColor: gray[100],
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    borderBottomColor: c.border,
   },
-  thDesc: { flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: gray[500], textTransform: 'uppercase' },
-  thQty: { width: 50, fontSize: 7, fontFamily: 'Helvetica-Bold', color: gray[500], textTransform: 'uppercase', textAlign: 'right' },
-  thPrice: { width: 80, fontSize: 7, fontFamily: 'Helvetica-Bold', color: gray[500], textTransform: 'uppercase', textAlign: 'right' },
-  thAmount: { width: 80, fontSize: 7, fontFamily: 'Helvetica-Bold', color: gray[500], textTransform: 'uppercase', textAlign: 'right' },
-  tdDesc: { flex: 1, fontSize: 9 },
-  tdDescSub: { fontSize: 7, color: gray[500], fontFamily: 'Courier', marginTop: 2 },
-  tdQty: { width: 50, fontSize: 9, fontFamily: 'Courier', textAlign: 'right' },
-  tdPrice: { width: 80, fontSize: 9, fontFamily: 'Courier', textAlign: 'right' },
-  tdAmount: { width: 80, fontSize: 9, fontFamily: 'Courier-Bold', textAlign: 'right' },
+  thDesc: { flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: c.label, letterSpacing: 0.3 },
+  thQty: { width: 40, fontSize: 7, fontFamily: 'Helvetica-Bold', color: c.label, textAlign: 'right', letterSpacing: 0.3 },
+  thPrice: { width: 70, fontSize: 7, fontFamily: 'Helvetica-Bold', color: c.label, textAlign: 'right', letterSpacing: 0.3 },
+  thAmount: { width: 70, fontSize: 7, fontFamily: 'Helvetica-Bold', color: c.label, textAlign: 'right', letterSpacing: 0.3 },
+  tdDesc: { flex: 1 },
+  tdDescText: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: c.text },
+  tdDescSub: { fontSize: 7, color: c.label, fontFamily: 'Courier', marginTop: 2 },
+  tdQty: { width: 40, fontSize: 9, fontFamily: 'Courier', textAlign: 'right', color: c.label },
+  tdPrice: { width: 70, fontSize: 9, fontFamily: 'Courier', textAlign: 'right', color: c.label },
+  tdAmount: { width: 70, fontSize: 9, fontFamily: 'Courier-Bold', textAlign: 'right', color: c.text },
   // Totals
   totalsContainer: {
-    marginTop: 16,
     alignItems: 'flex-end',
-  },
-  totalsBox: {
-    width: 220,
-    borderWidth: 1,
-    borderColor: gray[200],
-    borderRadius: 4,
-    padding: 12,
+    marginBottom: 4,
+    paddingRight: 10,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    width: 180,
+    marginBottom: 3,
   },
   totalLabel: {
-    fontSize: 9,
-    color: gray[500],
+    fontSize: 8,
+    color: c.label,
+    letterSpacing: 0.3,
   },
   totalValue: {
     fontSize: 9,
     fontFamily: 'Courier',
+    color: c.text,
   },
   totalDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: gray[200],
+    width: 180,
+    borderBottomWidth: 0.5,
+    borderBottomColor: c.border,
     marginVertical: 4,
   },
   totalFinalLabel: {
-    fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
-    color: gray[900],
+    fontSize: 8,
+    color: c.text,
   },
   totalFinalValue: {
-    fontSize: 11,
-    fontFamily: 'Courier-Bold',
-    color: emerald,
+    fontSize: 16,
+    fontFamily: 'Helvetica-Bold',
+    color: c.accent,
+  },
+  // Payment info
+  paymentSection: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  paymentCard: {
+    flex: 1,
+    backgroundColor: c.cardBg,
+    borderRadius: 8,
+    padding: 10,
+  },
+  paymentLabel: {
+    fontSize: 7,
+    color: c.label,
+    marginBottom: 2,
+  },
+  paymentValue: {
+    fontSize: 8,
+    color: c.text,
   },
   // Fiscal stamp section
   stampSection: {
-    marginTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: emerald,
+    marginTop: 16,
+    borderTopWidth: 0.5,
+    borderTopColor: c.border,
     paddingTop: 12,
+  },
+  stampTitle: {
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    color: c.sublabel,
+    letterSpacing: 0.3,
+    marginBottom: 8,
   },
   stampRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 8,
   },
   stampQr: {
-    width: 100,
-    height: 100,
+    width: 90,
+    height: 90,
   },
   stampInfo: {
     flex: 1,
@@ -224,39 +269,38 @@ const styles = StyleSheet.create({
   stampLabel: {
     fontSize: 6,
     fontFamily: 'Helvetica-Bold',
-    color: emerald,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-    marginTop: 6,
+    color: c.sublabel,
+    letterSpacing: 0.3,
+    marginBottom: 1,
+    marginTop: 5,
   },
   stampValue: {
-    fontSize: 6,
+    fontSize: 5.5,
     fontFamily: 'Courier',
-    color: gray[700],
+    color: c.label,
     lineHeight: 1.4,
   },
   stampUuid: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: 'Courier-Bold',
-    color: gray[900],
+    color: c.text,
     marginBottom: 2,
   },
   // Footer
   footer: {
     position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
+    bottom: 28,
+    left: 48,
+    right: 48,
     borderTopWidth: 0.5,
-    borderTopColor: gray[200],
-    paddingTop: 8,
+    borderTopColor: c.border,
+    paddingTop: 6,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   footerText: {
     fontSize: 7,
-    color: gray[500],
+    color: c.label,
   },
 })
 
@@ -283,95 +327,111 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
         {/* Draft watermark */}
         {isDraft && <Text style={styles.watermark}>BORRADOR</Text>}
 
-        {/* Header */}
+        {/* Header — Company name + logo */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.companyName}>
-              {emisor?.businessName || 'Sin perfil fiscal configurado'}
+              {emisor?.businessName || 'Sin perfil fiscal'}
             </Text>
             {emisor && (
-              <>
-                <Text style={styles.companyDetail}>RFC: {emisor.rfc}</Text>
-                <Text style={styles.companyDetail}>Régimen: {emisor.taxRegime}</Text>
-                <Text style={styles.companyDetail}>C.P. {emisor.postalCode}</Text>
-                {emisor.fiscalAddress && (
-                  <Text style={styles.companyDetail}>{emisor.fiscalAddress}</Text>
-                )}
-              </>
+              <Text style={styles.companyDetail}>
+                RFC: {emisor.rfc}
+              </Text>
             )}
           </View>
-          <View style={styles.headerRight}>
-            <Text style={styles.invoiceTitle}>FACTURA</Text>
-            <Text style={styles.folioText}>{folioLabel}</Text>
-            <Text style={styles.dateText}>
-              Fecha: {new Date(invoice.issuedAt).toLocaleDateString('es-MX', {
-                year: 'numeric',
-                month: 'long',
+          {emisor?.logoUrl && (
+            <Image style={styles.logo} src={emisor.logoUrl} />
+          )}
+        </View>
+
+        {/* Info cards — Receptor | Monto | Folio + Fecha */}
+        <View style={styles.infoRow}>
+          {/* Receptor */}
+          <View style={styles.infoCard}>
+            <Text style={styles.infoLabel}>Facturar a:</Text>
+            <Text style={styles.infoValueBold}>{invoice.client.businessName}</Text>
+            <Text style={{ ...styles.infoValueSmall, marginTop: 4 }}>
+              RFC: {invoice.client.rfc}
+            </Text>
+            <Text style={{ ...styles.infoValueMuted, marginTop: 2 }}>
+              C.P. {invoice.client.postalCode}
+            </Text>
+          </View>
+
+          {/* Monto a pagar */}
+          <View style={styles.infoCardWhite}>
+            <Text style={styles.infoLabel}>Monto a pagar:</Text>
+            <Text style={styles.amountLarge}>
+              {formatCurrency(parseFloat(invoice.total))}
+            </Text>
+            <Text style={styles.amountCurrency}>{invoice.currency}</Text>
+            <Text style={styles.amountDate}>
+              {new Date(invoice.issuedAt).toLocaleDateString('es-MX', {
                 day: 'numeric',
+                month: 'long',
+                year: 'numeric',
               })}
             </Text>
           </View>
-        </View>
 
-        {/* Receptor */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Receptor</Text>
-          <View style={styles.row}>
-            <View style={styles.col}>
-              <Text style={styles.label}>Razón Social</Text>
-              <Text style={styles.valueBold}>{invoice.client.businessName}</Text>
+          {/* Folio + Fecha */}
+          <View style={{ width: 110, gap: 8 }}>
+            <View style={styles.infoCardSmall}>
+              <Text style={styles.infoLabel}>Número de factura:</Text>
+              <Text style={{ ...styles.infoValueSmall, fontFamily: 'Helvetica-Bold' }}>
+                Nº: {folioLabel}
+              </Text>
             </View>
-            <View style={styles.col}>
-              <Text style={styles.label}>RFC</Text>
-              <Text style={styles.valueMono}>{invoice.client.rfc}</Text>
-            </View>
-            <View style={styles.col}>
-              <Text style={styles.label}>Uso CFDI</Text>
-              <Text style={styles.value}>
-                {invoice.cfdiUsage} — {labels.cfdiUsages[invoice.cfdiUsage] || invoice.cfdiUsage}
+            <View style={styles.infoCardSmall}>
+              <Text style={styles.infoLabel}>Emitida:</Text>
+              <Text style={styles.infoValueSmall}>
+                {new Date(invoice.issuedAt).toLocaleDateString('es-MX', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Payment data */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Datos de Pago</Text>
-          <View style={styles.row}>
-            <View style={styles.col}>
-              <Text style={styles.label}>Forma de Pago</Text>
-              <Text style={styles.value}>
-                {invoice.paymentForm} — {labels.paymentForms[invoice.paymentForm] || invoice.paymentForm}
-              </Text>
-            </View>
-            <View style={styles.col}>
-              <Text style={styles.label}>Método de Pago</Text>
-              <Text style={styles.value}>
-                {invoice.paymentMethod} — {labels.paymentMethods[invoice.paymentMethod] || invoice.paymentMethod}
-              </Text>
-            </View>
-            <View style={styles.col}>
-              <Text style={styles.label}>Moneda</Text>
-              <Text style={styles.value}>{invoice.currency}</Text>
-            </View>
+        {/* Payment info row */}
+        <View style={styles.paymentSection}>
+          <View style={styles.paymentCard}>
+            <Text style={styles.paymentLabel}>Forma de pago</Text>
+            <Text style={styles.paymentValue}>
+              {invoice.paymentForm} — {labels.paymentForms[invoice.paymentForm] || invoice.paymentForm}
+            </Text>
+          </View>
+          <View style={styles.paymentCard}>
+            <Text style={styles.paymentLabel}>Método de pago</Text>
+            <Text style={styles.paymentValue}>
+              {invoice.paymentMethod} — {labels.paymentMethods[invoice.paymentMethod] || invoice.paymentMethod}
+            </Text>
+          </View>
+          <View style={styles.paymentCard}>
+            <Text style={styles.paymentLabel}>Uso CFDI</Text>
+            <Text style={styles.paymentValue}>
+              {invoice.cfdiUsage} — {labels.cfdiUsages[invoice.cfdiUsage] || invoice.cfdiUsage}
+            </Text>
           </View>
         </View>
 
-        {/* Concepts table */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Conceptos</Text>
-          {/* Header */}
+        {/* Concepts table in card */}
+        <View style={styles.conceptsCard}>
+          {/* Table header */}
           <View style={styles.tableHeader}>
             <Text style={styles.thDesc}>Descripción</Text>
             <Text style={styles.thQty}>Cant.</Text>
-            <Text style={styles.thPrice}>P. Unitario</Text>
-            <Text style={styles.thAmount}>Importe</Text>
+            <Text style={styles.thPrice}>Precio</Text>
+            <Text style={styles.thAmount}>Total</Text>
           </View>
+
           {/* Rows */}
           {invoice.items.map(item => (
             <View key={item.id} style={styles.tableRow}>
               <View style={styles.tdDesc}>
-                <Text>{item.description}</Text>
+                <Text style={styles.tdDescText}>{item.description}</Text>
                 <Text style={styles.tdDescSub}>
                   {item.productServiceCode} · {item.unit}
                 </Text>
@@ -387,11 +447,9 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
               </Text>
             </View>
           ))}
-        </View>
 
-        {/* Totals */}
-        <View style={styles.totalsContainer}>
-          <View style={styles.totalsBox}>
+          {/* Totals inside card */}
+          <View style={{ ...styles.totalsContainer, marginTop: 12 }}>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Subtotal</Text>
               <Text style={styles.totalValue}>{formatCurrency(parseFloat(invoice.subtotal))}</Text>
@@ -403,14 +461,14 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
             {parseFloat(invoice.withholdings) > 0 && (
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>Retenciones</Text>
-                <Text style={{ ...styles.totalValue, color: '#ef4444' }}>
+                <Text style={{ ...styles.totalValue, color: c.destructive }}>
                   -{formatCurrency(parseFloat(invoice.withholdings))}
                 </Text>
               </View>
             )}
             <View style={styles.totalDivider} />
-            <View style={styles.totalRow}>
-              <Text style={styles.totalFinalLabel}>Total</Text>
+            <View style={{ ...styles.totalRow, alignItems: 'center' }}>
+              <Text style={styles.totalFinalLabel}>Monto total:</Text>
               <Text style={styles.totalFinalValue}>{formatCurrency(parseFloat(invoice.total))}</Text>
             </View>
           </View>
@@ -419,7 +477,7 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
         {/* Fiscal stamp */}
         {isStamped && invoice.uuid && (
           <View style={styles.stampSection}>
-            <Text style={styles.sectionTitle}>Sello Digital</Text>
+            <Text style={styles.stampTitle}>SELLO DIGITAL</Text>
             <View style={styles.stampRow}>
               {invoice.qrCode && (
                 <Image

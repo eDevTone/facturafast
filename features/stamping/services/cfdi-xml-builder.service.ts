@@ -55,15 +55,18 @@ export function buildCfdiXml(params: BuildXmlParams): string {
 
   const conceptosXml = invoice.items.map((item) => {
     const amountWithIva = parseFloat(item.amount)
-    const baseAmount = amountWithIva / IVA_DIVISOR    // Amount without IVA
-    const taxAmount = amountWithIva - baseAmount       // IVA portion
     const unitPriceWithIva = parseFloat(item.unitPrice)
-    const unitPriceBase = unitPriceWithIva / IVA_DIVISOR
+    const qty = parseFloat(item.quantity)
+
+    // SAT requires: round base first, then compute tax from rounded base
+    const unitPriceBase = Math.round((unitPriceWithIva / IVA_DIVISOR) * 100) / 100
+    const baseAmount = Math.round((unitPriceBase * qty) * 100) / 100
+    const taxAmount = Math.round((baseAmount * IVA_RATE) * 100) / 100
 
     cfdiSubtotal += baseAmount
     totalTaxAmount += taxAmount
 
-    return `<cfdi:Concepto ClaveProdServ="${esc(item.productServiceCode)}" Cantidad="${toFixed6(parseFloat(item.quantity))}" ClaveUnidad="${esc(item.unit)}" Descripcion="${esc(item.description)}" ValorUnitario="${toFixed2(unitPriceBase)}" Importe="${toFixed2(baseAmount)}" ObjetoImp="02"><cfdi:Impuestos><cfdi:Traslados><cfdi:Traslado Base="${toFixed2(baseAmount)}" Importe="${toFixed2(taxAmount)}" Impuesto="${TAX_CODE_IVA}" TasaOCuota="${IVA_RATE_STR}" TipoFactor="Tasa"/></cfdi:Traslados></cfdi:Impuestos></cfdi:Concepto>`
+    return `<cfdi:Concepto ClaveProdServ="${esc(item.productServiceCode.trim())}" Cantidad="${toFixed6(qty)}" ClaveUnidad="${esc(item.unit.trim())}" Descripcion="${esc(item.description.trim())}" ValorUnitario="${toFixed2(unitPriceBase)}" Importe="${toFixed2(baseAmount)}" ObjetoImp="02"><cfdi:Impuestos><cfdi:Traslados><cfdi:Traslado Base="${toFixed2(baseAmount)}" Importe="${toFixed2(taxAmount)}" Impuesto="${TAX_CODE_IVA}" TasaOCuota="${IVA_RATE_STR}" TipoFactor="Tasa"/></cfdi:Traslados></cfdi:Impuestos></cfdi:Concepto>`
   }).join('')
 
   const total = cfdiSubtotal + totalTaxAmount

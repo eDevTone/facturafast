@@ -75,18 +75,18 @@ export default async function DashboardPage() {
         {/* Total facturado */}
         <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
           <div className="flex items-center justify-between">
-            <p className="text-[13px] font-medium text-muted-foreground">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Facturado este mes
-            </p>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-              <TrendingUp className="h-4 w-4 text-primary" />
+            </span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+              <TrendingUp className="h-3.5 w-3.5 text-primary" />
             </div>
           </div>
           <p className="mt-3 text-2xl font-semibold tracking-tight font-mono">
             {formatCurrency(stats.totalBilledThisMonth)}
           </p>
           {stats.totalBilledLastMonth > 0 ? (
-            <p className={`mt-2 text-[13px] flex items-center gap-1 ${growthPercent >= 0 ? 'text-primary' : 'text-destructive'}`}>
+            <p className={`mt-2 text-[12px] flex items-center gap-1 ${growthPercent >= 0 ? 'text-primary' : 'text-destructive'}`}>
               {growthPercent >= 0 ? (
                 <TrendingUp className="h-3 w-3" />
               ) : (
@@ -95,28 +95,27 @@ export default async function DashboardPage() {
               {growthPercent >= 0 ? '+' : ''}{growthPercent.toFixed(1)}% vs mes anterior
             </p>
           ) : (
-            <p className="mt-2 text-[13px] text-muted-foreground/60">
+            <p className="mt-2 text-[12px] text-muted-foreground/40">
               Sin datos del mes anterior
             </p>
           )}
-          {/* Breakdown: timbrado vs borradores */}
           {stats.totalBilledThisMonth > 0 && (
             <div className="mt-3 pt-3 border-t border-border/40 space-y-1.5">
-              <div className="flex items-center justify-between text-[12px]">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="flex items-center gap-1.5 text-muted-foreground/60">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   Timbrado
                 </span>
-                <span className="font-mono font-medium text-foreground">
+                <span className="font-mono font-medium text-foreground tabular-nums">
                   {formatCurrency(stats.timbradaAmountThisMonth)}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-[12px]">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="flex items-center gap-1.5 text-muted-foreground/60">
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
                   Por cobrar
                 </span>
-                <span className="font-mono font-medium text-foreground">
+                <span className="font-mono font-medium text-foreground tabular-nums">
                   {formatCurrency(stats.draftAmountThisMonth)}
                 </span>
               </div>
@@ -127,17 +126,17 @@ export default async function DashboardPage() {
         {/* Facturas este mes */}
         <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
           <div className="flex items-center justify-between">
-            <p className="text-[13px] font-medium text-muted-foreground">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Facturas este mes
-            </p>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-              <Receipt className="h-4 w-4 text-muted-foreground" />
+            </span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/60">
+              <Receipt className="h-3.5 w-3.5 text-muted-foreground/60" />
             </div>
           </div>
           <p className="mt-3 text-2xl font-semibold tracking-tight">
             {stats.invoiceCountThisMonth}
           </p>
-          <p className={`mt-2 text-[13px] ${invoiceGrowth > 0 ? 'text-primary' : invoiceGrowth < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+          <p className={`mt-2 text-[12px] ${invoiceGrowth > 0 ? 'text-primary' : invoiceGrowth < 0 ? 'text-destructive' : 'text-muted-foreground/40'}`}>
             {invoiceGrowth > 0 ? `+${invoiceGrowth}` : invoiceGrowth} vs mes anterior
           </p>
         </div>
@@ -145,17 +144,17 @@ export default async function DashboardPage() {
         {/* Clientes */}
         <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
           <div className="flex items-center justify-between">
-            <p className="text-[13px] font-medium text-muted-foreground">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Clientes
-            </p>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-              <Users className="h-4 w-4 text-muted-foreground" />
+            </span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/60">
+              <Users className="h-3.5 w-3.5 text-muted-foreground/60" />
             </div>
           </div>
           <p className="mt-3 text-2xl font-semibold tracking-tight">
             {stats.totalClients}
           </p>
-          <p className="mt-2 text-[13px] text-muted-foreground">
+          <p className="mt-2 text-[12px] text-muted-foreground/40">
             Registrados
           </p>
         </div>
@@ -163,36 +162,36 @@ export default async function DashboardPage() {
         {/* Totals by status */}
         <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
           <div className="flex items-center justify-between">
-            <p className="text-[13px] font-medium text-muted-foreground">
-              Timbrado / Por Cobrar 
-            </p>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-              <CircleDot className="h-4 w-4 text-muted-foreground" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+              Resumen
+            </span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/60">
+              <CircleDot className="h-3.5 w-3.5 text-muted-foreground/60" />
             </div>
           </div>
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 space-y-2.5">
             <div>
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full bg-primary" />
+                <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   Timbradas
-                  <span className="text-[11px] text-muted-foreground/50">({stats.timbradaCount})</span>
+                  <span className="text-muted-foreground/30">({stats.timbradaCount})</span>
                 </span>
               </div>
-              <p className="mt-0.5 text-sm font-mono font-medium text-primary pl-4">
+              <p className="mt-0.5 text-sm font-mono font-medium text-primary pl-3 tabular-nums">
                 {formatCurrency(stats.totalTimbradaAmount)}
               </p>
             </div>
-            <div className="h-px bg-border/40" />
+            <div className="h-px bg-border/30" />
             <div>
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
+                <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
                   Borradores
-                  <span className="text-[11px] text-muted-foreground/50">({stats.draftCount})</span>
+                  <span className="text-muted-foreground/30">({stats.draftCount})</span>
                 </span>
               </div>
-              <p className="mt-0.5 text-sm font-mono font-medium pl-4">
+              <p className="mt-0.5 text-sm font-mono font-medium pl-3 tabular-nums">
                 {formatCurrency(stats.totalDraftAmount)}
               </p>
             </div>
@@ -236,17 +235,20 @@ export default async function DashboardPage() {
         ) : (
           <div className="divide-y divide-border/40">
             {/* Table header */}
-            <div className="hidden md:grid md:grid-cols-[1fr_120px_120px_100px] items-center gap-4 px-5 py-2.5">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                Cliente
-              </span>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+            <div className="hidden md:grid md:grid-cols-[80px_1fr_100px_110px_80px] items-center gap-3 px-5 py-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
                 Folio
               </span>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-right">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+                Cliente
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+                Fecha
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
                 Total
               </span>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 text-right">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
                 Estado
               </span>
             </div>
@@ -257,20 +259,26 @@ export default async function DashboardPage() {
                 <Link
                   key={inv.id}
                   href={`/invoices/${inv.id}`}
-                  className="grid grid-cols-1 md:grid-cols-[1fr_120px_120px_100px] items-center gap-2 md:gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30"
+                  className="group grid grid-cols-1 md:grid-cols-[80px_1fr_100px_110px_80px] items-center gap-2 md:gap-3 px-5 py-3 transition-colors hover:bg-muted/30"
                 >
+                  <span className="text-[13px] font-mono font-semibold tracking-wide text-foreground group-hover:text-primary transition-colors">
+                    {folioLabel}
+                  </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
+                    <p className="text-sm text-foreground truncate leading-tight">
                       {inv.clientName}
                     </p>
                     <p className="text-[12px] text-muted-foreground md:hidden">
-                      {folioLabel} · {formatCurrency(parseFloat(inv.total))}
+                      {formatCurrency(parseFloat(inv.total))}
                     </p>
                   </div>
-                  <p className="hidden md:block text-[13px] font-mono text-muted-foreground">
-                    {folioLabel}
+                  <p className="hidden md:block text-[12px] text-muted-foreground/60 tabular-nums">
+                    {new Date(inv.createdAt).toLocaleDateString('es-MX', {
+                      day: '2-digit',
+                      month: 'short',
+                    })}
                   </p>
-                  <p className="hidden md:block text-sm font-mono font-medium text-foreground text-right">
+                  <p className="hidden md:block text-[13px] font-mono font-semibold text-foreground text-right tabular-nums">
                     {formatCurrency(parseFloat(inv.total))}
                   </p>
                   <div className="hidden md:flex justify-end">

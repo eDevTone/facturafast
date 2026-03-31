@@ -9,6 +9,8 @@ export interface CreateIssuingProfileInput {
   postalCode: string
   email: string
   phone?: string
+  logoFile?: File
+  logoUrl?: string
   cerFilename?: string
   cerBase64?: string
   keyFilename?: string

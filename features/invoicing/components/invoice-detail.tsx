@@ -21,6 +21,7 @@ interface FiscalProfileData {
   taxRegime: string
   postalCode: string
   fiscalAddress?: string | null
+  logoUrl?: string | null
 }
 
 interface InvoiceDetailProps {

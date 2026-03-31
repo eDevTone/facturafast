@@ -3,6 +3,7 @@ import { createElement } from 'react'
 import { InvoicePdfDocument } from '@features/invoicing/components/invoice-pdf-document'
 import { getIssuingProfileById, getDefaultIssuingProfile } from '@features/fiscal-profile/services/fiscal-profile.service'
 import { getPaymentFormLabels, getPaymentMethodLabels, getCfdiUsageLabels } from '@shared/services/sat-catalog.service'
+import { getFileSignedUrl } from '@features/storage/services/r2.service'
 import type { InvoiceWithRelations } from '@features/invoicing/types/invoice.types'
 
 /**
@@ -23,12 +24,23 @@ export async function generateInvoicePdf(
       getCfdiUsageLabels(),
     ])
 
+  // Get signed URL for logo if it exists
+  let logoUrl: string | null = null
+  if (profile?.logoUrl) {
+    try {
+      logoUrl = await getFileSignedUrl(profile.logoUrl)
+    } catch {
+      // Logo fetch failed — continue without logo
+    }
+  }
+
   const emisor = profile
     ? {
         rfc: profile.rfc,
         businessName: profile.businessName,
         taxRegime: profile.taxRegime,
         postalCode: profile.postalCode,
+        logoUrl,
       }
     : null
 

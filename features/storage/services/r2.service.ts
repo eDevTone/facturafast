@@ -46,6 +46,27 @@ export async function uploadFile(
 }
 
 /**
+ * Upload a file with a custom key and content type to R2
+ * @returns The storage key for the uploaded file
+ */
+export async function uploadRawFile(
+  key: string,
+  buffer: Buffer,
+  contentType: string,
+): Promise<string> {
+  await r2.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    }),
+  )
+
+  return key
+}
+
+/**
  * Generate a temporary signed URL for downloading a file from R2
  * @param key - The storage key returned by uploadFile
  * @param expiresIn - URL expiration in seconds (default: 1 hour)

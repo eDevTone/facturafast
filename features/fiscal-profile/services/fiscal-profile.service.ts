@@ -56,6 +56,7 @@ export async function createIssuingProfile(
       certSerialNumber: input.certSerialNumber,
       certValidFrom: input.certValidFrom,
       certValidUntil: input.certValidUntil,
+      logoUrl: input.logoUrl,
     })
     .returning()
 

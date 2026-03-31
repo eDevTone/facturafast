@@ -73,12 +73,12 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
 
   return (
     <>
-      <div className="group grid grid-cols-1 md:grid-cols-[100px_1fr_120px_100px_120px_44px] items-center gap-2 md:gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30">
+      <div className="group grid grid-cols-1 md:grid-cols-[80px_1fr_100px_90px_110px_40px] items-center gap-2 md:gap-3 px-5 py-3 transition-colors hover:bg-muted/30">
         {/* Folio */}
         <Link href={`/invoices/${invoice.id}`} className="flex items-center gap-2">
-          <p className="text-sm font-mono font-medium tracking-wide text-foreground group-hover:text-primary transition-colors">
+          <span className="text-[13px] font-mono font-semibold tracking-wide text-foreground group-hover:text-primary transition-colors">
             {folioLabel}
-          </p>
+          </span>
           <span className="md:hidden">
             <StatusBadge status={invoice.status} />
           </span>
@@ -86,18 +86,18 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
 
         {/* Client */}
         <Link href={`/invoices/${invoice.id}`} className="min-w-0">
-          <p className="text-sm text-foreground truncate">
+          <p className="text-sm text-foreground truncate leading-tight">
             {invoice.client.businessName}
           </p>
-          <p className="text-[12px] font-mono text-muted-foreground/50 truncate md:hidden">
+          <p className="text-[11px] font-mono text-muted-foreground/40 truncate mt-0.5">
             {invoice.client.rfc}
           </p>
         </Link>
 
         {/* Date */}
-        <p className="text-[13px] text-muted-foreground">
+        <p className="text-[12px] text-muted-foreground/60 tabular-nums">
           {new Date(invoice.issuedAt).toLocaleDateString('es-MX', {
-            day: 'numeric',
+            day: '2-digit',
             month: 'short',
             year: '2-digit',
           })}
@@ -109,7 +109,7 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
         </div>
 
         {/* Total */}
-        <p className="text-sm font-mono font-semibold text-foreground text-right">
+        <p className="text-[13px] font-mono font-semibold text-foreground text-right tabular-nums">
           {formatCurrency(parseFloat(invoice.total))}
         </p>
 
@@ -119,9 +119,9 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
+                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground/40 hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
               >
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -196,7 +196,6 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
         </div>
       </div>
 
-      {/* Dialogs rendered outside the row */}
       {isStamped && (
         <CancelInvoiceDialog
           invoiceId={invoice.id}

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getInvoiceById } from '@features/invoicing/services/invoice.service'
 import { getIssuingProfileById, getDefaultIssuingProfile } from '@features/fiscal-profile/services/fiscal-profile.service'
 import { getPaymentFormLabels, getPaymentMethodLabels, getCfdiUsageLabels } from '@shared/services/sat-catalog.service'
+import { getFileSignedUrl } from '@features/storage/services/r2.service'
 import { InvoiceDetail } from '@features/invoicing/components/invoice-detail'
 
 export const dynamic = 'force-dynamic'
@@ -37,12 +38,18 @@ export default async function InvoiceDetailPage({
     ? await getIssuingProfileById(invoice.issuingProfileId, userId)
     : await getDefaultIssuingProfile(userId)
 
+  let logoUrl: string | null = null
+  if (profile?.logoUrl) {
+    try { logoUrl = await getFileSignedUrl(profile.logoUrl) } catch { /* ignore */ }
+  }
+
   const emisor = profile
     ? {
         rfc: profile.rfc,
         businessName: profile.businessName,
         taxRegime: profile.taxRegime,
         postalCode: profile.postalCode,
+        logoUrl,
       }
     : null
 

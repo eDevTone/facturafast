@@ -25,6 +25,8 @@ import {
 } from '@shared/ui/select'
 
 import { CSFUpload } from '@features/clients/components/csf-upload'
+import { ImageUpload } from '@shared/components/image-upload'
+import { uploadLogoAction } from '../actions/upload-logo.action'
 import type { CatalogOption } from '@shared/services/sat-catalog.service'
 import { issuingProfileFormSchema, type IssuingProfileFormValues } from '../schemas/issuing-profile-form.schema'
 import type { CreateIssuingProfileInput, IssuingProfile } from '../types/fiscal-profile.types'
@@ -34,6 +36,8 @@ import type { CreateIssuingProfileInput, IssuingProfile } from '../types/fiscal-
 interface IssuingProfileFormProps {
   /** If provided, pre-fills the form for editing */
   initialData?: IssuingProfile | null
+  /** Signed URL for the current logo (for preview in edit mode) */
+  logoPreviewUrl?: string
   onSubmit: (input: CreateIssuingProfileInput) => Promise<void>
   onCancel?: () => void
   taxRegimes: CatalogOption[]
@@ -43,6 +47,7 @@ interface IssuingProfileFormProps {
 
 export function IssuingProfileForm({
   initialData,
+  logoPreviewUrl,
   onSubmit,
   onCancel,
   taxRegimes,
@@ -50,6 +55,9 @@ export function IssuingProfileForm({
   const [submitting, setSubmitting] = useState(false)
 
   // CSD file state
+  // Logo file state
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+
   const [cerFile, setCerFile] = useState<{ name: string; base64: string } | null>(
     initialData?.cerFilename && initialData?.cerBase64
       ? { name: initialData.cerFilename, base64: initialData.cerBase64 }
@@ -142,6 +150,20 @@ export function IssuingProfileForm({
 
     setSubmitting(true)
     try {
+      // Upload logo to R2 if a new file was selected
+      let logoUrl: string | undefined
+      if (logoFile) {
+        const formData = new FormData()
+        formData.append('logo', logoFile)
+        const result = await uploadLogoAction(formData)
+        if ('error' in result) {
+          toast.error(result.error)
+          setSubmitting(false)
+          return
+        }
+        logoUrl = result.logoUrl
+      }
+
       const input: CreateIssuingProfileInput = {
         rfc: values.rfc.toUpperCase(),
         businessName: values.businessName,
@@ -149,6 +171,7 @@ export function IssuingProfileForm({
         postalCode: values.postalCode,
         email: values.email,
         phone: values.phone || undefined,
+        logoUrl,
         ...(cerFile ? { cerFilename: cerFile.name, cerBase64: cerFile.base64 } : {}),
         ...(keyFile ? { keyFilename: keyFile.name, keyBase64: keyFile.base64 } : {}),
         ...(keyPassword ? { keyPassword } : {}),
@@ -282,6 +305,22 @@ export function IssuingProfileForm({
               </FormItem>
             )}
           />
+        </div>
+
+        {/* Logo */}
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-2 block">
+            Logo de la empresa
+          </label>
+          <ImageUpload
+            value={logoPreviewUrl ?? null}
+            onChange={setLogoFile}
+            placeholder="Sube el logo de tu empresa"
+            maxSizeMB={2}
+          />
+          <p className="text-[11px] text-muted-foreground/40 mt-1.5">
+            Aparecerá en tus facturas PDF. Recomendado: cuadrado, fondo transparente.
+          </p>
         </div>
 
         {/* CSD Section */}

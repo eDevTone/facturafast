@@ -18,6 +18,9 @@ export const issuingProfiles = pgTable('issuing_profiles', {
   /** Este es el perfil que se usa por defecto si el usuario no elige otro */
   isDefault: boolean('is_default').notNull().default(false),
 
+  /** Logo de la empresa (key de R2) */
+  logoUrl: text('logo_url'),
+
   // CSD — Certificado de Sello Digital (requerido para timbrado real)
   cerFilename: text('cer_filename'),
   cerBase64: text('cer_base64'),     // .cer en base64

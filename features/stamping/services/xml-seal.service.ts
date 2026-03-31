@@ -154,6 +154,7 @@ export function sealXml(params: {
   const cadenaOriginal = buildCadenaOriginal(params.xml)
 
   console.log('[SEAL] Cadena original:', cadenaOriginal)
+  console.log('[SEAL] XML to seal:', params.xml)
 
   const sello = signCadenaOriginal(cadenaOriginal, params.keyBase64, params.keyPassword)
 
