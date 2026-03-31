@@ -27,7 +27,9 @@ function toFixed6(value: number): string {
 }
 
 function formatCfdiDate(date: Date): string {
-  const d = new Date(date)
+  // SAT requires Mexico City timezone (America/Mexico_City)
+  const mx = new Date(date).toLocaleString('en-US', { timeZone: 'America/Mexico_City' })
+  const d = new Date(mx)
   const pad = (n: number) => n.toString().padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
