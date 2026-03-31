@@ -1,16 +1,20 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { FileText, Search } from 'lucide-react'
 import { Button } from '@shared/ui/button'
 import { Input } from '@shared/ui/input'
+import { usePagination } from '@shared/hooks/use-pagination'
+import { TablePagination } from '@shared/components/table-pagination'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { InvoiceRow } from './invoice-row'
 
 interface InvoiceListProps {
   invoices: InvoiceWithRelations[]
 }
+
+const PAGE_SIZE = 10
 
 export function InvoiceList({ invoices }: InvoiceListProps) {
   const [search, setSearch] = useState('')
@@ -25,6 +29,8 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
         `${inv.serie || ''}${inv.folio}`.toLowerCase().includes(q)
     )
   }, [invoices, search])
+
+  const pagination = usePagination(filtered, PAGE_SIZE)
 
   if (invoices.length === 0) {
     return (
@@ -61,38 +67,48 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
       </div>
 
       {/* List */}
-      <div className="rounded-xl border border-border/60 bg-card divide-y divide-border/40">
-        {/* Column headers */}
-        <div className="hidden md:grid md:grid-cols-[80px_1fr_100px_90px_110px_40px] items-center gap-3 px-5 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-            Folio
-          </span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-            Cliente
-          </span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-            Fecha
-          </span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-            Estatus
-          </span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
-            Total
-          </span>
-          <span />
+      <div className="rounded-xl border border-border/60 bg-card">
+        <div className="divide-y divide-border/40">
+          {/* Column headers */}
+          <div className="hidden md:grid md:grid-cols-[80px_1fr_100px_90px_110px_40px] items-center gap-3 px-5 py-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+              Folio
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+              Cliente
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+              Fecha
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+              Estatus
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
+              Total
+            </span>
+            <span />
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="px-5 py-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                No se encontraron facturas para &ldquo;{search}&rdquo;
+              </p>
+            </div>
+          ) : (
+            pagination.items.map(invoice => (
+              <InvoiceRow key={invoice.id} invoice={invoice} />
+            ))
+          )}
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              No se encontraron facturas para &ldquo;{search}&rdquo;
-            </p>
-          </div>
-        ) : (
-          filtered.map(invoice => (
-            <InvoiceRow key={invoice.id} invoice={invoice} />
-          ))
-        )}
+        <TablePagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={filtered.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={pagination.setPage}
+        />
       </div>
     </div>
   )

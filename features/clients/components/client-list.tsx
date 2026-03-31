@@ -6,6 +6,8 @@ import { Input } from '@shared/ui/input'
 import { Mail, MapPin, Phone, Search, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { usePagination } from '@shared/hooks/use-pagination'
+import { TablePagination } from '@shared/components/table-pagination'
 import type { Client } from '../types/client.types'
 import { DeleteClientDialog } from './delete-client-dialog'
 import { EditClientDialog } from './edit-client-dialog'
@@ -28,6 +30,8 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
+const PAGE_SIZE = 10
+
 export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListProps) {
   const [search, setSearch] = useState('')
 
@@ -41,6 +45,8 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
         c.email?.toLowerCase().includes(q)
     )
   }, [clients, search])
+
+  const pagination = usePagination(filtered, PAGE_SIZE)
 
   if (clients.length === 0) {
     return (
@@ -77,7 +83,8 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
       </div>
 
       {/* List */}
-      <div className="rounded-xl border border-border/60 bg-card divide-y divide-border/40">
+      <div className="rounded-xl border border-border/60 bg-card">
+        <div className="divide-y divide-border/40">
         {/* Column header */}
         <div className="hidden md:grid md:grid-cols-[1fr_130px_180px_170px_72px] items-center gap-3 px-5 py-2">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
@@ -102,7 +109,7 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
             </p>
           </div>
         ) : (
-          filtered.map(client => (
+          pagination.items.map(client => (
             <div
               key={client.id}
               className="group grid grid-cols-1 md:grid-cols-[1fr_130px_180px_170px_72px] items-center gap-2 md:gap-3 px-5 py-3 transition-colors hover:bg-muted/30"
@@ -171,6 +178,15 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
             </div>
           ))
         )}
+        </div>
+
+        <TablePagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={filtered.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={pagination.setPage}
+        />
       </div>
     </div>
   )
