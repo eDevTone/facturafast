@@ -6,6 +6,7 @@ import {
   Text,
   StyleSheet,
 } from '@react-pdf/renderer'
+import { formatDateLong, formatDateShort, formatDateTime } from '@shared/utils/date'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 
 interface FiscalProfileData {
@@ -366,11 +367,7 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
             </Text>
             <Text style={styles.amountCurrency}>{invoice.currency}</Text>
             <Text style={styles.amountDate}>
-              {new Date(invoice.issuedAt).toLocaleDateString('es-MX', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
+              {formatDateLong(invoice.issuedAt)}
             </Text>
           </View>
 
@@ -385,11 +382,7 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
             <View style={styles.infoCardSmall}>
               <Text style={styles.infoLabel}>Emitida:</Text>
               <Text style={styles.infoValueSmall}>
-                {new Date(invoice.issuedAt).toLocaleDateString('es-MX', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
+                {formatDateShort(invoice.issuedAt)}
               </Text>
             </View>
           </View>
@@ -493,7 +486,7 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
                   <>
                     <Text style={styles.stampLabel}>Fecha de Timbrado</Text>
                     <Text style={styles.stampValue}>
-                      {new Date(invoice.stampedAt).toLocaleString('es-MX')}
+                      {formatDateTime(invoice.stampedAt)}
                     </Text>
                   </>
                 )}

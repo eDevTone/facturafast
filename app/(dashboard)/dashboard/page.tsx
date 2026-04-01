@@ -1,3 +1,4 @@
+import { formatDateShort } from '@shared/utils/date'
 import { auth } from '@clerk/nextjs/server'
 import { getDashboardStats, getRecentInvoices } from '@features/dashboard/services/dashboard.service'
 import { formatCurrency } from '@features/invoicing/utils/invoice-calculations'
@@ -273,10 +274,7 @@ export default async function DashboardPage() {
                     </p>
                   </div>
                   <p className="hidden md:block text-[12px] text-muted-foreground/60 tabular-nums">
-                    {new Date(inv.createdAt).toLocaleDateString('es-MX', {
-                      day: '2-digit',
-                      month: 'short',
-                    })}
+                    {formatDateShort(inv.createdAt)}
                   </p>
                   <p className="hidden md:block text-[13px] font-mono font-semibold text-foreground text-right tabular-nums">
                     {formatCurrency(parseFloat(inv.total))}

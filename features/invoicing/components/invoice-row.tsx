@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDateShort } from '@shared/utils/date'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,11 +97,7 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
 
         {/* Date */}
         <p className="text-[13px] text-muted-foreground/60 tabular-nums">
-          {new Date(invoice.issuedAt).toLocaleDateString('es-MX', {
-            day: '2-digit',
-            month: 'short',
-            year: '2-digit',
-          })}
+          {formatDateShort(invoice.issuedAt)}
         </p>
 
         {/* Status — desktop */}

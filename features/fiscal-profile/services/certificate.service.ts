@@ -1,3 +1,4 @@
+import { formatDateLong } from '@shared/utils/date'
 import forge from 'node-forge'
 import crypto from 'node:crypto'
 
@@ -168,7 +169,7 @@ export function processCertificates(
   // 2. Verificar vigencia
   if (new Date(metadata.validUntil) < new Date()) {
     throw new Error(
-      `El certificado expiró el ${new Date(metadata.validUntil).toLocaleDateString('es-MX')}. Renuévalo en el portal del SAT.`,
+      `El certificado expiró el ${formatDateLong(metadata.validUntil)}. Renuévalo en el portal del SAT.`,
     )
   }
 

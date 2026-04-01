@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@shared/ui/button'
+import { formatDateLong } from '@shared/utils/date'
 import { Copy, Download, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -121,12 +122,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
             <InvoiceHelpDialog status={invoice.status} />
           </div>
           <p className="text-[13px] text-muted-foreground mt-1">
-            Creada el{' '}
-            {new Date(invoice.createdAt).toLocaleDateString('es-MX', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
+            Creada el {formatDateLong(invoice.createdAt)}
           </p>
           {isStamped && invoice.uuid && (
             <button

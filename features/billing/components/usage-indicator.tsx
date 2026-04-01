@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDateShort } from '@shared/utils/date'
 import Link from 'next/link'
 import { Zap } from 'lucide-react'
 import type { PlanId } from '../types/billing.types'
@@ -25,10 +26,7 @@ export function UsageIndicator({ plan, stampsUsed, stampsLimit, periodEnd }: Usa
       ? 'bg-amber-500'
       : 'bg-primary'
 
-  const renewalDate = new Date(periodEnd).toLocaleDateString('es-MX', {
-    day: 'numeric',
-    month: 'short',
-  })
+  const renewalDate = formatDateShort(periodEnd)
 
   return (
     <div className="mx-3 mb-2">

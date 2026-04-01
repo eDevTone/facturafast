@@ -1,3 +1,4 @@
+import { formatDateLong } from '@shared/utils/date'
 import { auth } from '@clerk/nextjs/server'
 import { BillingPage } from '@features/billing/components/billing-page'
 import { getOrCreateSubscription } from '@features/billing/services/subscription.service'
@@ -41,7 +42,7 @@ export default async function BillingRoute({
         status={subscription.status}
         stampsUsed={subscription.stampsUsed}
         periodEnd={subscription.currentPeriodEnd
-          ? subscription.currentPeriodEnd.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+          ? formatDateLong(subscription.currentPeriodEnd)
           : null
         }
         paymentSuccess={success === 'true'}

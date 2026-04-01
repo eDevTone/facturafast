@@ -1,3 +1,4 @@
+import { formatDateLong } from '@shared/utils/date'
 import { db } from '@database/client'
 import {
   invoiceItems,
@@ -281,11 +282,7 @@ export async function stampInvoice(
             total: formatCurrency(parseFloat(stampedInvoice.total)),
             currency: stampedInvoice.currency,
             uuid: result.uuid!,
-            stampedAt: new Date().toLocaleDateString('es-MX', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            }),
+            stampedAt: formatDateLong(new Date()),
             xmlBuffer,
             pdfBuffer,
           })
