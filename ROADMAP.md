@@ -106,20 +106,21 @@
 - [x] **Test límite de timbres** — Bloqueo + toast con botón Upgrade
 - [x] **Test cancelar suscripción** — Cancelar → vuelve a Free
 
-### Testing Timbrado + R2 (prioridad 2)
-- [ ] **Happy path** — Crear factura → Timbrar → Verificar XML+PDF en R2 → Descargar
-- [ ] **Cancelar factura** — Cancelar timbrada → Verificar acuse en R2 → Descargar acuse
-- [ ] **Error cases** — RFC inválido, cert expirado, PAC fail → verificar mensajes de error
-- [ ] **Mobile** — Verificar todo el flujo en mobile (sidebar, acciones, descargas)
+### Testing Timbrado + R2 (prioridad 2) ✅ COMPLETADO
+- [x] **Happy path** — Crear factura → Timbrar → XML+PDF en R2 → Descargar
+- [x] **Cancelar factura** — Cancelar timbrada → Acuse en R2 → Descargar acuse
+- [x] **Error cases** — Mensajes de error verificados
+- [x] **Mobile** — Flujo completo funcional en mobile
 
 ---
 
 ## 🟡 NECESARIO PARA LAUNCH (pero no blocker)
 
-### Notificaciones
-- [ ] **Email (Resend)** — Post-timbrado, enviar XML + PDF al receptor
-  - Template HTML profesional
-  - Adjuntar XML + link de descarga PDF desde R2
+### Notificaciones ✅ COMPLETADO
+- [x] **Email (Resend)** — Post-timbrado, enviar XML + PDF al receptor
+  - Template react-email profesional (layout, header, footer, invoice summary)
+  - XML + PDF adjuntos automáticamente
+  - Dialog de confirmación antes de timbrar (irreversible + timbre + email)
 
 ### UX & Polish
 - [ ] Error handling exhaustivo (error boundaries)
