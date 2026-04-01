@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
 import { Header } from "@/shared/components/header";
 import { Sidebar } from "@/shared/components/sidebar";
+import { auth } from "@clerk/nextjs/server";
 import { getOrCreateSubscription } from "@features/billing/services/subscription.service";
 
 export default async function DashboardLayout({
@@ -32,8 +32,8 @@ export default async function DashboardLayout({
           periodEnd={subscription?.currentPeriodEnd ?? new Date()}
         />
 
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="mx-auto max-w-7xl">{children}</div>
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
+          <div className="mx-auto max-w-5xl">{children}</div>
         </main>
       </div>
     </div>

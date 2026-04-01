@@ -72,6 +72,7 @@ export interface InvoiceWithRelations extends Invoice {
     rfc: string
     postalCode: string
     taxRegime: string | null
+    email: string | null
   }
   items: InvoiceItem[]
 }

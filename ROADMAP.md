@@ -98,13 +98,13 @@
 
 ## 🔴 PENDIENTE PARA PROBAR — Testing del flujo completo
 
-### Testing Conekta (prioridad 1)
-- [ ] **Configurar ngrok** — Exponer localhost para webhooks de Conekta
-- [ ] **Registrar webhook URL en Conekta** — Dashboard → Developers → Webhooks
-- [ ] **Test happy path** — Elegir plan → Pagar con `4242 4242 4242 4242` → Webhook activa plan
-- [ ] **Verificar en DB** — subscription.plan cambia, stampsUsed resetea a 0
-- [ ] **Test límite de timbres** — Timbrar hasta el límite → verificar bloqueo + mensaje upgrade
-- [ ] **Test cancelar suscripción** — Cancelar → vuelve a Free → verificar en DB
+### Testing Conekta (prioridad 1) ✅ COMPLETADO
+- [x] **Configurar ngrok / Vercel** — Webhook funcional en producción
+- [x] **Registrar webhook URL en Conekta** — Configurado en dashboard
+- [x] **Test happy path** — Elegir plan → Pagar → Webhook activa plan
+- [x] **Verificar en DB** — subscription.plan cambia, stampsUsed resetea a 0
+- [x] **Test límite de timbres** — Bloqueo + toast con botón Upgrade
+- [x] **Test cancelar suscripción** — Cancelar → vuelve a Free
 
 ### Testing Timbrado + R2 (prioridad 2)
 - [ ] **Happy path** — Crear factura → Timbrar → Verificar XML+PDF en R2 → Descargar

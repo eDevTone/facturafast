@@ -216,12 +216,12 @@ export function InvoiceForm({ clients, invoice, catalogs, profiles, defaultProfi
                 </div>
               </div>
             ) : (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="clientId"
                 render={({ field }) => (
-                  <FormItem className="col-span-2">
+                  <FormItem className="sm:col-span-2">
                     <FormLabel>Cliente</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
@@ -271,7 +271,7 @@ export function InvoiceForm({ clients, invoice, catalogs, profiles, defaultProfi
               <div className="mt-1 h-px bg-border/40" />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="paymentForm"

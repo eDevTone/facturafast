@@ -81,21 +81,21 @@ export function IssuingProfileCard({
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono font-semibold text-[13px] text-foreground">{profile.rfc}</span>
+              <span className="font-mono font-semibold text-sm text-foreground">{profile.rfc}</span>
               {profile.isDefault && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">
                   <Star className="h-2.5 w-2.5" />
                   Default
                 </span>
               )}
               {selected && (
-                <span className="inline-flex items-center rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
+                <span className="inline-flex items-center rounded-md bg-primary px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground">
                   Seleccionado
                 </span>
               )}
             </div>
             <p className="text-sm text-muted-foreground truncate mt-0.5">{profile.businessName}</p>
-            <p className="text-[11px] text-muted-foreground/40 mt-1">
+            <p className="text-[12px] text-muted-foreground/40 mt-1">
               Régimen {profile.taxRegime} · CP {profile.postalCode}
             </p>
           </div>
@@ -105,7 +105,7 @@ export function IssuingProfileCard({
         {!selectable && (
           <div className="shrink-0">
             {hasCSD ? (
-              <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium ${
+              <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${
                 expired
                   ? 'bg-destructive/10 text-destructive'
                   : 'bg-primary/10 text-primary'
@@ -132,7 +132,7 @@ export function IssuingProfileCard({
               variant="ghost"
               onClick={handleSetDefault}
               disabled={pending}
-              className="text-[11px] h-7 text-muted-foreground hover:text-foreground"
+              className="text-[12px] h-7 text-muted-foreground hover:text-foreground"
             >
               <Star className="h-3 w-3 mr-1" />
               Predeterminar
@@ -144,7 +144,7 @@ export function IssuingProfileCard({
               size="sm"
               variant="ghost"
               onClick={() => onEdit(profile)}
-              className="text-[11px] h-7 text-muted-foreground hover:text-foreground"
+              className="text-[12px] h-7 text-muted-foreground hover:text-foreground"
             >
               <Pencil className="h-3 w-3 mr-1" />
               Editar
@@ -156,7 +156,7 @@ export function IssuingProfileCard({
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-[11px] h-7 text-muted-foreground/40 hover:text-destructive ml-auto"
+                className="text-[12px] h-7 text-muted-foreground/40 hover:text-destructive ml-auto"
                 disabled={pending}
               >
                 <Trash2 className="h-3 w-3" />
@@ -184,7 +184,7 @@ export function IssuingProfileCard({
       {selectable && (
         <div className="mt-3 flex items-center gap-2">
           {hasCSD ? (
-            <span className={`text-[11px] flex items-center gap-1 ${expired ? 'text-destructive' : 'text-primary'}`}>
+            <span className={`text-[12px] flex items-center gap-1 ${expired ? 'text-destructive' : 'text-primary'}`}>
               <ShieldCheck className="h-3 w-3" />
               {expired ? 'CSD vencido' : 'CSD cargado'}
             </span>

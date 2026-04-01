@@ -7,7 +7,7 @@ export default async function NewClientPage() {
   const catalogs = await getClientFormCatalogs()
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8">
+    <div className="max-w-2xl mx-auto">
       {/* Page Header */}
       <div className="mb-8">
         <Link

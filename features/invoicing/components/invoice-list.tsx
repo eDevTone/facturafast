@@ -1,12 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import Link from 'next/link'
-import { FileText, Search } from 'lucide-react'
+import { TablePagination } from '@shared/components/table-pagination'
+import { usePagination } from '@shared/hooks/use-pagination'
 import { Button } from '@shared/ui/button'
 import { Input } from '@shared/ui/input'
-import { usePagination } from '@shared/hooks/use-pagination'
-import { TablePagination } from '@shared/components/table-pagination'
+import { FileText, Search } from 'lucide-react'
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { InvoiceRow } from './invoice-row'
 
@@ -70,20 +70,20 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
       <div className="rounded-xl border border-border/60 bg-card">
         <div className="divide-y divide-border/40">
           {/* Column headers */}
-          <div className="hidden md:grid md:grid-cols-[80px_1fr_100px_90px_110px_40px] items-center gap-3 px-5 py-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+          <div className="hidden md:grid md:grid-cols-[120px_1fr_100px_90px_110px_40px] items-center gap-3 px-5 py-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Folio
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Cliente
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Fecha
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Estatus
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
               Total
             </span>
             <span />

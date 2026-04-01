@@ -22,7 +22,7 @@ export default async function BillingRoute({
   const subscription = await getOrCreateSubscription(userId)
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="max-w-4xl mx-auto">
       <div className="mb-8">
         <Link
           href="/dashboard"
@@ -40,7 +40,10 @@ export default async function BillingRoute({
         currentPlan={subscription.plan}
         status={subscription.status}
         stampsUsed={subscription.stampsUsed}
-        periodEnd={subscription.currentPeriodEnd}
+        periodEnd={subscription.currentPeriodEnd
+          ? subscription.currentPeriodEnd.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+          : null
+        }
         paymentSuccess={success === 'true'}
         paymentError={error === 'true'}
       />

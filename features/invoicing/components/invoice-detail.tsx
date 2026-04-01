@@ -1,19 +1,21 @@
 'use client'
 
-import { useTransition } from 'react'
 import { Button } from '@shared/ui/button'
-import { Pencil, Send, Download, Copy } from 'lucide-react'
+import { Copy, Download, Pencil } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useTransition } from 'react'
 import { toast } from 'sonner'
+import { getInvoiceDownloadUrlAction } from '../actions/get-download-url.action'
+import { stampInvoiceAction } from '../actions/stamp-invoice.action'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { formatCurrency } from '../utils/invoice-calculations'
-import { DeleteInvoiceDialog } from './delete-invoice-dialog'
 import { CancelInvoiceDialog } from './cancel-invoice-dialog'
-import { InvoicePreviewDialog } from './invoice-preview-dialog'
-import { stampInvoiceAction } from '../actions/stamp-invoice.action'
-import { getInvoiceDownloadUrlAction } from '../actions/get-download-url.action'
-import { StatusBadge } from './status-badge'
+import { DeleteInvoiceDialog } from './delete-invoice-dialog'
 import { InvoiceHelpDialog } from './invoice-help-dialog'
+import { InvoicePreviewDialog } from './invoice-preview-dialog'
+import { StampConfirmDialog } from './stamp-confirm-dialog'
+import { StatusBadge } from './status-badge'
 
 interface FiscalProfileData {
   rfc: string
@@ -35,6 +37,7 @@ interface InvoiceDetailProps {
 }
 
 export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
+  const router = useRouter()
   const [isStamping, startStamping] = useTransition()
   const invoiceLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
   const isDraft = invoice.status === 'draft'
@@ -45,12 +48,20 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
     startStamping(async () => {
       const result = await stampInvoiceAction(invoice.id)
       if (result.success) {
+        const emailNote = invoice.client.email
+          ? ` · Email enviado a ${invoice.client.email}`
+          : ''
         toast.success('Factura timbrada correctamente', {
-          description: `UUID: ${result.uuid}`,
+          description: `UUID: ${result.uuid}${emailNote}`,
         })
       } else {
+        const isLimitError = result.error?.includes('Límite de timbres')
         toast.error('Error al timbrar', {
           description: result.error,
+          action: isLimitError ? {
+            label: 'Upgrade',
+            onClick: () => router.push('/billing'),
+          } : undefined,
         })
       }
     })
@@ -100,7 +111,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground font-mono">
@@ -133,7 +144,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isDraft && (
             <DeleteInvoiceDialog
               invoiceId={invoice.id}
@@ -167,10 +178,12 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
                   Editar
                 </Button>
               </Link>
-              <Button onClick={handleStamp} disabled={isStamping}>
-                <Send className="h-4 w-4 mr-2" />
-                {isStamping ? 'Timbrando...' : 'Timbrar'}
-              </Button>
+              <StampConfirmDialog
+                onConfirm={handleStamp}
+                disabled={isStamping}
+                isStamping={isStamping}
+                clientEmail={invoice.client.email}
+              />
             </>
           )}
           {isStamped && (
@@ -193,7 +206,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
           </h2>
           <div className="mt-1 h-px bg-border/40" />
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <p className="text-[11px] text-muted-foreground/60 mb-0.5">Cliente</p>
             <p className="text-sm font-medium text-foreground">{invoice.client.businessName}</p>
@@ -219,7 +232,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
           </h2>
           <div className="mt-1 h-px bg-border/40" />
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <p className="text-[11px] text-muted-foreground/60 mb-0.5">Forma de Pago</p>
             <p className="text-sm text-foreground">

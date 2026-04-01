@@ -73,10 +73,10 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
 
   return (
     <>
-      <div className="group grid grid-cols-1 md:grid-cols-[80px_1fr_100px_90px_110px_40px] items-center gap-2 md:gap-3 px-5 py-3 transition-colors hover:bg-muted/30">
+      <div className="group grid grid-cols-1 md:grid-cols-[120px_1fr_100px_90px_110px_40px] items-center gap-2 md:gap-3 px-5 py-3 transition-colors hover:bg-muted/30">
         {/* Folio */}
         <Link href={`/invoices/${invoice.id}`} className="flex items-center gap-2">
-          <span className="text-[13px] font-mono font-semibold tracking-wide text-foreground group-hover:text-primary transition-colors">
+          <span className="text-sm font-mono font-semibold tracking-wide text-foreground group-hover:text-primary transition-colors">
             {folioLabel}
           </span>
           <span className="md:hidden">
@@ -89,13 +89,13 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
           <p className="text-sm text-foreground truncate leading-tight">
             {invoice.client.businessName}
           </p>
-          <p className="text-[11px] font-mono text-muted-foreground/40 truncate mt-0.5">
+          <p className="text-[12px] font-mono text-muted-foreground/40 truncate mt-0.5">
             {invoice.client.rfc}
           </p>
         </Link>
 
         {/* Date */}
-        <p className="text-[12px] text-muted-foreground/60 tabular-nums">
+        <p className="text-[13px] text-muted-foreground/60 tabular-nums">
           {new Date(invoice.issuedAt).toLocaleDateString('es-MX', {
             day: '2-digit',
             month: 'short',
@@ -109,7 +109,7 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
         </div>
 
         {/* Total */}
-        <p className="text-[13px] font-mono font-semibold text-foreground text-right tabular-nums">
+        <p className="text-sm font-mono font-semibold text-foreground text-right tabular-nums">
           {formatCurrency(parseFloat(invoice.total))}
         </p>
 

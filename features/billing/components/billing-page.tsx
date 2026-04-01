@@ -13,7 +13,7 @@ interface BillingPageProps {
   currentPlan: PlanId
   status: 'active' | 'past_due' | 'cancelled'
   stampsUsed: number
-  periodEnd: Date | null
+  periodEnd: string | null
   paymentSuccess?: boolean
   paymentError?: boolean
 }
@@ -26,12 +26,6 @@ export function BillingPage({ currentPlan, status, stampsUsed, periodEnd, paymen
   const percentage = isUnlimited ? 0 : Math.min((stampsUsed / limit) * 100, 100)
 
   const renewalLabel = periodEnd
-    ? new Date(periodEnd).toLocaleDateString('es-MX', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : null
 
   const handleSelectPlan = (planId: PlanId) => {
     setLoadingPlan(planId)

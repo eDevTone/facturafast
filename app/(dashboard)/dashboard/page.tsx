@@ -75,7 +75,7 @@ export default async function DashboardPage() {
         {/* Total facturado */}
         <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Facturado este mes
             </span>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
@@ -126,7 +126,7 @@ export default async function DashboardPage() {
         {/* Facturas este mes */}
         <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Facturas este mes
             </span>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/60">
@@ -144,7 +144,7 @@ export default async function DashboardPage() {
         {/* Clientes */}
         <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Clientes
             </span>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/60">
@@ -162,7 +162,7 @@ export default async function DashboardPage() {
         {/* Totals by status */}
         <div className="rounded-xl border border-border/60 bg-card p-5 transition-colors hover:border-border">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
               Resumen
             </span>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/60">
@@ -236,19 +236,19 @@ export default async function DashboardPage() {
           <div className="divide-y divide-border/40">
             {/* Table header */}
             <div className="hidden md:grid md:grid-cols-[80px_1fr_100px_110px_80px] items-center gap-3 px-5 py-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
                 Folio
               </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
                 Cliente
               </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
                 Fecha
               </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
                 Total
               </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40 text-right">
                 Estado
               </span>
             </div>

@@ -86,17 +86,20 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
       <div className="rounded-xl border border-border/60 bg-card">
         <div className="divide-y divide-border/40">
         {/* Column header */}
-        <div className="hidden md:grid md:grid-cols-[1fr_130px_180px_170px_72px] items-center gap-3 px-5 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+        <div className="hidden md:grid md:grid-cols-[1fr_130px_80px_160px_160px_72px] items-center gap-3 px-5 py-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
             Cliente
           </span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
             RFC
           </span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+            Tipo
+          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
             Regimen
           </span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
             Contacto
           </span>
           <span />
@@ -112,7 +115,7 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
           pagination.items.map(client => (
             <div
               key={client.id}
-              className="group grid grid-cols-1 md:grid-cols-[1fr_130px_180px_170px_72px] items-center gap-2 md:gap-3 px-5 py-3 transition-colors hover:bg-muted/30"
+              className="group grid grid-cols-1 md:grid-cols-[1fr_130px_80px_160px_160px_72px] items-center gap-2 md:gap-3 px-5 py-3 transition-colors hover:bg-muted/30"
             >
               {/* Name with avatar */}
               <div className="flex items-center gap-3 min-w-0">
@@ -123,16 +126,27 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
                   <p className="text-sm font-medium text-foreground truncate leading-tight">
                     {client.businessName}
                   </p>
-                  <p className="text-[11px] text-muted-foreground/40 mt-0.5 md:hidden">
+                  <p className="text-[12px] text-muted-foreground/40 mt-0.5 md:hidden">
                     {client.rfc}
                   </p>
                 </div>
               </div>
 
               {/* RFC */}
-              <p className="hidden md:block text-[12px] font-mono tracking-wide text-muted-foreground/60">
+              <p className="hidden md:block text-[13px] font-mono tracking-wide text-muted-foreground/60">
                 {client.rfc}
               </p>
+
+              {/* Tipo persona */}
+              <div className="hidden md:block">
+                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ${
+                  client.rfc.length === 12
+                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                    : 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                }`}>
+                  {client.rfc.length === 12 ? 'Moral' : 'Física'}
+                </span>
+              </div>
 
               {/* Regimen */}
               <div className="hidden md:block">
@@ -148,17 +162,17 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
               {/* Contact */}
               <div className="hidden md:block">
                 {client.email ? (
-                  <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50 truncate" title={client.email}>
+                  <span className="flex items-center gap-1.5 text-[12px] text-muted-foreground/50 truncate" title={client.email}>
                     <Mail className="h-3 w-3 shrink-0 text-muted-foreground/30" />
                     <span className="truncate">{client.email}</span>
                   </span>
                 ) : client.phone ? (
-                  <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50">
+                  <span className="flex items-center gap-1.5 text-[12px] text-muted-foreground/50">
                     <Phone className="h-3 w-3 shrink-0 text-muted-foreground/30" />
                     {client.phone}
                   </span>
                 ) : client.postalCode ? (
-                  <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50">
+                  <span className="flex items-center gap-1.5 text-[12px] text-muted-foreground/50">
                     <MapPin className="h-3 w-3 shrink-0 text-muted-foreground/30" />
                     CP {client.postalCode}
                   </span>

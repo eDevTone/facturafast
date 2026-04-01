@@ -1,12 +1,12 @@
 import { auth } from '@clerk/nextjs/server'
-import { notFound } from 'next/navigation'
+import { getDefaultIssuingProfile, getIssuingProfileById } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { InvoiceDetail } from '@features/invoicing/components/invoice-detail'
+import { getInvoiceById } from '@features/invoicing/services/invoice.service'
+import { getFileSignedUrl } from '@features/storage/services/r2.service'
+import { getCfdiUsageLabels, getPaymentFormLabels, getPaymentMethodLabels } from '@shared/services/sat-catalog.service'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { getInvoiceById } from '@features/invoicing/services/invoice.service'
-import { getIssuingProfileById, getDefaultIssuingProfile } from '@features/fiscal-profile/services/fiscal-profile.service'
-import { getPaymentFormLabels, getPaymentMethodLabels, getCfdiUsageLabels } from '@shared/services/sat-catalog.service'
-import { getFileSignedUrl } from '@features/storage/services/r2.service'
-import { InvoiceDetail } from '@features/invoicing/components/invoice-detail'
+import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,7 +54,7 @@ export default async function InvoiceDetailPage({
     : null
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="max-w-4xl mx-auto">
       <div className="mb-8">
         <Link
           href="/invoices"

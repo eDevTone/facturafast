@@ -1,24 +1,25 @@
-import { eq, and, desc } from 'drizzle-orm'
 import { db } from '@database/client'
 import {
-  invoices,
-  invoiceItems
+  invoiceItems,
+  invoices
 } from '@database/schemas/invoices.schema'
+import { checkUsageLimit, incrementStampsUsed } from '@features/billing/services/subscription.service'
+import { decryptString } from '@features/fiscal-profile/services/certificate.service'
+import { getIssuingProfileById } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { isCertExpired, profileHasCSD } from '@features/fiscal-profile/types/fiscal-profile.types'
+import { sendInvoiceEmail } from '@features/notifications/services/email.service'
+import { buildCfdiXml } from '@features/stamping/services/cfdi-xml-builder.service'
+import { cancelInvoice as swCancelInvoice, stampInvoice as swStampInvoice } from '@features/stamping/services/sw-client.service'
+import { sealXml } from '@features/stamping/services/xml-seal.service'
+import type { CancellationResult, StampingResult } from '@features/stamping/types/stamping.types'
+import { generateInvoicePdf } from '@features/storage/services/pdf-generator.service'
+import { uploadFile } from '@features/storage/services/r2.service'
+import { and, desc, eq } from 'drizzle-orm'
 import type {
   CreateInvoiceInput,
   InvoiceWithRelations
 } from '../types/invoice.types'
-import { calculateInvoiceTotals } from '../utils/invoice-calculations'
-import { getIssuingProfileById } from '@features/fiscal-profile/services/fiscal-profile.service'
-import { profileHasCSD, isCertExpired } from '@features/fiscal-profile/types/fiscal-profile.types'
-import { decryptString } from '@features/fiscal-profile/services/certificate.service'
-import { buildCfdiXml } from '@features/stamping/services/cfdi-xml-builder.service'
-import { sealXml } from '@features/stamping/services/xml-seal.service'
-import { stampInvoice as swStampInvoice, cancelInvoice as swCancelInvoice } from '@features/stamping/services/sw-client.service'
-import type { StampingResult, CancellationResult } from '@features/stamping/types/stamping.types'
-import { uploadFile } from '@features/storage/services/r2.service'
-import { generateInvoicePdf } from '@features/storage/services/pdf-generator.service'
-import { checkUsageLimit, incrementStampsUsed } from '@features/billing/services/subscription.service'
+import { calculateInvoiceTotals, formatCurrency } from '../utils/invoice-calculations'
 
 /**
  * Get all invoices for a user
@@ -267,6 +268,31 @@ export async function stampInvoice(
         .update(invoices)
         .set({ xmlUrl: xmlKey, pdfUrl: pdfKey })
         .where(eq(invoices.id, invoiceId))
+
+      // Send email to receptor with XML + PDF attached
+      if (stampedInvoice.client.email) {
+        const folioLabel = `${stampedInvoice.serie ? `${stampedInvoice.serie}-` : ''}${stampedInvoice.folio}`
+        try {
+          await sendInvoiceEmail({
+            to: stampedInvoice.client.email,
+            businessName: profile.businessName,
+            clientName: stampedInvoice.client.businessName,
+            folioLabel,
+            total: formatCurrency(parseFloat(stampedInvoice.total)),
+            currency: stampedInvoice.currency,
+            uuid: result.uuid!,
+            stampedAt: new Date().toLocaleDateString('es-MX', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            }),
+            xmlBuffer,
+            pdfBuffer,
+          })
+        } catch (emailError) {
+          console.error('Email send failed (invoice is still timbrada):', emailError)
+        }
+      }
     }
   } catch (error) {
     // R2 upload failure should not break the stamping flow

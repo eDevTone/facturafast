@@ -1,11 +1,11 @@
-import { InvoiceForm } from '@features/invoicing/components/invoice-form'
+import { auth } from '@clerk/nextjs/server'
 import { getClients } from '@features/clients/services/client.service'
 import { getAllIssuingProfiles, getDefaultIssuingProfile } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { InvoiceForm } from '@features/invoicing/components/invoice-form'
 import { getInvoiceFormCatalogs } from '@shared/services/sat-catalog.service'
-import { auth } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +21,7 @@ export default async function NewInvoicePage() {
   ])
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="max-w-4xl mx-auto">
       <div className="mb-8">
         <Link
           href="/invoices"
