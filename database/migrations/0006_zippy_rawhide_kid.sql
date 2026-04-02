@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "invoices_profile_serie_folio_idx" ON "invoices" USING btree ("issuing_profile_id","serie","folio") NULLS NOT DISTINCT;

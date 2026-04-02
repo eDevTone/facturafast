@@ -1,5 +1,5 @@
-import { pgTable, uuid, varchar, text, timestamp, integer, numeric, pgEnum } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+import { integer, numeric, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from 'drizzle-orm/pg-core'
 import { clients } from './clients.schema'
 
 // Enum for invoice status
@@ -36,7 +36,10 @@ export const invoices = pgTable('invoices', {
   cancellationAcuseUrl: text('cancellation_acuse_url'),
   cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+}, (table) => [
+  uniqueIndex('invoices_profile_serie_folio_idx')
+    .on(table.issuingProfileId, table.serie, table.folio),
+])
 
 export const invoiceItems = pgTable('invoice_items', {
   id: uuid('id').primaryKey().defaultRandom(),

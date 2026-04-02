@@ -2,12 +2,13 @@ import {
   Document,
   Image,
   Page,
-  View,
-  Text,
   StyleSheet,
+  Text,
+  View,
 } from '@react-pdf/renderer'
 import { formatDateLong, formatDateShort, formatDateTime } from '@shared/utils/date'
 import type { InvoiceWithRelations } from '../types/invoice.types'
+import { numberToSpanishWords } from '../utils/number-to-words'
 
 interface FiscalProfileData {
   rfc: string
@@ -16,6 +17,7 @@ interface FiscalProfileData {
   postalCode: string
   fiscalAddress?: string | null
   logoUrl?: string | null
+  certSerialNumber?: string | null
 }
 
 interface InvoicePdfDocumentProps {
@@ -25,30 +27,33 @@ interface InvoicePdfDocumentProps {
     paymentForms: Record<string, string>
     paymentMethods: Record<string, string>
     cfdiUsages: Record<string, string>
+    taxRegimes?: Record<string, string>
   }
 }
 
 // Color palette — neutral blue/gray from Pencil design
-const c = {
-  dark: '#19213d',
-  text: '#19213d',
-  label: '#868da6',
-  sublabel: '#5d6481',
-  cardBg: '#f6f8fc',
-  border: '#ebeff6',
-  accent: '#2388ff',
+// Palette optimized for B/W printing — high contrast, legible at all sizes
+const palette = {
+  dark: '#111111',
+  text: '#111111',
+  label: '#3a3a3a',
+  sublabel: '#2a2a2a',
+  cardBg: '#f4f4f5',
+  border: '#d4d4d8',
+  accent: '#111111',      // prints as solid black instead of blue
   white: '#ffffff',
-  watermark: '#e5e7eb',
-  destructive: '#ef4444',
+  watermark: '#d4d4d8',
+  destructive: '#111111',
 }
 
 const styles = StyleSheet.create({
   page: {
-    padding: 48,
+    padding: 36,
+    paddingBottom: 44,
     fontSize: 9,
     fontFamily: 'Helvetica',
-    color: c.text,
-    backgroundColor: c.white,
+    color: palette.text,
+    backgroundColor: palette.white,
   },
   // Watermark
   watermark: {
@@ -56,7 +61,7 @@ const styles = StyleSheet.create({
     top: '40%',
     left: '15%',
     fontSize: 72,
-    color: c.watermark,
+    color: palette.watermark,
     fontFamily: 'Helvetica-Bold',
     transform: 'rotate(-35deg)',
     opacity: 0.35,
@@ -66,20 +71,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 28,
+    marginBottom: 18,
   },
   headerLeft: {
     flex: 1,
   },
   companyName: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'Helvetica-Bold',
-    color: c.dark,
-    marginBottom: 6,
+    color: palette.dark,
+    marginBottom: 4,
   },
   companyDetail: {
     fontSize: 9,
-    color: c.label,
+    color: palette.label,
     marginBottom: 1,
   },
   logo: {
@@ -89,101 +94,101 @@ const styles = StyleSheet.create({
   // Info cards row
   infoRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 20,
+    gap: 8,
+    marginBottom: 14,
   },
   infoCard: {
     flex: 1,
-    backgroundColor: c.cardBg,
+    backgroundColor: palette.cardBg,
     borderRadius: 8,
-    padding: 12,
+    padding: 10,
   },
   infoCardWhite: {
     flex: 1,
-    backgroundColor: c.white,
+    backgroundColor: palette.white,
     borderRadius: 8,
-    padding: 12,
+    padding: 10,
     borderWidth: 0.6,
-    borderColor: c.border,
+    borderColor: palette.border,
   },
   infoCardSmall: {
-    width: 110,
-    backgroundColor: c.cardBg,
+    width: 105,
+    backgroundColor: palette.cardBg,
     borderRadius: 8,
-    padding: 12,
+    padding: 10,
   },
   infoLabel: {
     fontSize: 7,
     fontFamily: 'Helvetica-Bold',
-    color: c.sublabel,
-    marginBottom: 6,
+    color: palette.sublabel,
+    marginBottom: 4,
   },
   infoValue: {
     fontSize: 11,
     fontFamily: 'Helvetica',
-    color: c.text,
+    color: palette.text,
   },
   infoValueBold: {
     fontSize: 11,
     fontFamily: 'Helvetica-Bold',
-    color: c.text,
+    color: palette.text,
   },
   infoValueSmall: {
     fontSize: 9,
-    color: c.text,
+    color: palette.text,
   },
   infoValueMuted: {
     fontSize: 9,
-    color: c.label,
+    color: palette.label,
   },
   amountLarge: {
     fontSize: 16,
     fontFamily: 'Helvetica-Bold',
-    color: c.text,
+    color: palette.text,
   },
   amountCurrency: {
     fontSize: 11,
-    color: c.text,
+    color: palette.text,
     marginTop: 2,
   },
   amountDate: {
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    color: c.label,
+    color: palette.label,
     marginTop: 6,
   },
   // Concepts section
   conceptsCard: {
-    backgroundColor: c.cardBg,
-    borderRadius: 12,
-    padding: 12,
-    paddingTop: 16,
-    marginBottom: 16,
+    backgroundColor: palette.cardBg,
+    borderRadius: 10,
+    padding: 10,
+    paddingTop: 12,
+    marginBottom: 10,
   },
   // Table
   tableHeader: {
     flexDirection: 'row',
     paddingHorizontal: 10,
-    paddingBottom: 8,
-    marginBottom: 4,
+    paddingBottom: 6,
+    marginBottom: 2,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 10,
     borderBottomWidth: 0.5,
-    borderBottomColor: c.border,
+    borderBottomColor: palette.border,
   },
-  thDesc: { flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: c.label, letterSpacing: 0.3 },
-  thQty: { width: 40, fontSize: 7, fontFamily: 'Helvetica-Bold', color: c.label, textAlign: 'right', letterSpacing: 0.3 },
-  thPrice: { width: 70, fontSize: 7, fontFamily: 'Helvetica-Bold', color: c.label, textAlign: 'right', letterSpacing: 0.3 },
-  thAmount: { width: 70, fontSize: 7, fontFamily: 'Helvetica-Bold', color: c.label, textAlign: 'right', letterSpacing: 0.3 },
+  thDesc: { flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: palette.label, letterSpacing: 0.3 },
+  thQty: { width: 40, fontSize: 7, fontFamily: 'Helvetica-Bold', color: palette.label, textAlign: 'right', letterSpacing: 0.3 },
+  thPrice: { width: 70, fontSize: 7, fontFamily: 'Helvetica-Bold', color: palette.label, textAlign: 'right', letterSpacing: 0.3 },
+  thAmount: { width: 70, fontSize: 7, fontFamily: 'Helvetica-Bold', color: palette.label, textAlign: 'right', letterSpacing: 0.3 },
   tdDesc: { flex: 1 },
-  tdDescText: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: c.text },
-  tdDescSub: { fontSize: 7, color: c.label, fontFamily: 'Courier', marginTop: 2 },
-  tdQty: { width: 40, fontSize: 9, fontFamily: 'Courier', textAlign: 'right', color: c.label },
-  tdPrice: { width: 70, fontSize: 9, fontFamily: 'Courier', textAlign: 'right', color: c.label },
-  tdAmount: { width: 70, fontSize: 9, fontFamily: 'Courier-Bold', textAlign: 'right', color: c.text },
+  tdDescText: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: palette.text },
+  tdDescSub: { fontSize: 7, color: palette.label, fontFamily: 'Courier', marginTop: 2 },
+  tdQty: { width: 40, fontSize: 9, fontFamily: 'Courier', textAlign: 'right', color: palette.label },
+  tdPrice: { width: 70, fontSize: 9, fontFamily: 'Courier', textAlign: 'right', color: palette.label },
+  tdAmount: { width: 70, fontSize: 9, fontFamily: 'Courier-Bold', textAlign: 'right', color: palette.text },
   // Totals
   totalsContainer: {
     alignItems: 'flex-end',
@@ -198,110 +203,110 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 8,
-    color: c.label,
+    color: palette.label,
     letterSpacing: 0.3,
   },
   totalValue: {
     fontSize: 9,
     fontFamily: 'Courier',
-    color: c.text,
+    color: palette.text,
   },
   totalDivider: {
     width: 180,
     borderBottomWidth: 0.5,
-    borderBottomColor: c.border,
+    borderBottomColor: palette.border,
     marginVertical: 4,
   },
   totalFinalLabel: {
     fontSize: 8,
-    color: c.text,
+    color: palette.text,
   },
   totalFinalValue: {
     fontSize: 16,
     fontFamily: 'Helvetica-Bold',
-    color: c.accent,
+    color: palette.accent,
   },
   // Payment info
   paymentSection: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 20,
+    gap: 8,
+    marginBottom: 14,
   },
   paymentCard: {
     flex: 1,
-    backgroundColor: c.cardBg,
+    backgroundColor: palette.cardBg,
     borderRadius: 8,
-    padding: 10,
+    padding: 8,
   },
   paymentLabel: {
     fontSize: 7,
-    color: c.label,
+    color: palette.label,
     marginBottom: 2,
   },
   paymentValue: {
     fontSize: 8,
-    color: c.text,
+    color: palette.text,
   },
-  // Fiscal stamp section
+  // Fiscal stamp section — optimized for B/W printing
   stampSection: {
-    marginTop: 16,
-    borderTopWidth: 0.5,
-    borderTopColor: c.border,
-    paddingTop: 12,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#1a1a1a',
+    paddingTop: 9,
   },
   stampTitle: {
-    fontSize: 7,
+    fontSize: 7.5,
     fontFamily: 'Helvetica-Bold',
-    color: c.sublabel,
-    letterSpacing: 0.3,
-    marginBottom: 8,
+    color: '#111111',
+    letterSpacing: 0.4,
+    marginBottom: 6,
   },
   stampRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   stampQr: {
-    width: 90,
-    height: 90,
+    width: 84,
+    height: 84,
   },
   stampInfo: {
     flex: 1,
   },
   stampLabel: {
-    fontSize: 6,
+    fontSize: 6.5,
     fontFamily: 'Helvetica-Bold',
-    color: c.sublabel,
+    color: '#1a1a1a',
     letterSpacing: 0.3,
     marginBottom: 1,
-    marginTop: 5,
+    marginTop: 4,
   },
   stampValue: {
-    fontSize: 5.5,
+    fontSize: 5.8,
     fontFamily: 'Courier',
-    color: c.label,
-    lineHeight: 1.4,
+    color: '#2a2a2a',
+    lineHeight: 1.35,
   },
   stampUuid: {
-    fontSize: 8,
+    fontSize: 8.5,
     fontFamily: 'Courier-Bold',
-    color: c.text,
+    color: '#111111',
     marginBottom: 2,
   },
   // Footer
   footer: {
     position: 'absolute',
-    bottom: 28,
-    left: 48,
-    right: 48,
+    bottom: 22,
+    left: 36,
+    right: 36,
     borderTopWidth: 0.5,
-    borderTopColor: c.border,
+    borderTopColor: palette.border,
     paddingTop: 6,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   footerText: {
     fontSize: 7,
-    color: c.label,
+    color: palette.label,
   },
 })
 
@@ -309,10 +314,10 @@ function formatCurrency(value: number): string {
   return `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-function breakString(str: string, chunkSize: number): string {
+function breakSeal(str: string): string {
   const chunks: string[] = []
-  for (let i = 0; i < str.length; i += chunkSize) {
-    chunks.push(str.substring(i, i + chunkSize))
+  for (let i = 0; i < str.length; i += 150) {
+    chunks.push(str.substring(i, i + 150))
   }
   return chunks.join('\n')
 }
@@ -335,9 +340,17 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
               {emisor?.businessName || 'Sin perfil fiscal'}
             </Text>
             {emisor && (
-              <Text style={styles.companyDetail}>
-                RFC: {emisor.rfc}
-              </Text>
+              <>
+                <Text style={styles.companyDetail}>
+                  RFC: {emisor.rfc}
+                </Text>
+                <Text style={styles.companyDetail}>
+                  Régimen Fiscal: {emisor.taxRegime} — {labels.taxRegimes?.[emisor.taxRegime] || emisor.taxRegime}
+                </Text>
+                <Text style={styles.companyDetail}>
+                  Lugar de Expedición: C.P. {emisor.postalCode}
+                </Text>
+              </>
             )}
           </View>
           {emisor?.logoUrl && (
@@ -357,6 +370,11 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
             <Text style={{ ...styles.infoValueMuted, marginTop: 2 }}>
               C.P. {invoice.client.postalCode}
             </Text>
+            {invoice.client.taxRegime && (
+              <Text style={{ ...styles.infoValueMuted, marginTop: 2 }}>
+                Régimen: {invoice.client.taxRegime} — {labels.taxRegimes?.[invoice.client.taxRegime] || invoice.client.taxRegime}
+              </Text>
+            )}
           </View>
 
           {/* Monto a pagar */}
@@ -454,7 +472,7 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
             {parseFloat(invoice.withholdings) > 0 && (
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>Retenciones</Text>
-                <Text style={{ ...styles.totalValue, color: c.destructive }}>
+                <Text style={{ ...styles.totalValue, color: palette.destructive }}>
                   -{formatCurrency(parseFloat(invoice.withholdings))}
                 </Text>
               </View>
@@ -463,6 +481,11 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
             <View style={{ ...styles.totalRow, alignItems: 'center' }}>
               <Text style={styles.totalFinalLabel}>Monto total:</Text>
               <Text style={styles.totalFinalValue}>{formatCurrency(parseFloat(invoice.total))}</Text>
+            </View>
+            <View style={{ width: 280, marginTop: 6 }}>
+              <Text style={{ fontSize: 6.5, color: palette.label, letterSpacing: 0.2 }}>
+                {numberToSpanishWords(parseFloat(invoice.total))}
+              </Text>
             </View>
           </View>
         </View>
@@ -498,24 +521,31 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
                   </>
                 )}
 
+                {emisor?.certSerialNumber && (
+                  <>
+                    <Text style={styles.stampLabel}>No. Certificado Emisor</Text>
+                    <Text style={styles.stampValue}>{emisor.certSerialNumber}</Text>
+                  </>
+                )}
+
                 {invoice.cfdiSignature && (
                   <>
                     <Text style={styles.stampLabel}>Sello Digital del CFDI</Text>
-                    <Text style={styles.stampValue}>{breakString(invoice.cfdiSignature, 120)}</Text>
+                    <Text style={styles.stampValue}>{breakSeal(invoice.cfdiSignature)}</Text>
                   </>
                 )}
 
                 {invoice.satSignature && (
                   <>
                     <Text style={styles.stampLabel}>Sello del SAT</Text>
-                    <Text style={styles.stampValue}>{breakString(invoice.satSignature, 120)}</Text>
+                    <Text style={styles.stampValue}>{breakSeal(invoice.satSignature)}</Text>
                   </>
                 )}
 
                 {invoice.satOriginalChain && (
                   <>
                     <Text style={styles.stampLabel}>Cadena Original del Timbre</Text>
-                    <Text style={styles.stampValue}>{breakString(invoice.satOriginalChain, 120)}</Text>
+                    <Text style={styles.stampValue}>{breakSeal(invoice.satOriginalChain)}</Text>
                   </>
                 )}
               </View>

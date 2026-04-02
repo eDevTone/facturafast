@@ -5,21 +5,18 @@ import { Button } from "@/shared/ui/button";
 import { auth } from "@clerk/nextjs/server";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClientesPage() {
   const { userId } = await auth();
 
-  let clients: Awaited<ReturnType<typeof getClients>> = [];
-
-  if (userId) {
-    try {
-      clients = await getClients(userId);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-    }
+  if (!userId) {
+    notFound();
   }
+
+  const clients = await getClients(userId);
 
   const [catalogs, taxRegimeLabels] = await Promise.all([
     getClientFormCatalogs(),

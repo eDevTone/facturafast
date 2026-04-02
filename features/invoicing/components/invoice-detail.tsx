@@ -3,6 +3,7 @@
 import { Button } from '@shared/ui/button'
 import { formatDateLong } from '@shared/utils/date'
 import { Copy, Download, Pencil } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
@@ -11,12 +12,14 @@ import { getInvoiceDownloadUrlAction } from '../actions/get-download-url.action'
 import { stampInvoiceAction } from '../actions/stamp-invoice.action'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { formatCurrency } from '../utils/invoice-calculations'
+import { numberToSpanishWords } from '../utils/number-to-words'
 import { CancelInvoiceDialog } from './cancel-invoice-dialog'
 import { DeleteInvoiceDialog } from './delete-invoice-dialog'
 import { InvoiceHelpDialog } from './invoice-help-dialog'
 import { InvoicePreviewDialog } from './invoice-preview-dialog'
 import { StampConfirmDialog } from './stamp-confirm-dialog'
 import { StatusBadge } from './status-badge'
+import { TimbreFiscalSection } from './timbre-fiscal-section'
 
 interface FiscalProfileData {
   rfc: string
@@ -25,6 +28,7 @@ interface FiscalProfileData {
   postalCode: string
   fiscalAddress?: string | null
   logoUrl?: string | null
+  certSerialNumber?: string | null
 }
 
 interface InvoiceDetailProps {
@@ -34,6 +38,7 @@ interface InvoiceDetailProps {
     paymentForms: Record<string, string>
     paymentMethods: Record<string, string>
     cfdiUsages: Record<string, string>
+    taxRegimes: Record<string, string>
   }
 }
 
@@ -122,8 +127,13 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
             <InvoiceHelpDialog status={invoice.status} />
           </div>
           <p className="text-[13px] text-muted-foreground mt-1">
-            Creada el {formatDateLong(invoice.createdAt)}
+            Emitida el {formatDateLong(invoice.issuedAt)}
           </p>
+          {(isStamped || isCancelled) && invoice.stampedAt && (
+            <p className="text-[12px] text-muted-foreground/60 mt-0.5">
+              Timbrada el {formatDateLong(invoice.stampedAt)}
+            </p>
+          )}
           {isStamped && invoice.uuid && (
             <button
               type="button"
@@ -194,6 +204,55 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
       {/* Content card */}
       <div className="rounded-xl border border-border/60 bg-card p-5 space-y-8">
 
+      {/* Emisor */}
+      {emisor && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+              Emisor
+            </h2>
+            <div className="mt-1 h-px bg-border/40" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <p className="text-[11px] text-muted-foreground/60 mb-0.5">Razón Social</p>
+              <div className="flex items-center gap-2">
+                {emisor.logoUrl && (
+                  <Image
+                    src={emisor.logoUrl}
+                    alt={emisor.businessName}
+                    width={32}
+                    height={32}
+                    className="rounded-md object-contain"
+                  />
+                )}
+                <p className="text-sm font-medium text-foreground">{emisor.businessName}</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] text-muted-foreground/60 mb-0.5">RFC</p>
+              <p className="text-sm font-mono tracking-wide text-foreground">{emisor.rfc}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-muted-foreground/60 mb-0.5">Régimen Fiscal</p>
+              <p className="text-sm text-foreground">
+                {emisor.taxRegime} — {labels.taxRegimes[emisor.taxRegime] || emisor.taxRegime}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] text-muted-foreground/60 mb-0.5">Lugar de Expedición</p>
+              <p className="text-sm font-mono tracking-wide text-foreground">CP {emisor.postalCode}</p>
+            </div>
+            {emisor.certSerialNumber && (
+              <div>
+                <p className="text-[11px] text-muted-foreground/60 mb-0.5">No. Certificado Emisor</p>
+                <p className="text-sm font-mono tracking-wide text-foreground">{emisor.certSerialNumber}</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Receptor */}
       <section className="space-y-3">
         <div>
@@ -217,6 +276,18 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
               {invoice.cfdiUsage} — {labels.cfdiUsages[invoice.cfdiUsage] || invoice.cfdiUsage}
             </p>
           </div>
+          {invoice.client.taxRegime && (
+            <div>
+              <p className="text-[11px] text-muted-foreground/60 mb-0.5">Régimen Fiscal</p>
+              <p className="text-sm text-foreground">
+                {invoice.client.taxRegime} — {labels.taxRegimes[invoice.client.taxRegime] || invoice.client.taxRegime}
+              </p>
+            </div>
+          )}
+          <div>
+            <p className="text-[11px] text-muted-foreground/60 mb-0.5">Domicilio Fiscal</p>
+            <p className="text-sm font-mono tracking-wide text-foreground">CP {invoice.client.postalCode}</p>
+          </div>
         </div>
       </section>
 
@@ -228,7 +299,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
           </h2>
           <div className="mt-1 h-px bg-border/40" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <p className="text-[11px] text-muted-foreground/60 mb-0.5">Forma de Pago</p>
             <p className="text-sm text-foreground">
@@ -244,6 +315,10 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
           <div>
             <p className="text-[11px] text-muted-foreground/60 mb-0.5">Moneda</p>
             <p className="text-sm text-foreground">{invoice.currency}</p>
+          </div>
+          <div>
+            <p className="text-[11px] text-muted-foreground/60 mb-0.5">Tipo de Cambio</p>
+            <p className="text-sm font-mono text-foreground">1</p>
           </div>
         </div>
       </section>
@@ -326,8 +401,16 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
               {formatCurrency(parseFloat(invoice.total))}
             </span>
           </div>
+          <p className="text-[11px] uppercase text-muted-foreground/60 mt-2 pt-2 border-t border-border/30">
+            {numberToSpanishWords(parseFloat(invoice.total))}
+          </p>
         </div>
       </section>
+
+      {/* Timbre Fiscal Digital */}
+      {(isStamped || isCancelled) && (invoice.cfdiSignature || invoice.satSignature || invoice.qrCode) && (
+        <TimbreFiscalSection invoice={invoice} emisor={emisor} />
+      )}
 
       </div>{/* end content card */}
     </div>

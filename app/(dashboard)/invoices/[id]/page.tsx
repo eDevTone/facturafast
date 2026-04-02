@@ -3,7 +3,7 @@ import { getDefaultIssuingProfile, getIssuingProfileById } from '@features/fisca
 import { InvoiceDetail } from '@features/invoicing/components/invoice-detail'
 import { getInvoiceById } from '@features/invoicing/services/invoice.service'
 import { getFileSignedUrl } from '@features/storage/services/r2.service'
-import { getCfdiUsageLabels, getPaymentFormLabels, getPaymentMethodLabels } from '@shared/services/sat-catalog.service'
+import { getCfdiUsageLabels, getPaymentFormLabels, getPaymentMethodLabels, getTaxRegimeLabels } from '@shared/services/sat-catalog.service'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -22,11 +22,12 @@ export default async function InvoiceDetailPage({
     notFound()
   }
 
-  const [invoice, paymentFormLabels, paymentMethodLabels, cfdiUsageLabels] = await Promise.all([
+  const [invoice, paymentFormLabels, paymentMethodLabels, cfdiUsageLabels, taxRegimeLabels] = await Promise.all([
     getInvoiceById(id, userId),
     getPaymentFormLabels(),
     getPaymentMethodLabels(),
     getCfdiUsageLabels(),
+    getTaxRegimeLabels(),
   ])
 
   if (!invoice) {
@@ -50,6 +51,7 @@ export default async function InvoiceDetailPage({
         taxRegime: profile.taxRegime,
         postalCode: profile.postalCode,
         logoUrl,
+        certSerialNumber: profile.certSerialNumber ?? null,
       }
     : null
 
@@ -72,6 +74,7 @@ export default async function InvoiceDetailPage({
           paymentForms: paymentFormLabels,
           paymentMethods: paymentMethodLabels,
           cfdiUsages: cfdiUsageLabels,
+          taxRegimes: taxRegimeLabels,
         }}
       />
     </div>

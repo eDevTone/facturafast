@@ -43,6 +43,13 @@
       "when": 1774916963519,
       "tag": "0005_spooky_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775087308266,
+      "tag": "0006_zippy_rawhide_kid",
+      "breakpoints": true
     }
   ]
 }

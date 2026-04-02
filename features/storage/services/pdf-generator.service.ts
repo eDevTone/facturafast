@@ -2,7 +2,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { createElement } from 'react'
 import { InvoicePdfDocument } from '@features/invoicing/components/invoice-pdf-document'
 import { getIssuingProfileById, getDefaultIssuingProfile } from '@features/fiscal-profile/services/fiscal-profile.service'
-import { getPaymentFormLabels, getPaymentMethodLabels, getCfdiUsageLabels } from '@shared/services/sat-catalog.service'
+import { getPaymentFormLabels, getPaymentMethodLabels, getCfdiUsageLabels, getTaxRegimeLabels } from '@shared/services/sat-catalog.service'
 import { getFileSignedUrl } from '@features/storage/services/r2.service'
 import type { InvoiceWithRelations } from '@features/invoicing/types/invoice.types'
 
@@ -14,7 +14,7 @@ export async function generateInvoicePdf(
   invoice: InvoiceWithRelations,
   userId: string,
 ): Promise<Buffer> {
-  const [profile, paymentFormLabels, paymentMethodLabels, cfdiUsageLabels] =
+  const [profile, paymentFormLabels, paymentMethodLabels, cfdiUsageLabels, taxRegimeLabels] =
     await Promise.all([
       invoice.issuingProfileId
         ? getIssuingProfileById(invoice.issuingProfileId, userId)
@@ -22,6 +22,7 @@ export async function generateInvoicePdf(
       getPaymentFormLabels(),
       getPaymentMethodLabels(),
       getCfdiUsageLabels(),
+      getTaxRegimeLabels(),
     ])
 
   // Get signed URL for logo if it exists
@@ -41,6 +42,7 @@ export async function generateInvoicePdf(
         taxRegime: profile.taxRegime,
         postalCode: profile.postalCode,
         logoUrl,
+        certSerialNumber: profile.certSerialNumber ?? null,
       }
     : null
 
@@ -51,6 +53,7 @@ export async function generateInvoicePdf(
       paymentForms: paymentFormLabels,
       paymentMethods: paymentMethodLabels,
       cfdiUsages: cfdiUsageLabels,
+      taxRegimes: taxRegimeLabels,
     },
   })
 
