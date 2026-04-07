@@ -1,5 +1,5 @@
-import { PLANS } from '../constants/plans'
-import type { PlanId } from '../types/billing.types'
+import { STAMP_PACKAGES } from '../constants/plans'
+import type { StampPackageId } from '../constants/plans'
 
 function getConfig() {
   const apiKey = process.env.CONEKTA_API_KEY
@@ -60,18 +60,18 @@ interface ConektaOrder {
 }
 
 /**
- * Create a Conekta order with hosted checkout for a subscription plan.
+ * Create a Conekta order with hosted checkout for a stamp package.
  * Returns the checkout URL to redirect the user.
  */
 export async function createCheckoutOrder(
   customerId: string,
   userId: string,
-  planId: PlanId,
+  packageId: StampPackageId,
   successUrl: string,
   failureUrl: string,
 ): Promise<{ orderId: string; checkoutUrl: string }> {
-  const plan = PLANS.find(p => p.id === planId)
-  if (!plan) throw new Error(`Plan ${planId} not found`)
+  const pkg = STAMP_PACKAGES.find(p => p.id === packageId)
+  if (!pkg) throw new Error(`Package ${packageId} not found`)
 
   const order = await conektaFetch<ConektaOrder>('/orders', {
     method: 'POST',
@@ -80,8 +80,8 @@ export async function createCheckoutOrder(
       customer_info: { customer_id: customerId },
       line_items: [
         {
-          name: `FacturaFast ${plan.name}`,
-          unit_price: plan.price * 100, // Conekta uses centavos
+          name: `FacturaFast ${pkg.name} — ${pkg.stamps} timbres`,
+          unit_price: pkg.price * 100, // Conekta uses centavos
           quantity: 1,
         },
       ],
@@ -91,9 +91,8 @@ export async function createCheckoutOrder(
         success_url: successUrl,
         failure_url: failureUrl,
       },
-      plan_id: plan.conektaPlanId,
       metadata: {
-        plan_id: planId,
+        package_id: packageId,
         user_id: userId,
       },
     }),

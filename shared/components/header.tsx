@@ -5,20 +5,16 @@ import { Bell } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { MobileSidebar } from "./mobile-sidebar";
 import { ThemeToggle } from "./theme-toggle";
-import type { PlanId } from "@features/billing/types/billing.types";
 
 interface HeaderProps {
-  plan?: PlanId;
-  stampsUsed?: number;
-  stampsLimit?: number;
-  periodEnd?: Date;
+  stampsBalance?: number;
 }
 
-export function Header({ plan, stampsUsed, stampsLimit, periodEnd }: HeaderProps) {
+export function Header({ stampsBalance }: HeaderProps) {
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border/50 bg-background/80 px-6 backdrop-blur-sm">
       {/* Mobile Menu */}
-      <MobileSidebar plan={plan} stampsUsed={stampsUsed} stampsLimit={stampsLimit} periodEnd={periodEnd} />
+      <MobileSidebar stampsBalance={stampsBalance} />
 
       {/* Spacer */}
       <div className="flex-1" />

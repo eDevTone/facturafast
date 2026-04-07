@@ -14,8 +14,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { PlanUsageBanner } from '@features/billing/components/plan-usage-banner'
-import { getOrCreateSubscription } from '@features/billing/services/subscription.service'
+import { StampsBanner } from '@features/billing/components/plan-usage-banner'
+import { getOrCreateAccount } from '@features/billing/services/account.service'
 import { StatusBadge } from '@features/invoicing/components/status-badge'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
   const [stats, recentInvoices, subscription] = await Promise.all([
     getDashboardStats(userId),
     getRecentInvoices(userId, 7),
-    getOrCreateSubscription(userId),
+    getOrCreateAccount(userId),
   ])
 
   const growthPercent =
@@ -45,7 +45,7 @@ export default async function DashboardPage() {
   const totalInvoices = stats.draftCount + stats.timbradaCount + stats.canceladaCount
   const hasData = totalInvoices > 0 || stats.totalClients > 0
 
-  const { plan: currentPlan, stampsUsed, stampsLimit } = subscription
+  const { stampsBalance } = subscription
 
   return (
     <div className="space-y-8">
@@ -69,7 +69,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Plan usage */}
-      <PlanUsageBanner plan={currentPlan} stampsUsed={stampsUsed} stampsLimit={stampsLimit} />
+      <StampsBanner stampsBalance={stampsBalance} />
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -1,7 +1,6 @@
-import { formatDateLong } from '@shared/utils/date'
 import { auth } from '@clerk/nextjs/server'
 import { BillingPage } from '@features/billing/components/billing-page'
-import { getOrCreateSubscription } from '@features/billing/services/subscription.service'
+import { getOrCreateAccount, getPurchaseHistory } from '@features/billing/services/account.service'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -20,7 +19,10 @@ export default async function BillingRoute({
     notFound()
   }
 
-  const subscription = await getOrCreateSubscription(userId)
+  const [account, purchaseHistory] = await Promise.all([
+    getOrCreateAccount(userId),
+    getPurchaseHistory(userId),
+  ])
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -33,18 +35,13 @@ export default async function BillingRoute({
           Dashboard
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Facturación
+          Timbres
         </h1>
       </div>
 
       <BillingPage
-        currentPlan={subscription.plan}
-        status={subscription.status}
-        stampsUsed={subscription.stampsUsed}
-        periodEnd={subscription.currentPeriodEnd
-          ? formatDateLong(subscription.currentPeriodEnd)
-          : null
-        }
+        stampsBalance={account.stampsBalance}
+        purchaseHistory={purchaseHistory}
         paymentSuccess={success === 'true'}
         paymentError={error === 'true'}
       />

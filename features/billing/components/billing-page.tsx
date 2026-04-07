@@ -1,47 +1,43 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { AlertTriangle, CheckCircle2, XCircle, Zap } from 'lucide-react'
+import { CheckCircle2, XCircle, Zap } from 'lucide-react'
 import { toast } from 'sonner'
-import { PLANS, PLAN_LIMITS } from '../constants/plans'
-import type { PlanId } from '../types/billing.types'
-import { PlanCard } from './plan-card'
+import { STAMP_PACKAGES } from '../constants/plans'
+import type { StampPackageId } from '../constants/plans'
+import type { PurchaseRecord } from '../types/billing.types'
+import { PackageCard } from './package-card'
+import { PurchaseHistory } from './purchase-history'
 import { createCheckoutAction } from '../actions/create-checkout.action'
-import { cancelSubscriptionAction } from '../actions/cancel-subscription.action'
 
 interface BillingPageProps {
-  currentPlan: PlanId
-  status: 'active' | 'past_due' | 'cancelled'
-  stampsUsed: number
-  periodEnd: string | null
+  stampsBalance: number
+  purchaseHistory: PurchaseRecord[]
   paymentSuccess?: boolean
   paymentError?: boolean
 }
 
-export function BillingPage({ currentPlan, status, stampsUsed, periodEnd, paymentSuccess, paymentError }: BillingPageProps) {
-  const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null)
+export function BillingPage({ stampsBalance, purchaseHistory, paymentSuccess, paymentError }: BillingPageProps) {
+  const [loadingPackage, setLoadingPackage] = useState<StampPackageId | null>(null)
   const [, startTransition] = useTransition()
-  const limit = PLAN_LIMITS[currentPlan].stamps
-  const isUnlimited = limit === Infinity
-  const percentage = isUnlimited ? 0 : Math.min((stampsUsed / limit) * 100, 100)
 
-  const renewalLabel = periodEnd
-
-  const handleSelectPlan = (planId: PlanId) => {
-    setLoadingPlan(planId)
+  const handleSelectPackage = (packageId: StampPackageId) => {
+    setLoadingPackage(packageId)
     startTransition(async () => {
       try {
-        await createCheckoutAction(planId)
+        await createCheckoutAction(packageId)
       } catch (error) {
         // redirect() throws a NEXT_REDIRECT error — that's expected
         const isRedirect = error instanceof Error && error.message.includes('NEXT_REDIRECT')
         if (!isRedirect) {
           toast.error('Error al iniciar el pago')
-          setLoadingPlan(null)
+          setLoadingPackage(null)
         }
       }
     })
   }
+
+  const isLowBalance = stampsBalance < 10
 
   return (
     <div className="space-y-8">
@@ -50,7 +46,7 @@ export function BillingPage({ currentPlan, status, stampsUsed, periodEnd, paymen
         <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/[0.05] px-4 py-3">
           <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
           <p className="text-sm text-foreground">
-            Pago procesado correctamente. Tu plan se actualizará en unos momentos.
+            Pago procesado correctamente. Tus timbres se añadirán en unos momentos.
           </p>
         </div>
       )}
@@ -65,106 +61,47 @@ export function BillingPage({ currentPlan, status, stampsUsed, periodEnd, paymen
         </div>
       )}
 
-      {/* Past due warning */}
-      {status === 'past_due' && (
-        <div className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.05] px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-          <p className="text-sm text-foreground">
-            Tu último pago falló. Actualiza tu método de pago para mantener tu plan.
+      {/* Balance prominente */}
+      <div className="rounded-xl border border-border/60 bg-card p-6">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+          Tu saldo
+        </p>
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="text-4xl font-bold font-mono tracking-tight text-foreground">
+            {stampsBalance}
+          </span>
+          <span className="text-sm text-muted-foreground">timbres disponibles</span>
+        </div>
+        {isLowBalance && (
+          <p className="mt-2 flex items-center gap-1.5 text-[13px] text-amber-500">
+            <Zap className="h-3.5 w-3.5" />
+            Te quedan pocos timbres — elige un paquete para recargar
           </p>
-        </div>
-      )}
-
-      {/* Current plan summary */}
-      <div className="rounded-xl border border-border/60 bg-card p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-              Tu plan
-            </p>
-            <p className="mt-1 text-lg font-semibold text-foreground capitalize">
-              {currentPlan}
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="flex items-center gap-1.5 justify-end">
-              <Zap className="h-3.5 w-3.5 text-muted-foreground/60" />
-              {isUnlimited ? (
-                <span className="text-sm font-medium text-foreground">Timbres ilimitados</span>
-              ) : (
-                <span className="text-sm font-medium text-foreground">
-                  {stampsUsed} <span className="text-muted-foreground/50">/ {limit} timbres</span>
-                </span>
-              )}
-            </div>
-            {renewalLabel && (
-              <p className="mt-0.5 text-[12px] text-muted-foreground/40">
-                Se renueva el {renewalLabel}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        {!isUnlimited && (
-          <div className="mt-3 h-1.5 w-full rounded-full bg-border/60 overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                percentage >= 100
-                  ? 'bg-destructive'
-                  : percentage >= 80
-                    ? 'bg-amber-500'
-                    : 'bg-primary'
-              }`}
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
         )}
       </div>
 
-      {/* Plan cards */}
+      {/* Package cards */}
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-4">
-          Planes disponibles
+          Paquetes de timbres
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {PLANS.map(plan => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              currentPlan={currentPlan}
-              onSelect={handleSelectPlan}
-              isLoading={loadingPlan === plan.id}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {STAMP_PACKAGES.map(pkg => (
+            <PackageCard
+              key={pkg.id}
+              pkg={pkg}
+              onSelect={handleSelectPackage}
+              isLoading={loadingPackage === pkg.id}
             />
           ))}
         </div>
+        <p className="mt-3 text-center text-[12px] text-muted-foreground/40">
+          Los timbres no vencen y se acumulan con cada compra.
+        </p>
       </div>
 
-      {/* Early adopter note */}
-      <p className="text-center text-[12px] text-muted-foreground/40">
-        Precio de lanzamiento — los primeros 100 usuarios lo mantienen para siempre.
-      </p>
-
-      {/* Cancel link */}
-      {currentPlan !== 'free' && (
-        <div className="text-center">
-          <button
-            type="button"
-            className="text-[12px] text-muted-foreground/40 hover:text-destructive transition-colors cursor-pointer"
-            onClick={async () => {
-              if (!confirm('¿Seguro que quieres cancelar tu suscripción? Volverás al plan Free.')) return
-              const result = await cancelSubscriptionAction()
-              if (result.success) {
-                toast.success('Suscripción cancelada. Ahora estás en el plan Free.')
-              } else {
-                toast.error(result.error || 'Error al cancelar')
-              }
-            }}
-          >
-            Cancelar suscripción
-          </button>
-        </div>
-      )}
+      {/* Purchase history */}
+      <PurchaseHistory purchases={purchaseHistory} />
     </div>
   )
 }

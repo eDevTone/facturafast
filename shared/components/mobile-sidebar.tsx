@@ -7,11 +7,6 @@ import {
   LayoutDashboard,
   Users,
   Building2,
-  // Package,
-  // BarChart3,
-  // Settings,
-  // FileText,
-  // CreditCard,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
@@ -23,16 +18,12 @@ import {
 } from "@/shared/ui/sheet";
 import { NavItem } from "./nav-item";
 import { UsageIndicator } from "@features/billing/components/usage-indicator";
-import type { PlanId } from "@features/billing/types/billing.types";
 
 interface MobileSidebarProps {
-  plan?: PlanId;
-  stampsUsed?: number;
-  stampsLimit?: number;
-  periodEnd?: Date;
+  stampsBalance?: number;
 }
 
-export function MobileSidebar({ plan = 'free', stampsUsed = 0, stampsLimit = 5, periodEnd = new Date() }: MobileSidebarProps) {
+export function MobileSidebar({ stampsBalance = 0 }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -77,8 +68,6 @@ export function MobileSidebar({ plan = 'free', stampsUsed = 0, stampsLimit = 5, 
                 Ventas
               </p>
               <NavItem href="/invoices" icon={Receipt} label="Facturas" />
-              {/* <NavItem href="/quotes" icon={FileText} label="Cotizaciones" /> */}
-              {/* <NavItem href="/credit-notes" icon={CreditCard} label="Notas de Crédito" /> */}
             </div>
 
             <div className="space-y-1">
@@ -86,7 +75,6 @@ export function MobileSidebar({ plan = 'free', stampsUsed = 0, stampsLimit = 5, 
                 Catálogos
               </p>
               <NavItem href="/clients" icon={Users} label="Clientes" />
-              {/* <NavItem href="/products" icon={Package} label="Productos" /> */}
             </div>
 
             <div className="space-y-1">
@@ -95,26 +83,10 @@ export function MobileSidebar({ plan = 'free', stampsUsed = 0, stampsLimit = 5, 
               </p>
               <NavItem href="/fiscal-profiles" icon={Building2} label="Perfiles Fiscales" />
             </div>
-
-            {/* <div className="space-y-1">
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                Análisis
-              </p>
-              <NavItem href="/reports" icon={BarChart3} label="Reportes" />
-            </div> */}
-
-            {/* <div>
-              <NavItem href="/settings" icon={Settings} label="Configuración" />
-            </div> */}
           </nav>
 
           {/* Usage */}
-          <UsageIndicator
-            plan={plan}
-            stampsUsed={stampsUsed}
-            stampsLimit={stampsLimit}
-            periodEnd={periodEnd}
-          />
+          <UsageIndicator stampsBalance={stampsBalance} />
         </div>
       </SheetContent>
     </Sheet>

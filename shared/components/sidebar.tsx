@@ -10,16 +10,12 @@ import {
 import Link from "next/link";
 import { NavItem } from "./nav-item";
 import { UsageIndicator } from "@features/billing/components/usage-indicator";
-import type { PlanId } from "@features/billing/types/billing.types";
 
 interface SidebarProps {
-  plan: PlanId;
-  stampsUsed: number;
-  stampsLimit: number;
-  periodEnd: Date;
+  stampsBalance: number;
 }
 
-export function Sidebar({ plan, stampsUsed, stampsLimit, periodEnd }: SidebarProps) {
+export function Sidebar({ stampsBalance }: SidebarProps) {
   return (
     <aside className="flex h-screen w-60 flex-col border-r border-border/50 bg-sidebar">
       {/* Logo */}
@@ -48,8 +44,6 @@ export function Sidebar({ plan, stampsUsed, stampsLimit, periodEnd }: SidebarPro
             Ventas
           </p>
           <NavItem href="/invoices" icon={Receipt} label="Facturas" />
-          {/* <NavItem href="/quotes" icon={FileText} label="Cotizaciones" /> */}
-          {/* <NavItem href="/credit-notes" icon={CreditCard} label="Notas de Crédito" /> */}
         </div>
 
         {/* Catálogos */}
@@ -58,7 +52,6 @@ export function Sidebar({ plan, stampsUsed, stampsLimit, periodEnd }: SidebarPro
             Catálogos
           </p>
           <NavItem href="/clients" icon={Users} label="Clientes" />
-          {/* <NavItem href="/products" icon={Package} label="Productos" /> */}
         </div>
 
         {/* Configuración */}
@@ -68,28 +61,10 @@ export function Sidebar({ plan, stampsUsed, stampsLimit, periodEnd }: SidebarPro
           </p>
           <NavItem href="/fiscal-profiles" icon={Building2} label="Perfiles Fiscales" />
         </div>
-
-        {/* Análisis */}
-        {/* <div className="space-y-1">
-          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-            Análisis
-          </p>
-          <NavItem href="/reports" icon={BarChart3} label="Reportes" />
-        </div> */}
-
-        {/* Config */}
-        {/* <div>
-          <NavItem href="/settings" icon={Settings} label="Configuración" />
-        </div> */}
       </nav>
 
       {/* Usage */}
-      <UsageIndicator
-        plan={plan}
-        stampsUsed={stampsUsed}
-        stampsLimit={stampsLimit}
-        periodEnd={periodEnd}
-      />
+      <UsageIndicator stampsBalance={stampsBalance} />
 
       {/* User */}
       <div className="border-t border-border/50 px-4 py-3">

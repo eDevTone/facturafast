@@ -1,21 +1,21 @@
-import type { PLAN_LIMITS } from '../constants/plans'
+import type { STAMP_PACKAGES, StampPackageId } from '../constants/plans'
 
-export type PlanId = keyof typeof PLAN_LIMITS
+export type { StampPackageId }
 
-export interface PlanDefinition {
-  id: PlanId
-  name: string
-  price: number
-  regularPrice: number
-  stamps: number | typeof Infinity
-  features: string[]
-  conektaPlanId?: string
-  recommended?: boolean
+export type StampPackage = (typeof STAMP_PACKAGES)[number]
+
+export interface AccountData {
+  stampsBalance: number
+  totalStampsPurchased: number
+  totalStampsUsed: number
+  conektaCustomerId: string | null
 }
 
-export const PLAN_LABELS: Record<PlanId, string> = {
-  free: 'Free',
-  starter: 'Starter',
-  pro: 'Pro',
-  business: 'Business',
+export interface PurchaseRecord {
+  id: string
+  packageId: string
+  stampsAdded: number
+  amountMxn: number
+  conektaOrderId: string | null
+  createdAt: Date
 }

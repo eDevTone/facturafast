@@ -1,22 +1,25 @@
-import type { PlanDefinition } from '../types/billing.types'
-
-export const PLAN_LIMITS = {
-  free: { stamps: 5 },
-  starter: { stamps: 30 },
-  pro: { stamps: 100 },
-  business: { stamps: Infinity },
-} as const
-
-export const PLANS: PlanDefinition[] = [
+export const STAMP_PACKAGES = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 79,
-    regularPrice: 149,
-    stamps: 30,
-    conektaPlanId: process.env.CONEKTA_PLAN_STARTER || 'facturafast-starter',
+    stamps: 20,
+    price: 99,
+    conektaProductId: process.env.CONEKTA_PRODUCT_STARTER || 'ff-stamps-starter',
     features: [
-      '30 timbres CFDI/mes',
+      '20 timbres CFDI',
+      'Clientes ilimitados',
+      'Descarga XML + PDF',
+      'Soporte por email',
+    ],
+  },
+  {
+    id: 'basico',
+    name: 'Básico',
+    stamps: 50,
+    price: 199,
+    conektaProductId: process.env.CONEKTA_PRODUCT_BASICO || 'ff-stamps-basico',
+    features: [
+      '50 timbres CFDI',
       'Clientes ilimitados',
       'Descarga XML + PDF',
       'Soporte por email',
@@ -25,13 +28,12 @@ export const PLANS: PlanDefinition[] = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 179,
-    regularPrice: 349,
-    stamps: 100,
+    stamps: 150,
+    price: 499,
     recommended: true,
-    conektaPlanId: process.env.CONEKTA_PLAN_PRO || 'facturafast-pro',
+    conektaProductId: process.env.CONEKTA_PRODUCT_PRO || 'ff-stamps-pro',
     features: [
-      '100 timbres CFDI/mes',
+      '150 timbres CFDI',
       'Clientes ilimitados',
       'Descarga XML + PDF',
       'Soporte prioritario',
@@ -40,15 +42,16 @@ export const PLANS: PlanDefinition[] = [
   {
     id: 'business',
     name: 'Business',
-    price: 449,
-    regularPrice: 899,
-    stamps: Infinity,
-    conektaPlanId: process.env.CONEKTA_PLAN_BUSINESS || 'facturafast-business',
+    stamps: 300,
+    price: 899,
+    conektaProductId: process.env.CONEKTA_PRODUCT_BUSINESS || 'ff-stamps-business',
     features: [
-      'Timbres ilimitados',
+      '300 timbres CFDI',
       'Clientes ilimitados',
       'Descarga XML + PDF',
       'Soporte dedicado',
     ],
   },
-]
+] as const
+
+export type StampPackageId = (typeof STAMP_PACKAGES)[number]['id']

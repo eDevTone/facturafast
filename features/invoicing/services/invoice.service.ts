@@ -4,7 +4,7 @@ import {
   invoiceItems,
   invoices
 } from '@database/schemas/invoices.schema'
-import { checkUsageLimit, incrementStampsUsed } from '@features/billing/services/subscription.service'
+import { checkStampsBalance, consumeStamp } from '@features/billing/services/account.service'
 import { decryptString } from '@features/fiscal-profile/services/certificate.service'
 import { getIssuingProfileById } from '@features/fiscal-profile/services/fiscal-profile.service'
 import { isCertExpired, profileHasCSD } from '@features/fiscal-profile/types/fiscal-profile.types'
@@ -194,11 +194,11 @@ export async function stampInvoice(
   invoiceId: string,
   userId: string,
 ): Promise<StampingResult> {
-  const usage = await checkUsageLimit(userId)
+  const usage = await checkStampsBalance(userId)
   if (!usage.canStamp) {
     return {
       success: false,
-      error: `Límite de timbres alcanzado (${usage.used}/${usage.limit}). Actualiza tu plan para continuar.`,
+      error: `No tienes timbres disponibles (saldo: ${usage.balance}). Compra un paquete para continuar.`,
     }
   }
 
@@ -247,7 +247,7 @@ export async function stampInvoice(
     })
     .where(eq(invoices.id, invoiceId))
 
-  await incrementStampsUsed(userId)
+  await consumeStamp(userId)
 
   // Upload XML + PDF to R2 (blocking — needed for download buttons)
   try {

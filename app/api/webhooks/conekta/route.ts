@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server'
-import {
-  activateSubscription,
-  renewSubscription,
-  markPastDue,
-  cancelSubscription,
-} from '@features/billing/services/subscription.service'
-import type { PlanId } from '@features/billing/types/billing.types'
+import { addStamps } from '@features/billing/services/account.service'
+import type { StampPackageId } from '@features/billing/constants/plans'
 
 interface ConektaWebhookEvent {
   type: string
@@ -14,10 +9,9 @@ interface ConektaWebhookEvent {
       id: string
       customer_id?: string
       metadata?: {
-        plan_id?: string
+        package_id?: string
         user_id?: string
       }
-      subscription_id?: string
     }
   }
 }
@@ -36,30 +30,11 @@ export async function POST(request: Request) {
 
     switch (event.type) {
       case 'order.paid': {
-        const planId = (event.data.object.metadata?.plan_id || 'starter') as PlanId
-        const customerId = event.data.object.customer_id || ''
-        const subscriptionId = event.data.object.subscription_id || ''
+        const packageId = (event.data.object.metadata?.package_id || 'starter') as StampPackageId
+        const orderId = event.data.object.id
 
-        await activateSubscription(userId, planId, customerId, subscriptionId)
-        console.log(`[Conekta Webhook] Activated ${planId} for ${userId}`)
-        break
-      }
-
-      case 'subscription.paid': {
-        await renewSubscription(userId)
-        console.log(`[Conekta Webhook] Renewed subscription for ${userId}`)
-        break
-      }
-
-      case 'subscription.payment_failed': {
-        await markPastDue(userId)
-        console.log(`[Conekta Webhook] Marked past_due for ${userId}`)
-        break
-      }
-
-      case 'subscription.canceled': {
-        await cancelSubscription(userId)
-        console.log(`[Conekta Webhook] Cancelled subscription for ${userId}`)
+        await addStamps(userId, packageId, orderId)
+        console.log(`[Conekta Webhook] Added stamps (${packageId}) for ${userId}`)
         break
       }
 
