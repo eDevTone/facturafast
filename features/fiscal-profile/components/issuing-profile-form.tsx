@@ -41,6 +41,8 @@ interface IssuingProfileFormProps {
   onSubmit: (input: CreateIssuingProfileInput) => Promise<void>
   onCancel?: () => void
   taxRegimes: CatalogOption[]
+  /** Custom label for the submit button */
+  submitLabel?: string
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -51,6 +53,7 @@ export function IssuingProfileForm({
   onSubmit,
   onCancel,
   taxRegimes,
+  submitLabel,
 }: IssuingProfileFormProps) {
   const [submitting, setSubmitting] = useState(false)
 
@@ -426,7 +429,7 @@ export function IssuingProfileForm({
           )}
           <Button type="submit" disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {initialData ? 'Guardar cambios' : 'Crear perfil'}
+            {submitLabel ?? (initialData ? 'Guardar cambios' : 'Crear perfil')}
           </Button>
         </div>
       </form>

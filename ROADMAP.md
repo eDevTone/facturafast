@@ -1,6 +1,6 @@
 # FacturaFast - ROADMAP
 
-**Actualizado:** 2026-03-30 (v3)
+**Actualizado:** 2026-04-07 (v4)
 **Strategy:** Launch Early Access sin beta users externos
 
 ---
@@ -70,20 +70,24 @@
 - ✅ `pdf-generator.service.ts` — genera PDF server-side con renderToBuffer
 - ✅ Descarga XML como archivo, PDF en nueva ventana, Acuse como archivo
 
-### Feature: Billing (Conekta)
-- ✅ Schema `subscriptions` en DB
-- ✅ Planes: Free (5 timbres), Starter $79 (30), Pro $179 (100), Business $449 (∞)
-- ✅ Planes creados en Conekta dashboard (test)
-- ✅ `subscription.service.ts` — getOrCreate, checkUsage, increment, activate, renew, cancel
-- ✅ `conekta.service.ts` — createCustomer, createCheckoutOrder
+### Feature: Billing (Conekta) — Paquetes de Timbres
+- ✅ Refactor completo: suscripción mensual → paquetes de timbres sin vencimiento
+- ✅ Schema `accounts` (reemplaza `subscriptions`) con `stampsBalance`, `totalStampsPurchased`, `totalStampsUsed`
+- ✅ Schema `stamp_purchases` — historial de compras para auditoría
+- ✅ 3 timbres de bienvenida al crear cuenta (no se renuevan)
+- ✅ Paquetes: Starter $99 (20), Básico $199 (50), Pro $499 (150), Business $899 (300)
+- ✅ `account.service.ts` — getOrCreateAccount, checkStampsBalance, consumeStamp, addStamps, getPurchaseHistory
+- ✅ `conekta.service.ts` — createCustomer, createCheckoutOrder con packageId
 - ✅ Checkout hosted (redirect a Conekta) con tarjeta, OXXO, SPEI
-- ✅ Webhook handler `/api/webhooks/conekta` (order.paid, subscription.paid/failed/canceled)
+- ✅ Webhook handler `/api/webhooks/conekta` — solo `order.paid` → addStamps
 - ✅ Middleware permite webhook sin auth
-- ✅ conektaCustomerId se guarda en DB antes del redirect (no se pierde si webhook falla)
-- ✅ Cancelar suscripción desde UI (vuelve a Free)
-- ✅ Billing page `/billing` con plan cards, resumen de uso, banners success/error
-- ✅ Usage indicator en sidebar (desktop + mobile) con datos reales de DB
-- ✅ Plan usage banner en dashboard con datos reales
+- ✅ conektaCustomerId se guarda en DB antes del redirect
+- ✅ Billing page `/billing` con grid de paquetes, saldo prominente, historial de compras
+- ✅ `package-card.tsx` — muestra paquete con badge "Recomendado" en Pro
+- ✅ `purchase-history.tsx` — tabla de historial de compras
+- ✅ Usage indicator en sidebar (desktop + mobile) — muestra saldo de timbres
+- ✅ Stamps banner en dashboard — alerta cuando saldo < 10
+- ✅ Eliminado: planes mensuales, cancelación de suscripción, renovación, periodos
 
 ### Dashboard & UI
 - ✅ Dashboard con analytics + plan usage banner
@@ -101,16 +105,26 @@
 ### Testing Conekta (prioridad 1) ✅ COMPLETADO
 - [x] **Configurar ngrok / Vercel** — Webhook funcional en producción
 - [x] **Registrar webhook URL en Conekta** — Configurado en dashboard
-- [x] **Test happy path** — Elegir plan → Pagar → Webhook activa plan
-- [x] **Verificar en DB** — subscription.plan cambia, stampsUsed resetea a 0
-- [x] **Test límite de timbres** — Bloqueo + toast con botón Upgrade
-- [x] **Test cancelar suscripción** — Cancelar → vuelve a Free
+- [x] **Test happy path** — Elegir paquete → Pagar → Webhook suma timbres
+- [x] **Verificar en DB** — stampsBalance incrementa correctamente
+- [x] **Test límite de timbres** — Bloqueo + toast con botón Recargar
 
 ### Testing Timbrado + R2 (prioridad 2) ✅ COMPLETADO
 - [x] **Happy path** — Crear factura → Timbrar → XML+PDF en R2 → Descargar
 - [x] **Cancelar factura** — Cancelar timbrada → Acuse en R2 → Descargar acuse
 - [x] **Error cases** — Mensajes de error verificados
 - [x] **Mobile** — Flujo completo funcional en mobile
+
+---
+
+## 🔴 PENDIENTE PARA PROBAR — Testing paquetes de timbres
+
+### Testing Paquetes (nuevo flujo)
+- [ ] **Test compra paquete** — Seleccionar paquete → Checkout Conekta → Webhook suma timbres al saldo
+- [ ] **Test acumulación** — Comprar dos paquetes → saldo se suma correctamente
+- [ ] **Historial de compras** — Verificar que aparece en la tabla de purchase-history
+- [ ] **Migración DB** — Ejecutar `pnpm db:push` con el nuevo schema accounts + stamp_purchases
+- [ ] **Crear productos en Conekta** — Configurar los 4 productos/paquetes en el dashboard de Conekta
 
 ---
 
@@ -123,8 +137,8 @@
   - Dialog de confirmación antes de timbrar (irreversible + timbre + email)
 
 ### UX & Polish
-- [ ] Error handling exhaustivo (error boundaries)
-- [ ] Loading states en todas las acciones críticas
+- [x] Error boundaries en todas las rutas del dashboard
+- [x] Loading skeletons en todas las páginas (billing, clients, dashboard, invoices, fiscal-profiles)
 - [ ] Onboarding wizard (signup → fiscal profile → primera factura)
 
 ### Monitoring
@@ -137,31 +151,37 @@
 
 ---
 
-## 💰 PRICING (Early Access) — ver `docs/PRICING.md`
+## 💰 PRICING — Paquetes de Timbres (sin vencimiento)
 
 ```
-Free Tier (Siempre gratis):
-✅ 5 timbres/mes
+Bienvenida (al crear cuenta):
+✅ 3 timbres gratis (una sola vez)
 ✅ Clientes ilimitados
 ✅ Sin tarjeta de crédito
 
-Starter — $79 MXN/mes (50% OFF, regular $149):
-✅ 30 timbres/mes
+Starter — $99 MXN (20 timbres, $4.95/timbre):
 ✅ Clientes ilimitados
+✅ Descarga XML + PDF
 ✅ Soporte por email
 
-Pro — $179 MXN/mes (50% OFF, regular $349):  ★ Recomendado
-✅ 100 timbres/mes
+Básico — $199 MXN (50 timbres, $3.98/timbre):
 ✅ Clientes ilimitados
+✅ Descarga XML + PDF
+✅ Soporte por email
+
+Pro — $499 MXN (150 timbres, $3.33/timbre):  ★ Recomendado
+✅ Clientes ilimitados
+✅ Descarga XML + PDF
 ✅ Soporte prioritario
 
-Business — $449 MXN/mes (50% OFF, regular $899):
-✅ Ilimitado
+Business — $899 MXN (300 timbres, $3.00/timbre):
+✅ Clientes ilimitados
+✅ Descarga XML + PDF
 ✅ Soporte dedicado
 ```
 
-**Early Adopter Promise:** Primeros 100 usuarios mantienen precio para siempre.
-**Procesador:** Conekta (tarjeta, OXXO, SPEI) — ver `docs/CONEKTA-TEST.md`
+**Modelo:** Compra única, sin suscripción. Los timbres nunca vencen y se acumulan.
+**Procesador:** Conekta (tarjeta, OXXO, SPEI)
 
 ---
 
@@ -188,6 +208,7 @@ Uptime:               99.9%
 - Reportes & analytics avanzados
 - Exportar a Excel
 - Verificación de firma RSA en webhook de Conekta
+- Paquetes personalizados / volumen para empresas grandes
 
 ---
 
