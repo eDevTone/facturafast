@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { getDefaultIssuingProfile, getIssuingProfileById } from '@features/fiscal-profile/services/fiscal-profile.service'
+import { profileHasCSD } from '@features/fiscal-profile/types/fiscal-profile.types'
 import { InvoiceDetail } from '@features/invoicing/components/invoice-detail'
 import { getInvoiceById } from '@features/invoicing/services/invoice.service'
 import { getFileSignedUrl } from '@features/storage/services/r2.service'
@@ -46,12 +47,14 @@ export default async function InvoiceDetailPage({
 
   const emisor = profile
     ? {
+        id: profile.id,
         rfc: profile.rfc,
         businessName: profile.businessName,
         taxRegime: profile.taxRegime,
         postalCode: profile.postalCode,
         logoUrl,
         certSerialNumber: profile.certSerialNumber ?? null,
+        hasCsd: profileHasCSD(profile),
       }
     : null
 

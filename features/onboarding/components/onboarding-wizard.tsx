@@ -14,7 +14,7 @@ export function OnboardingWizard({ taxRegimes }: OnboardingWizardProps) {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-lg">
         {/* Step indicator */}
         <div className="mb-8 flex items-center justify-center gap-2">
           <div

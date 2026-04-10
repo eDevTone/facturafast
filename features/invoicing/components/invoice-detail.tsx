@@ -17,11 +17,13 @@ import { CancelInvoiceDialog } from './cancel-invoice-dialog'
 import { DeleteInvoiceDialog } from './delete-invoice-dialog'
 import { InvoiceHelpDialog } from './invoice-help-dialog'
 import { InvoicePreviewDialog } from './invoice-preview-dialog'
+import { MissingCsdBanner } from './missing-csd-banner'
 import { StampConfirmDialog } from './stamp-confirm-dialog'
 import { StatusBadge } from './status-badge'
 import { TimbreFiscalSection } from './timbre-fiscal-section'
 
 interface FiscalProfileData {
+  id?: string
   rfc: string
   businessName: string
   taxRegime: string
@@ -29,6 +31,7 @@ interface FiscalProfileData {
   fiscalAddress?: string | null
   logoUrl?: string | null
   certSerialNumber?: string | null
+  hasCsd?: boolean
 }
 
 interface InvoiceDetailProps {
@@ -49,6 +52,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
   const isDraft = invoice.status === 'draft'
   const isStamped = invoice.status === 'timbrada'
   const isCancelled = invoice.status === 'cancelada'
+  const showCsdBanner = isDraft && emisor && emisor.id && !emisor.hasCsd
 
   const handleStamp = () => {
     startStamping(async () => {
@@ -116,6 +120,14 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
 
   return (
     <div className="space-y-6">
+      {/* Missing CSD banner */}
+      {showCsdBanner && emisor?.id && (
+        <MissingCsdBanner
+          profileId={emisor.id}
+          profileName={emisor.businessName}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
@@ -186,7 +198,7 @@ export function InvoiceDetail({ invoice, emisor, labels }: InvoiceDetailProps) {
               </Link>
               <StampConfirmDialog
                 onConfirm={handleStamp}
-                disabled={isStamping}
+                disabled={isStamping || !!showCsdBanner}
                 isStamping={isStamping}
                 clientEmail={invoice.client.email}
               />

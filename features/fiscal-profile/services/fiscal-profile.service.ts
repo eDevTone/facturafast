@@ -80,6 +80,38 @@ export async function updateIssuingProfile(
   return updated
 }
 
+export async function updateCertificates(
+  id: string,
+  userId: string,
+  data: {
+    cerFilename: string
+    cerBase64: string
+    keyFilename: string
+    keyBase64: string
+    keyPassword: string
+    certSerialNumber: string
+    certValidFrom: string
+    certValidUntil: string
+  },
+) {
+  const [updated] = await db
+    .update(issuingProfiles)
+    .set({
+      cerFilename: data.cerFilename,
+      cerBase64: data.cerBase64,
+      keyFilename: data.keyFilename,
+      keyBase64: data.keyBase64,
+      keyPassword: data.keyPassword,
+      certSerialNumber: data.certSerialNumber,
+      certValidFrom: data.certValidFrom,
+      certValidUntil: data.certValidUntil,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(issuingProfiles.id, id), eq(issuingProfiles.userId, userId)))
+    .returning()
+  return updated
+}
+
 export async function setDefaultIssuingProfile(id: string, userId: string) {
   // Remove default from all others
   await db
