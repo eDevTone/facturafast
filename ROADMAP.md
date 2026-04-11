@@ -1,6 +1,6 @@
 # FacturaFast - ROADMAP
 
-**Actualizado:** 2026-04-07 (v4)
+**Actualizado:** 2026-04-10 (v5)
 **Strategy:** Launch Early Access sin beta users externos
 
 ---
@@ -38,6 +38,9 @@
 - ✅ IssuingProfilePicker (dialog para seleccionar RFC al crear factura)
 - ✅ CRUD completo (create, update, set default, delete)
 - ✅ Cascade default promotion al eliminar perfil default
+- ✅ `CsdUploadFields` — componente reutilizable para upload de certificados
+- ✅ `CsdUploadDialog` — dialog dedicado para subir CSD a perfil existente
+- ✅ `uploadCertificatesAction` — server action específica para CSD
 
 ### Feature: Invoicing
 - ✅ CRUD completo (create, update, delete)
@@ -48,6 +51,8 @@
 - ✅ Tabla con búsqueda, column headers y menú de acciones rápidas (...)
 - ✅ StatusBadge compartido (draft/timbrada/cancelada)
 - ✅ Descargar XML (archivo) + PDF (nueva ventana) desde R2
+- ✅ MissingCsdBanner — detecta falta de CSD en draft, ofrece subir desde ahí
+- ✅ Botón Timbrar deshabilitado cuando faltan certificados CSD
 
 ### Feature: Stamping (Timbrado PAC)
 - ✅ SW Sapien PAC integration (sandbox probado)
@@ -136,10 +141,11 @@
   - XML + PDF adjuntos automáticamente
   - Dialog de confirmación antes de timbrar (irreversible + timbre + email)
 
-### UX & Polish
+### UX & Polish ✅ COMPLETADO
 - [x] Error boundaries en todas las rutas del dashboard
 - [x] Loading skeletons en todas las páginas (billing, clients, dashboard, invoices, fiscal-profiles)
-- [ ] Onboarding wizard (signup → fiscal profile → primera factura)
+- [x] Onboarding wizard — 2 pasos: bienvenida → perfil fiscal (con CSF upload + CSD + guía SAT)
+- [x] Redirect automático a `/onboarding` si no tiene perfil fiscal (desde dashboard layout)
 
 ### Monitoring
 - [ ] Sentry setup
