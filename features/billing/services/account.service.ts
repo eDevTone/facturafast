@@ -4,6 +4,7 @@ import { accounts } from '@database/schemas/subscriptions.schema'
 import { stampPurchases } from '@database/schemas/stamp-purchases.schema'
 import { STAMP_PACKAGES } from '../constants/plans'
 import type { StampPackageId } from '../constants/plans'
+import type { PaymentProviderId } from '../payment-providers/types'
 import type { AccountData, PurchaseRecord } from '../types/billing.types'
 
 /**
@@ -21,10 +22,10 @@ export async function getOrCreateAccount(userId: string): Promise<AccountData> {
       totalStampsPurchased: existing.totalStampsPurchased,
       totalStampsUsed: existing.totalStampsUsed,
       conektaCustomerId: existing.conektaCustomerId,
+      stripeCustomerId: existing.stripeCustomerId,
     }
   }
 
-  // Create account with 3 welcome stamps
   const [created] = await db
     .insert(accounts)
     .values({ userId })
@@ -35,16 +36,26 @@ export async function getOrCreateAccount(userId: string): Promise<AccountData> {
     totalStampsPurchased: created.totalStampsPurchased,
     totalStampsUsed: created.totalStampsUsed,
     conektaCustomerId: created.conektaCustomerId,
+    stripeCustomerId: created.stripeCustomerId,
   }
 }
 
 /**
- * Save Conekta customer ID immediately after creation (before checkout redirect).
+ * Persist the provider-specific customer id right after creation
+ * (before the checkout redirect) so it survives drop-offs.
  */
-export async function saveConektaCustomerId(userId: string, conektaCustomerId: string): Promise<void> {
+export async function savePaymentCustomerId(
+  userId: string,
+  provider: PaymentProviderId,
+  customerId: string,
+): Promise<void> {
+  const update = provider === 'stripe'
+    ? { stripeCustomerId: customerId, updatedAt: new Date() }
+    : { conektaCustomerId: customerId, updatedAt: new Date() }
+
   await db
     .update(accounts)
-    .set({ conektaCustomerId, updatedAt: new Date() })
+    .set(update)
     .where(eq(accounts.userId, userId))
 }
 
@@ -85,15 +96,26 @@ export async function consumeStamp(userId: string): Promise<void> {
 
 /**
  * Add stamps to user's balance after a successful purchase.
+ * Idempotent: if the same externalOrderId was already recorded, this is a no-op.
  * Runs in a transaction: updates balance + inserts purchase record.
  */
 export async function addStamps(
   userId: string,
   packageId: StampPackageId,
-  conektaOrderId: string,
+  provider: PaymentProviderId,
+  externalOrderId: string,
 ): Promise<void> {
   const pkg = STAMP_PACKAGES.find(p => p.id === packageId)
   if (!pkg) throw new Error(`Package not found: ${packageId}`)
+
+  const orderColumn = provider === 'stripe' ? stampPurchases.stripeSessionId : stampPurchases.conektaOrderId
+  const existing = await db.query.stampPurchases.findFirst({
+    where: eq(orderColumn, externalOrderId),
+  })
+  if (existing) {
+    console.log(`[billing] Skipping duplicate ${provider} order: ${externalOrderId}`)
+    return
+  }
 
   await db.transaction(async (tx) => {
     await tx
@@ -110,7 +132,9 @@ export async function addStamps(
       packageId,
       stampsAdded: pkg.stamps,
       amountMxn: pkg.price * 100,
-      conektaOrderId,
+      paymentProvider: provider,
+      conektaOrderId: provider === 'conekta' ? externalOrderId : null,
+      stripeSessionId: provider === 'stripe' ? externalOrderId : null,
     })
   })
 }
@@ -129,7 +153,9 @@ export async function getPurchaseHistory(userId: string): Promise<PurchaseRecord
     packageId: row.packageId,
     stampsAdded: row.stampsAdded,
     amountMxn: row.amountMxn,
+    paymentProvider: row.paymentProvider as PaymentProviderId,
     conektaOrderId: row.conektaOrderId,
+    stripeSessionId: row.stripeSessionId,
     createdAt: row.createdAt,
   }))
 }

@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         const packageId = (event.data.object.metadata?.package_id || 'starter') as StampPackageId
         const orderId = event.data.object.id
 
-        await addStamps(userId, packageId, orderId)
+        await addStamps(userId, packageId, 'conekta', orderId)
         console.log(`[Conekta Webhook] Added stamps (${packageId}) for ${userId}`)
         break
       }

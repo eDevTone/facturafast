@@ -57,6 +57,13 @@
       "when": 1775119395276,
       "tag": "0007_bent_invisible_woman",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778709005223,
+      "tag": "0008_cold_the_order",
+      "breakpoints": true
     }
   ]
 }

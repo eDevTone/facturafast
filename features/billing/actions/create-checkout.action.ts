@@ -2,9 +2,9 @@
 
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { getOrCreateAccount, saveConektaCustomerId } from '../services/account.service'
-import { createCustomer, createCheckoutOrder } from '../services/conekta.service'
 import type { StampPackageId } from '../constants/plans'
+import { getActiveProvider } from '../payment-providers'
+import { getOrCreateAccount, savePaymentCustomerId } from '../services/account.service'
 
 export async function createCheckoutAction(packageId: StampPackageId) {
   const { userId } = await auth()
@@ -14,27 +14,29 @@ export async function createCheckoutAction(packageId: StampPackageId) {
   if (!user) return { error: 'No autorizado' }
 
   const account = await getOrCreateAccount(userId)
+  const provider = getActiveProvider()
 
-  // Get or create Conekta customer (save immediately to avoid losing it)
-  let conektaCustomerId = account.conektaCustomerId
-  if (!conektaCustomerId) {
-    const customer = await createCustomer(
-      user.fullName || user.firstName || 'Usuario',
-      user.emailAddresses[0]?.emailAddress || '',
-    )
-    conektaCustomerId = customer.id
-    await saveConektaCustomerId(userId, conektaCustomerId)
-  }
+  const existingCustomerId = provider.id === 'stripe'
+    ? account.stripeCustomerId
+    : account.conektaCustomerId
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
-  const { checkoutUrl } = await createCheckoutOrder(
-    conektaCustomerId,
+  const result = await provider.createCheckout({
     userId,
+    customerName: user.fullName || user.firstName || 'Usuario',
+    customerEmail: user.emailAddresses[0]?.emailAddress || '',
     packageId,
-    `${baseUrl}/billing?success=true&package=${packageId}`,
-    `${baseUrl}/billing?error=true`,
-  )
+    successUrl: `${baseUrl}/billing?success=true&package=${packageId}`,
+    failureUrl: `${baseUrl}/billing?error=true`,
+    existingCustomerId,
+  })
 
-  redirect(checkoutUrl)
+  // Persist customer id immediately so we reuse it on subsequent purchases
+  // even if the user drops off mid-flow.
+  if (existingCustomerId !== result.customerId) {
+    await savePaymentCustomerId(userId, provider.id, result.customerId)
+  }
+
+  redirect(result.checkoutUrl)
 }
