@@ -1,8 +1,8 @@
 import type { NextConfig } from 'next'
 
 const config: NextConfig = {
-  // Externalize pdf-parse (CommonJS module)
-  serverExternalPackages: ['pdf-parse'],
+  // pdf-parse and the canvas it needs on the server stay out of the bundle (see lib/csf/pdf-wrapper.ts)
+  serverExternalPackages: ['pdf-parse', '@napi-rs/canvas'],
   images: {
     remotePatterns: [
       {
