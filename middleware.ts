@@ -4,6 +4,11 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhooks(.*)',
+  // Checked inside the route with CRON_SECRET
+  '/api/cron(.*)',
+  // Private links: the token in the URL is the key, checked on every request
+  '/contador(.*)',
+  '/datos(.*)',
 ])
 
 export default clerkMiddleware(async (auth, request) => {

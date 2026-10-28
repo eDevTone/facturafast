@@ -10,8 +10,8 @@ export async function getInvoiceDownloadUrlAction(key: string) {
     return { url: null, error: 'No autorizado' }
   }
 
-  // Verify the key belongs to this user
-  if (!key.includes(userId)) {
+  // Only keys under this user's own folder can be signed
+  if (!key.startsWith(`invoices/${userId}/`)) {
     return { url: null, error: 'No autorizado' }
   }
 

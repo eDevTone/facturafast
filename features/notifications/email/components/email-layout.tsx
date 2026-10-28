@@ -19,8 +19,8 @@ export function EmailLayout({ children }: EmailLayoutProps) {
       <Tailwind>
         <Body
           style={{
-            fontFamily: '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif',
-            backgroundColor: '#f4f4f5',
+            fontFamily: '"IBM Plex Sans", "Helvetica Neue", Helvetica, Arial, sans-serif',
+            backgroundColor: '#f5f5f7',
             margin: 0,
             padding: 0,
           }}

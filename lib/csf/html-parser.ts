@@ -179,7 +179,7 @@ export function parseSatHtml(html: string) {
   }
   flush();
 
-  const sections: any = {
+  const sections: Record<string, Record<string, unknown>> = {
     [SECTION_IDENTIFICATION]: {},
     [SECTION_ADDRESS]: {},
     [SECTION_FISCAL]: {},
@@ -192,7 +192,7 @@ export function parseSatHtml(html: string) {
   const regimes = sections[SECTION_FISCAL]["Régimen"];
   const dates = sections[SECTION_FISCAL]["Fecha de alta"];
 
-  const regimenes: any[] = [];
+  const regimenes: Array<Record<string, string>> = [];
   if (Array.isArray(regimes) && Array.isArray(dates)) {
     for (let i = 0; i < Math.min(regimes.length, dates.length); i++) {
       regimenes.push({
@@ -208,7 +208,7 @@ export function parseSatHtml(html: string) {
   }
 
   if (regimenes.length > 0) {
-    (sections[SECTION_FISCAL] as any).regimenes = regimenes;
+    sections[SECTION_FISCAL].regimenes = regimenes;
     delete sections[SECTION_FISCAL]["Régimen"];
     delete sections[SECTION_FISCAL]["Fecha de alta"];
   }
@@ -220,9 +220,9 @@ export function parseSatHtml(html: string) {
   ];
 
   for (const section of Object.values(sections)) {
-    for (const [key, value] of Object.entries(section as any)) {
+    for (const [key, value] of Object.entries(section)) {
       if (typeof value === "string") {
-        (section as any)[key] = stripSectionTitleSuffix(value, sectionTitles);
+        section[key] = stripSectionTitleSuffix(value, sectionTitles);
       }
     }
   }

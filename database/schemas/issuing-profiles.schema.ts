@@ -21,6 +21,15 @@ export const issuingProfiles = pgTable('issuing_profiles', {
   /** Logo de la empresa (key de R2) */
   logoUrl: text('logo_url'),
 
+  // Datos para que le paguen: salen en el PDF, el correo de la factura y los recordatorios
+  bankName: varchar('bank_name', { length: 60 }),
+  /** CLABE interbancaria (18 dígitos, con dígito verificador). */
+  clabe: varchar('clabe', { length: 18 }),
+  /** Link de pago (https), por ejemplo de Mercado Pago o Clip. */
+  paymentLink: text('payment_link'),
+  /** Email the client when an invoice falls due, and a week later ("Recordar automáticamente"). */
+  autoReminders: boolean('auto_reminders').notNull().default(false),
+
   // CSD — Certificado de Sello Digital (requerido para timbrado real)
   cerFilename: text('cer_filename'),
   cerBase64: text('cer_base64'),     // .cer en base64

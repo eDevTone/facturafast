@@ -15,7 +15,7 @@ export function EmailFooter({ businessName }: EmailFooterProps) {
   return (
     <Section
       style={{
-        borderTop: '1px solid #e4e4e7',
+        borderTop: '1px solid #e5e5ea',
         paddingTop: '20px',
         marginTop: '32px',
       }}
@@ -24,19 +24,19 @@ export function EmailFooter({ businessName }: EmailFooterProps) {
       <Section style={{ textAlign: 'center', margin: '0 0 16px 0' }}>
         <Link
           href={SOCIAL_LINKS.linkedin}
-          style={{ color: '#868da6', textDecoration: 'none', fontSize: '13px', margin: '0 12px' }}
+          style={{ color: '#5e5e66', textDecoration: 'none', fontSize: '13px', margin: '0 12px' }}
         >
           LinkedIn
         </Link>
         <Link
           href={SOCIAL_LINKS.instagram}
-          style={{ color: '#868da6', textDecoration: 'none', fontSize: '13px', margin: '0 12px' }}
+          style={{ color: '#5e5e66', textDecoration: 'none', fontSize: '13px', margin: '0 12px' }}
         >
           Instagram
         </Link>
         <Link
           href={SOCIAL_LINKS.x}
-          style={{ color: '#868da6', textDecoration: 'none', fontSize: '13px', margin: '0 12px' }}
+          style={{ color: '#5e5e66', textDecoration: 'none', fontSize: '13px', margin: '0 12px' }}
         >
           X
         </Link>
@@ -47,7 +47,7 @@ export function EmailFooter({ businessName }: EmailFooterProps) {
           style={{
             fontSize: '12px',
             lineHeight: '18px',
-            color: '#868da6',
+            color: '#5e5e66',
             textAlign: 'center',
             margin: '0 0 8px 0',
           }}
@@ -60,7 +60,7 @@ export function EmailFooter({ businessName }: EmailFooterProps) {
         style={{
           fontSize: '11px',
           lineHeight: '16px',
-          color: '#a1a1aa',
+          color: '#5e5e66',
           textAlign: 'center',
           margin: '0',
         }}

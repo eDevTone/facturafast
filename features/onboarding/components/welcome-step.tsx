@@ -1,6 +1,5 @@
 'use client'
 
-import { FileText, Lock, Receipt, Zap } from 'lucide-react'
 import { Button } from '@shared/ui/button'
 
 interface WelcomeStepProps {
@@ -9,61 +8,41 @@ interface WelcomeStepProps {
 
 export function WelcomeStep({ onContinue }: WelcomeStepProps) {
   return (
-    <div className="flex flex-col items-center text-center">
-      {/* Logo */}
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-        <Receipt className="h-6 w-6 text-primary-foreground" />
-      </div>
-
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight">
-        Bienvenido a FacturaFast
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Facturación electrónica simple, rápida y sin complicaciones
+    <div>
+      <h1 className="text-[22px] font-semibold tracking-tight text-tinta">Vamos a dejar lista tu cuenta</h1>
+      <p className="mt-2 max-w-prose text-sm text-tinta-tenue">
+        En el siguiente paso registras el RFC con el que facturas. Con eso ya puedes crear facturas y timbrarlas ante el
+        SAT; las retenciones de ISR e IVA se calculan solas cuando le facturas a una empresa.
       </p>
 
-      {/* Value Props */}
-      <div className="mt-8 w-full space-y-3">
-        <div className="flex items-start gap-3 rounded-lg border border-border/40 bg-muted/30 px-4 py-3 text-left">
-          <Zap className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-          <div>
-            <p className="text-sm font-medium">Timbra en segundos</p>
-            <p className="text-xs text-muted-foreground">CFDI 4.0 válido ante el SAT</p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3 rounded-lg border border-border/40 bg-muted/30 px-4 py-3 text-left">
-          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-          <div>
-            <p className="text-sm font-medium">XML + PDF automáticos</p>
-            <p className="text-xs text-muted-foreground">Descarga o envía por email al instante</p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3 rounded-lg border border-border/40 bg-muted/30 px-4 py-3 text-left">
-          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-          <div>
-            <p className="text-sm font-medium">Tus datos seguros</p>
-            <p className="text-xs text-muted-foreground">Certificados encriptados, nunca compartidos</p>
-          </div>
-        </div>
+      <div className="mt-6 border-t border-renglon pt-5">
+        <h2 className="text-[13px] font-medium text-tinta-tenue">Ten a la mano</h2>
+        <ul className="mt-3 space-y-3 text-sm text-tinta">
+          <li>
+            <p className="font-medium">Tu Constancia de Situación Fiscal en PDF</p>
+            <p className="text-[13px] text-tinta-tenue">Con ella llenamos tu RFC, nombre, régimen y código postal.</p>
+          </li>
+          <li>
+            <p className="font-medium">
+              Tu CSD: archivos <span className="font-mono">.cer</span> y <span className="font-mono">.key</span>, y su
+              contraseña
+            </p>
+            <p className="text-[13px] text-tinta-tenue">
+              Es el certificado de sello digital que tramitas en CertiSAT, no tu e.firma. Si aún no lo tienes, puedes
+              subirlo después.
+            </p>
+          </li>
+        </ul>
       </div>
 
-      {/* Free Stamps Card */}
-      <div className="mt-6 w-full rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
-        <div className="flex items-center justify-center gap-2">
-          <Zap className="h-4 w-4 text-primary" />
-          <p className="text-sm font-medium">
-            Tienes <span className="text-primary">3 timbres gratis</span> para probar
-          </p>
-        </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">Sin tarjeta de crédito</p>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-renglon pt-5">
+        <p className="text-sm text-tinta">
+          Tienes <span className="font-mono font-medium text-sello">3</span> timbres para probar, sin tarjeta.
+        </p>
+        <Button onClick={onContinue} size="lg">
+          Registrar mi RFC
+        </Button>
       </div>
-
-      {/* CTA */}
-      <Button onClick={onContinue} className="mt-8 w-full" size="lg">
-        Comenzar
-      </Button>
     </div>
   )
 }

@@ -1,47 +1,42 @@
 'use client'
 
 import Link from 'next/link'
-import { Zap } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
 
 interface UsageIndicatorProps {
   stampsBalance: number
 }
 
+/** Stamp balance in the sidebar, drawn as a small perforated timbre. */
 export function UsageIndicator({ stampsBalance }: UsageIndicatorProps) {
-  const isLow = stampsBalance < 10
-  const isDepleted = stampsBalance === 0
+  const isDepleted = stampsBalance <= 0
+  const isLow = !isDepleted && stampsBalance <= 1
 
   return (
     <div className="mx-3 mb-2">
-      <div
-        className="rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5 space-y-2"
-        title={`${stampsBalance} timbres disponibles`}
+      <Link
+        href="/billing"
+        className="timbre block rounded-[2px] transition-opacity hover:opacity-90"
+        aria-label={`${stampsBalance} timbres disponibles. Comprar timbres`}
       >
-        {/* Balance */}
-        <div className="flex items-center gap-1.5">
-          <Zap className={`h-3 w-3 ${isDepleted ? 'text-destructive' : isLow ? 'text-amber-500' : 'text-muted-foreground/60'}`} />
-          <span className="text-[12px] font-medium text-foreground">
-            <span className={isDepleted ? 'text-destructive' : isLow ? 'text-amber-500' : ''}>
+        <div className="timbre-cara flex items-center justify-between gap-2 px-3 py-2">
+          <span className="flex items-baseline gap-1.5">
+            <span
+              className={cn(
+                'font-mono text-lg font-medium leading-none',
+                isDepleted ? 'text-tinta-roja' : isLow ? 'text-ocre' : 'text-tinta',
+              )}
+            >
               {stampsBalance}
             </span>
-            <span className="text-muted-foreground/60"> timbres disponibles</span>
+            <span className="text-[12px] text-tinta-tenue">{stampsBalance === 1 ? 'timbre' : 'timbres'}</span>
+          </span>
+          <span className={cn('text-[12px] font-medium', isDepleted ? 'text-tinta-roja' : 'text-sello')}>
+            {isDepleted ? 'Recargar' : 'Comprar'}
           </span>
         </div>
-
-        {/* Recargar link */}
-        <Link
-          href="/billing"
-          className={`block text-[11px] font-medium transition-colors ${
-            isDepleted
-              ? 'text-destructive hover:text-destructive/80'
-              : isLow
-                ? 'text-amber-500 hover:text-amber-400'
-                : 'text-muted-foreground/50 hover:text-foreground'
-          }`}
-        >
-          {isDepleted ? 'Sin timbres · Recargar' : isLow ? 'Pocos timbres · Recargar' : 'Comprar timbres →'}
-        </Link>
-      </div>
+      </Link>
     </div>
   )
 }

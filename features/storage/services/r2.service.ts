@@ -83,6 +83,24 @@ export async function getFileSignedUrl(
 }
 
 /**
+ * A temporary link that downloads the file with the given name instead of opening it.
+ */
+export async function getDownloadSignedUrl(key: string, filename: string, expiresIn = 600): Promise<string> {
+  return getSignedUrl(
+    r2,
+    new GetObjectCommand({ Bucket: BUCKET, Key: key, ResponseContentDisposition: `attachment; filename="${filename}"` }),
+    { expiresIn },
+  )
+}
+
+/** The contents of a stored file. */
+export async function getFileBuffer(key: string): Promise<Buffer> {
+  const result = await r2.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }))
+  if (!result.Body) throw new Error(`Empty file: ${key}`)
+  return Buffer.from(await result.Body.transformToByteArray())
+}
+
+/**
  * Delete all files associated with an invoice UUID (XML + PDF)
  */
 export async function deleteFiles(userId: string, uuid: string): Promise<void> {

@@ -1,22 +1,20 @@
 import type { InvoiceWithRelations } from '@features/invoicing/types/invoice.types'
 import type { IssuingProfile } from '@features/fiscal-profile/types/fiscal-profile.types'
+import { computeCfdiAmounts, IVA_RATE, taxSettingsFromInvoice } from '@features/invoicing/utils/cfdi-amounts'
+import {
+  CFDI_NAMESPACE,
+  CFDI_SCHEMA_LOCATION,
+  cfdiRelacionadosXml,
+  receptorXml,
+  cleanCertificate,
+  esc,
+  formatCfdiDate,
+  toNoCertificado,
+  XSI_NAMESPACE,
+} from '../utils/cfdi-xml'
 
-const CFDI_NAMESPACE = 'http://www.sat.gob.mx/cfd/4'
-const XSI_NAMESPACE = 'http://www.w3.org/2001/XMLSchema-instance'
-const SCHEMA_LOCATION = 'http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd'
-
-const IVA_RATE = 0.16
-const IVA_DIVISOR = 1 + IVA_RATE // 1.16
-const IVA_RATE_STR = '0.160000'
+const TAX_CODE_ISR = '001'
 const TAX_CODE_IVA = '002'
-
-function esc(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
 
 function toFixed2(value: number): string {
   return value.toFixed(2)
@@ -26,12 +24,9 @@ function toFixed6(value: number): string {
   return value.toFixed(6)
 }
 
-function formatCfdiDate(date: Date): string {
-  // SAT requires Mexico City timezone (America/Mexico_City)
-  const mx = new Date(date).toLocaleString('en-US', { timeZone: 'America/Mexico_City' })
-  const d = new Date(mx)
-  const pad = (n: number) => n.toString().padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+/** TipoCambio: up to 6 decimals, without trailing zeros (18.425). */
+function formatExchangeRate(rate: string | number): string {
+  return Number(rate).toFixed(6).replace(/0+$/, '').replace(/\.$/, '')
 }
 
 export interface BuildXmlParams {
@@ -44,44 +39,43 @@ export interface BuildXmlParams {
 export function buildCfdiXml(params: BuildXmlParams): string {
   const { invoice, profile, certificateBase64, certificateNumber } = params
 
-  // Ensure NoCertificado is ASCII digits (20 chars), not hex
-  // If it looks like hex (>20 chars, all hex digits), convert to ASCII
-  let noCertificado = certificateNumber
-  if (/^[0-9a-fA-F]+$/.test(noCertificado) && noCertificado.length > 20) {
-    noCertificado = Buffer.from(noCertificado, 'hex').toString('ascii')
-  }
+  const noCertificado = toNoCertificado(certificateNumber)
 
-  // Prices in DB include IVA. CFDI requires amounts WITHOUT IVA.
-  let cfdiSubtotal = 0
-  let totalTaxAmount = 0
+  // Same calculation as the form preview, the stored totals and the PDF.
+  const settings = taxSettingsFromInvoice(invoice)
+  const amounts = computeCfdiAmounts(
+    invoice.items.map((item) => ({ quantity: parseFloat(item.quantity), unitPrice: parseFloat(item.unitPrice) })),
+    settings,
+  )
+  const isrRateStr = settings.isrWithholdingRate ? toFixed6(settings.isrWithholdingRate) : null
+  const ivaRetRateStr = settings.ivaWithholdingRate ? toFixed6(settings.ivaWithholdingRate) : null
+  const ivaRateStr = toFixed6(settings.ivaRate ?? IVA_RATE)
 
-  const conceptosXml = invoice.items.map((item) => {
-    const amountWithIva = parseFloat(item.amount)
-    const unitPriceWithIva = parseFloat(item.unitPrice)
-    const qty = parseFloat(item.quantity)
+  const conceptosXml = invoice.items.map((item, index) => {
+    const c = amounts.concepts[index]
 
-    // SAT requires: round base first, then compute tax from rounded base
-    const unitPriceBase = Math.round((unitPriceWithIva / IVA_DIVISOR) * 100) / 100
-    const baseAmount = Math.round((unitPriceBase * qty) * 100) / 100
-    const taxAmount = Math.round((baseAmount * IVA_RATE) * 100) / 100
+    let taxes = '<cfdi:Impuestos>'
+    taxes += `<cfdi:Traslados><cfdi:Traslado Base="${toFixed2(c.base)}" Impuesto="${TAX_CODE_IVA}" TipoFactor="Tasa" TasaOCuota="${ivaRateStr}" Importe="${toFixed2(c.iva)}"/></cfdi:Traslados>`
+    if (isrRateStr || ivaRetRateStr) {
+      taxes += '<cfdi:Retenciones>'
+      if (isrRateStr) taxes += `<cfdi:Retencion Base="${toFixed2(c.base)}" Impuesto="${TAX_CODE_ISR}" TipoFactor="Tasa" TasaOCuota="${isrRateStr}" Importe="${toFixed2(c.isrWithheld)}"/>`
+      if (ivaRetRateStr) taxes += `<cfdi:Retencion Base="${toFixed2(c.base)}" Impuesto="${TAX_CODE_IVA}" TipoFactor="Tasa" TasaOCuota="${ivaRetRateStr}" Importe="${toFixed2(c.ivaWithheld)}"/>`
+      taxes += '</cfdi:Retenciones>'
+    }
+    taxes += '</cfdi:Impuestos>'
 
-    cfdiSubtotal += baseAmount
-    totalTaxAmount += taxAmount
-
-    return `<cfdi:Concepto ClaveProdServ="${esc(item.productServiceCode.trim())}" Cantidad="${toFixed6(qty)}" ClaveUnidad="${esc(item.unit.trim())}" Descripcion="${esc(item.description.trim())}" ValorUnitario="${toFixed2(unitPriceBase)}" Importe="${toFixed2(baseAmount)}" ObjetoImp="02"><cfdi:Impuestos><cfdi:Traslados><cfdi:Traslado Base="${toFixed2(baseAmount)}" Importe="${toFixed2(taxAmount)}" Impuesto="${TAX_CODE_IVA}" TasaOCuota="${IVA_RATE_STR}" TipoFactor="Tasa"/></cfdi:Traslados></cfdi:Impuestos></cfdi:Concepto>`
+    return `<cfdi:Concepto ClaveProdServ="${esc(item.productServiceCode.trim())}" Cantidad="${toFixed6(c.quantity)}" ClaveUnidad="${esc(item.unit.trim())}" Descripcion="${esc(item.description.trim())}" ValorUnitario="${toFixed6(c.unitValue)}" Importe="${toFixed2(c.base)}" ObjetoImp="02">${taxes}</cfdi:Concepto>`
   }).join('')
 
-  const total = cfdiSubtotal + totalTaxAmount
   const fecha = formatCfdiDate(invoice.issuedAt)
 
-  // Clean certificate base64 (remove line breaks/spaces)
-  const cleanCert = certificateBase64.replace(/[\s\r\n]/g, '')
+  const cleanCert = cleanCertificate(certificateBase64)
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>'
   xml += `<cfdi:Comprobante`
   xml += ` xmlns:cfdi="${CFDI_NAMESPACE}"`
   xml += ` xmlns:xsi="${XSI_NAMESPACE}"`
-  xml += ` xsi:schemaLocation="${SCHEMA_LOCATION}"`
+  xml += ` xsi:schemaLocation="${CFDI_SCHEMA_LOCATION}"`
   xml += ` Version="4.0"`
   if (invoice.serie) xml += ` Serie="${esc(invoice.serie)}"`
   xml += ` Folio="${invoice.folio}"`
@@ -90,14 +84,21 @@ export function buildCfdiXml(params: BuildXmlParams): string {
   xml += ` Sello=""`
   xml += ` NoCertificado="${esc(noCertificado)}"`
   xml += ` Certificado="${cleanCert}"`
-  xml += ` SubTotal="${toFixed2(cfdiSubtotal)}"`
+  xml += ` SubTotal="${toFixed2(amounts.subtotal)}"`
   xml += ` Moneda="${esc(invoice.currency)}"`
-  xml += ` Total="${toFixed2(total)}"`
+  // TipoCambio is required when the currency is not MXN (CFDI40115); up to 6 decimals.
+  if (invoice.currency !== 'MXN' && invoice.exchangeRate) xml += ` TipoCambio="${formatExchangeRate(invoice.exchangeRate)}"`
+  xml += ` Total="${toFixed2(amounts.total)}"`
   xml += ` TipoDeComprobante="I"`
   xml += ` MetodoPago="${esc(invoice.paymentMethod)}"`
   xml += ` Exportacion="01"`
   xml += ` LugarExpedicion="${esc(profile.postalCode)}"`
   xml += `>`
+
+  // The invoice it replaces (TipoRelacion 04), before Emisor
+  if (invoice.relationType && invoice.relatedUuid) {
+    xml += cfdiRelacionadosXml(invoice.relationType, [invoice.relatedUuid])
+  }
 
   // Emisor
   xml += `<cfdi:Emisor`
@@ -107,21 +108,24 @@ export function buildCfdiXml(params: BuildXmlParams): string {
   xml += `/>`
 
   // Receptor
-  xml += `<cfdi:Receptor`
-  xml += ` Rfc="${esc(invoice.client.rfc)}"`
-  xml += ` Nombre="${esc(invoice.client.businessName)}"`
-  xml += ` DomicilioFiscalReceptor="${esc(invoice.client.postalCode)}"`
-  xml += ` RegimenFiscalReceptor="${esc(invoice.client.taxRegime || '616')}"`
-  xml += ` UsoCFDI="${esc(invoice.cfdiUsage)}"`
-  xml += `/>`
+  xml += receptorXml(invoice.client, { cfdiUsage: invoice.cfdiUsage, issuerPostalCode: profile.postalCode })
 
   // Conceptos
   xml += `<cfdi:Conceptos>${conceptosXml}</cfdi:Conceptos>`
 
-  // Impuestos globales
-  xml += `<cfdi:Impuestos TotalImpuestosTrasladados="${toFixed2(totalTaxAmount)}">`
+  // Impuestos globales: Retenciones before Traslados, as the CFDI 4.0 schema orders them.
+  const hasWithholdings = amounts.withholdings > 0
+  xml += `<cfdi:Impuestos`
+  if (hasWithholdings) xml += ` TotalImpuestosRetenidos="${toFixed2(amounts.withholdings)}"`
+  xml += ` TotalImpuestosTrasladados="${toFixed2(amounts.iva)}">`
+  if (hasWithholdings) {
+    xml += `<cfdi:Retenciones>`
+    if (amounts.isrWithheld > 0) xml += `<cfdi:Retencion Impuesto="${TAX_CODE_ISR}" Importe="${toFixed2(amounts.isrWithheld)}"/>`
+    if (amounts.ivaWithheld > 0) xml += `<cfdi:Retencion Impuesto="${TAX_CODE_IVA}" Importe="${toFixed2(amounts.ivaWithheld)}"/>`
+    xml += `</cfdi:Retenciones>`
+  }
   xml += `<cfdi:Traslados>`
-  xml += `<cfdi:Traslado Base="${toFixed2(cfdiSubtotal)}" Importe="${toFixed2(totalTaxAmount)}" Impuesto="${TAX_CODE_IVA}" TasaOCuota="${IVA_RATE_STR}" TipoFactor="Tasa"/>`
+  xml += `<cfdi:Traslado Base="${toFixed2(amounts.subtotal)}" Impuesto="${TAX_CODE_IVA}" TipoFactor="Tasa" TasaOCuota="${ivaRateStr}" Importe="${toFixed2(amounts.iva)}"/>`
   xml += `</cfdi:Traslados>`
   xml += `</cfdi:Impuestos>`
 

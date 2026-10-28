@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { addStamps } from '@features/billing/services/account.service'
-import type { StampPackageId } from '@features/billing/constants/plans'
+import { STAMP_PACKAGES } from '@features/billing/constants/plans'
 
 function getStripe(): Stripe {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -50,15 +50,20 @@ export async function POST(request: Request) {
       }
 
       const userId = session.metadata?.user_id ?? session.client_reference_id
-      const packageId = (session.metadata?.package_id ?? 'starter') as StampPackageId
+      const pkg = STAMP_PACKAGES.find((p) => p.id === session.metadata?.package_id)
 
-      if (!userId) {
-        console.error('[Stripe Webhook] No user_id in session metadata')
+      if (!userId || !pkg) {
+        console.error(`[Stripe Webhook] Session ${session.id} has no valid user_id/package_id`)
         return NextResponse.json({ received: true })
       }
 
-      await addStamps(userId, packageId, 'stripe', session.id)
-      console.log(`[Stripe Webhook] Added stamps (${packageId}) for ${userId} via session ${session.id}`)
+      if (session.currency?.toLowerCase() !== 'mxn' || session.amount_total !== pkg.price * 100) {
+        console.error(`[Stripe Webhook] Session ${session.id} amount ${session.amount_total} does not match package ${pkg.id}`)
+        return NextResponse.json({ received: true })
+      }
+
+      const credited = await addStamps(userId, pkg.id, 'stripe', session.id)
+      console.log(`[Stripe Webhook] Session ${session.id}: ${credited ? `added ${pkg.stamps} stamps` : 'already credited'}`)
     }
 
     return NextResponse.json({ received: true })

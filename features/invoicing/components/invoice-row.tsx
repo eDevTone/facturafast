@@ -1,5 +1,7 @@
 'use client'
 
+import { CollectionLabel } from '@features/collections/components/collection-label'
+import type { CollectionState } from '@features/collections/utils/collection-state'
 import { formatDateShort } from '@shared/utils/date'
 import {
   DropdownMenu,
@@ -8,61 +10,60 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@shared/ui/dropdown-menu'
-import { Ban, Copy, Download, Eye, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Ban, Copy, Download, Eye, FilePen, Files, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { getInvoiceDownloadUrlAction } from '../actions/get-download-url.action'
+import { duplicateInvoiceAction } from '../actions/duplicate-invoice.action'
+import { downloadInvoiceFile, type InvoiceFileType } from '../utils/download-invoice-file'
 import type { InvoiceWithRelations } from '../types/invoice.types'
 import { formatCurrency } from '../utils/invoice-calculations'
+import { CANCEL_BLOCKED_BY_PAYMENTS } from '../constants/cancellation-reasons'
+import { invoiceStampState } from '../utils/cancellation-state'
+import { correctionBlockReason } from '../utils/correction'
 import { CancelInvoiceDialog } from './cancel-invoice-dialog'
+import { CorrectInvoiceDialog } from './correct-invoice-dialog'
 import { DeleteInvoiceDialog } from './delete-invoice-dialog'
+import { Folio } from './folio'
 import { StatusBadge } from './status-badge'
 
-export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
+/**
+ * One invoice in the list. `paid` is what its complementos de pago collected; `collection` says
+ * what is still owed: "Por cobrar", "Saldo $X", "Vencida" or "Pagada".
+ */
+export function InvoiceRow({
+  invoice,
+  paid = 0,
+  collection = null,
+}: {
+  invoice: InvoiceWithRelations
+  paid?: number
+  collection?: CollectionState | null
+}) {
   const router = useRouter()
   const folioLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
   const isDraft = invoice.status === 'draft'
   const isStamped = invoice.status === 'timbrada'
   const isCancelled = invoice.status === 'cancelada'
   const [cancelOpen, setCancelOpen] = useState(false)
+  const [correctOpen, setCorrectOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const stampState = invoiceStampState(invoice)
+  const hasActivePayments = paid > 0
 
-  const handleDownload = async (type: 'xml' | 'pdf' | 'acuse') => {
-    const key = type === 'xml'
-      ? invoice.xmlUrl
-      : type === 'pdf'
-        ? invoice.pdfUrl
-        : invoice.cancellationAcuseUrl
-    if (key) {
-      const result = await getInvoiceDownloadUrlAction(key)
-      if (result.url) {
-        if (type === 'pdf') {
-          window.open(result.url, '_blank')
-        } else {
-          const res = await fetch(result.url)
-          const blob = await res.blob()
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url
-          a.download = type === 'acuse'
-            ? `acuse-cancelacion-${folioLabel}.xml`
-            : `factura-${folioLabel}.xml`
-          a.click()
-          URL.revokeObjectURL(url)
-        }
-        return
-      }
-    }
-    if (type === 'xml' && invoice.xmlContent) {
-      const blob = new Blob([invoice.xmlContent], { type: 'application/xml' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `factura-${folioLabel}.xml`
-      a.click()
-      URL.revokeObjectURL(url)
+  const handleDownload = async (type: InvoiceFileType) => {
+    const ok = await downloadInvoiceFile(invoice, type)
+    if (!ok) toast.error('El archivo aún no está disponible')
+  }
+
+  const handleDuplicate = async () => {
+    const result = await duplicateInvoiceAction(invoice.id)
+    if (result.success) {
+      toast.success('Borrador creado a partir de esta factura')
+      router.push(`/invoices/${result.invoiceId}/edit`)
+    } else {
+      toast.error('No se pudo duplicar', { description: result.error })
     }
   }
 
@@ -74,51 +75,50 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
 
   return (
     <>
-      <div className="group grid grid-cols-1 md:grid-cols-[120px_1fr_100px_90px_110px_40px] items-center gap-2 md:gap-3 px-5 py-3 transition-colors hover:bg-muted/30">
-        {/* Folio */}
-        <Link href={`/invoices/${invoice.id}`} className="flex items-center gap-2">
-          <span className="text-sm font-mono font-semibold tracking-wide text-foreground group-hover:text-primary transition-colors">
-            {folioLabel}
-          </span>
-          <span className="md:hidden">
-            <StatusBadge status={invoice.status} />
+      <div className="group relative grid grid-cols-[1fr_auto_28px] items-center gap-x-3 gap-y-1 px-4 py-3 transition-colors hover:bg-sello-tenue/40 lg:grid-cols-[136px_1fr_80px_136px_120px_32px] lg:px-5">
+        {/* Folio (the whole row is clickable through this link) */}
+        <Link href={`/invoices/${invoice.id}`} className="order-1 flex min-w-0 items-center gap-2 after:absolute after:inset-0">
+          <Folio serie={invoice.serie} folio={invoice.folio} className="min-w-0 truncate text-sm" />
+          <span className="lg:hidden">
+            <StatusBadge invoice={invoice} />
           </span>
         </Link>
+
+        {/* Total — mobile sits next to the folio; a PPD invoice adds what is still owed */}
+        <div className="order-2 text-right lg:order-5">
+          <p className="font-mono text-sm">{formatCurrency(parseFloat(invoice.total), invoice.currency)}</p>
+          <CollectionLabel state={collection} paymentMethod={invoice.paymentMethod} currency={invoice.currency} className="mt-0.5" />
+        </div>
 
         {/* Client */}
-        <Link href={`/invoices/${invoice.id}`} className="min-w-0">
-          <p className="text-sm text-foreground truncate leading-tight">
-            {invoice.client.businessName}
+        <div className="order-4 min-w-0 lg:order-2">
+          <p className="truncate text-sm leading-tight">{invoice.client.businessName}</p>
+          <p className="mt-0.5 truncate text-[12px] text-tinta-tenue">
+            <span className="font-mono">{invoice.client.rfc}</span>
+            {invoice.recurringInvoiceId && <span className="text-sello"> · Cada mes</span>}
           </p>
-          <p className="text-[12px] font-mono text-muted-foreground/40 truncate mt-0.5">
-            {invoice.client.rfc}
-          </p>
-        </Link>
+        </div>
 
         {/* Date */}
-        <p className="text-[13px] text-muted-foreground/60 tabular-nums">
-          {formatDateShort(invoice.issuedAt)}
+        <p className="order-5 col-span-2 text-right text-[13px] tabular-nums text-tinta-tenue lg:order-3 lg:col-span-1 lg:text-left">
+          {formatDateShort(invoice.stampedAt ?? invoice.issuedAt)}
         </p>
 
         {/* Status — desktop */}
-        <div className="hidden md:block">
-          <StatusBadge status={invoice.status} />
+        <div className="hidden lg:order-4 lg:block">
+          <StatusBadge invoice={invoice} />
         </div>
 
-        {/* Total */}
-        <p className="text-sm font-mono font-semibold text-foreground text-right tabular-nums">
-          {formatCurrency(parseFloat(invoice.total))}
-        </p>
-
         {/* Actions menu */}
-        <div className="hidden md:flex justify-end">
+        <div className="relative z-10 order-3 flex justify-end lg:order-6">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground/40 hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
+                aria-label={`Acciones de la factura ${folioLabel}`}
+                className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[4px] text-tinta-tenue transition-colors hover:bg-muted hover:text-tinta"
               >
-                <MoreHorizontal className="h-3.5 w-3.5" />
+                <MoreHorizontal className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -133,6 +133,11 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
                   Editar
                 </DropdownMenuItem>
               )}
+
+              <DropdownMenuItem onClick={handleDuplicate}>
+                <Files className="h-4 w-4 mr-2" />
+                Duplicar
+              </DropdownMenuItem>
 
               {(isStamped || isCancelled) && (
                 <>
@@ -163,7 +168,23 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
                   )}
                 </>
               )}
-              {isStamped && (
+              {isStamped && stampState === 'timbrada' && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setCorrectOpen(true)}>
+                    <FilePen className="h-4 w-4 mr-2" />
+                    Corregir factura
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setCancelOpen(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Ban className="h-4 w-4 mr-2" />
+                    Cancelar factura
+                  </DropdownMenuItem>
+                </>
+              )}
+              {(stampState === 'por_cancelar' || stampState === 'cancelacion_rechazada') && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -171,7 +192,7 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
                     className="text-destructive focus:text-destructive"
                   >
                     <Ban className="h-4 w-4 mr-2" />
-                    Cancelar factura
+                    {stampState === 'por_cancelar' ? 'Pedir cancelación' : 'Volver a pedir la cancelación'}
                   </DropdownMenuItem>
                 </>
               )}
@@ -194,12 +215,25 @@ export function InvoiceRow({ invoice }: { invoice: InvoiceWithRelations }) {
       </div>
 
       {isStamped && (
-        <CancelInvoiceDialog
-          invoiceId={invoice.id}
-          invoiceLabel={folioLabel}
-          open={cancelOpen}
-          onOpenChange={setCancelOpen}
-        />
+        <>
+          <CancelInvoiceDialog
+            invoiceId={invoice.id}
+            invoiceLabel={folioLabel}
+            open={cancelOpen}
+            onOpenChange={setCancelOpen}
+            blockedReason={hasActivePayments ? CANCEL_BLOCKED_BY_PAYMENTS : undefined}
+            substituteUuid={invoice.cancellationSubstituteUuid}
+            defaultReason={invoice.cancellationReason}
+            rejectedBefore={stampState === 'cancelacion_rechazada'}
+          />
+          <CorrectInvoiceDialog
+            invoiceId={invoice.id}
+            invoiceLabel={folioLabel}
+            open={correctOpen}
+            onOpenChange={setCorrectOpen}
+            blockedReason={correctionBlockReason(invoice, { hasActivePayments })}
+          />
+        </>
       )}
       {isDraft && (
         <DeleteInvoiceDialog

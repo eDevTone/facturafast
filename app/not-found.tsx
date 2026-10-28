@@ -1,42 +1,29 @@
 import Link from 'next/link'
 
+import { Logo } from '@shared/components/logo'
+import { Button } from '@shared/ui/button'
+
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
-      <div className="max-w-md text-center">
-        {/* 404 number — large, muted, monospace */}
-        <p className="font-mono text-[120px] font-bold leading-none tracking-tighter text-border/80 select-none sm:text-[160px]">
-          404
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
+      <Logo className="mb-10" />
+      <div className="hoja w-full max-w-md px-6 py-10 text-center sm:px-10">
+        <span className="sello text-tinta-roja" style={{ ['--sello-rot' as string]: '-4deg' }}>
+          <span className="sello-titulo">No existe</span>
+          <span className="text-[12px]">404</span>
+        </span>
+        <h1 className="mt-6 text-lg font-semibold tracking-tight text-tinta">Esta página no existe</h1>
+        <p className="mt-2 text-sm text-tinta-tenue">
+          Puede que el enlace esté incompleto o que la página se haya movido. Revisa la dirección o vuelve a tus facturas.
         </p>
-
-        {/* Icon + message */}
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
-            Página no encontrada
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            La página que buscas no existe o fue movida. Verifica la URL o regresa al inicio.
-          </p>
-
-        {/* Actions */}
-        <div className="mt-8 flex items-center justify-center gap-3">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-          >
-            Ir al Dashboard
-          </Link>
-          <Link
-            href="/invoices"
-            className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/50"
-          >
-            Ver Facturas
-          </Link>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Button asChild>
+            <Link href="/invoices">Ver mis facturas</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard">Ir al inicio</Link>
+          </Button>
         </div>
-
-        {/* Subtle footer hint */}
-        <p className="mt-12 text-[12px] text-muted-foreground/40">
-          FacturaFast · Sistema de Facturación CFDI 4.0
-        </p>
       </div>
     </div>
   )

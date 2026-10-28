@@ -1,4 +1,7 @@
 import { ClientList } from "@/features/clients/components/client-list";
+import { PendingClientRequests } from "@/features/clients/components/pending-client-requests";
+import { RequestClientDataDialog } from "@/features/clients/components/request-client-data-dialog";
+import { getPendingClientRequests } from "@/features/clients/services/client-request.service";
 import { getClients } from "@/features/clients/services/client.service";
 import { getClientFormCatalogs, getTaxRegimeLabels } from "@/shared/services/sat-catalog.service";
 import { Button } from "@/shared/ui/button";
@@ -18,32 +21,38 @@ export default async function ClientesPage() {
 
   const clients = await getClients(userId);
 
-  const [catalogs, taxRegimeLabels] = await Promise.all([
+  const [catalogs, taxRegimeLabels, pendingRequests] = await Promise.all([
     getClientFormCatalogs(),
     getTaxRegimeLabels(),
+    getPendingClientRequests(userId),
   ]);
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-[22px] font-semibold tracking-tight text-foreground">
             Clientes
           </h1>
-          <p className="text-[13px] text-muted-foreground mt-1">
+          <p className="mt-1 text-[13px] text-muted-foreground">
             {clients.length > 0
-              ? `${clients.length} cliente${clients.length !== 1 ? "s" : ""} registrado${clients.length !== 1 ? "s" : ""}`
-              : "Gestiona los datos fiscales de tus clientes"}
+              ? `${clients.length} cliente${clients.length !== 1 ? "s" : ""}`
+              : "A quién le facturas"}
           </p>
         </div>
-        <Link href="/clients/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo Cliente
+        <div className="flex flex-wrap items-center gap-2">
+          <RequestClientDataDialog />
+          <Button asChild>
+            <Link href="/clients/new">
+              <Plus className="h-4 w-4" />
+              Nuevo cliente
+            </Link>
           </Button>
-        </Link>
+        </div>
       </div>
+
+      <PendingClientRequests requests={pendingRequests} />
 
       {/* Clients List */}
       <ClientList

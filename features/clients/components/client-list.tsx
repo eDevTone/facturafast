@@ -1,16 +1,18 @@
 'use client'
 
-import type { CatalogOption, TaxRegimeOption } from '@shared/services/sat-catalog.service'
+import type { CatalogOption, CountryOption, TaxRegimeOption } from '@shared/services/sat-catalog.service'
 import { Button } from '@shared/ui/button'
 import { Input } from '@shared/ui/input'
-import { Mail, MapPin, Phone, Search, Users } from 'lucide-react'
+import { FilePlus2, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { usePagination } from '@shared/hooks/use-pagination'
 import { TablePagination } from '@shared/components/table-pagination'
 import type { Client } from '../types/client.types'
+import { isForeignClient } from '../utils/foreign-client'
 import { DeleteClientDialog } from './delete-client-dialog'
 import { EditClientDialog } from './edit-client-dialog'
+import { RequestClientDataDialog } from './request-client-data-dialog'
 
 interface ClientListProps {
   clients: Client[]
@@ -18,22 +20,20 @@ interface ClientListProps {
   catalogs: {
     taxRegimes: TaxRegimeOption[]
     cfdiUsages: CatalogOption[]
+    countries: CountryOption[]
   }
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map(w => w[0])
-    .join('')
-    .toUpperCase()
 }
 
 const PAGE_SIZE = 10
 
+const COLUMNS = 'md:grid-cols-[minmax(0,1fr)_140px_minmax(0,180px)_minmax(0,170px)_auto]'
+
 export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListProps) {
   const [search, setSearch] = useState('')
+  const countryNames = useMemo(
+    () => new Map(catalogs.countries.map(c => [c.value, c.label.replace(/^\w+\s*-\s*/, '')])),
+    [catalogs.countries],
+  )
 
   const filtered = useMemo(() => {
     if (!search.trim()) return clients
@@ -42,6 +42,7 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
       c =>
         c.businessName.toLowerCase().includes(q) ||
         c.rfc.toLowerCase().includes(q) ||
+        c.foreignTaxId?.toLowerCase().includes(q) ||
         c.email?.toLowerCase().includes(q)
     )
   }, [clients, search])
@@ -50,148 +51,98 @@ export function ClientList({ clients, taxRegimeLabels, catalogs }: ClientListPro
 
   if (clients.length === 0) {
     return (
-      <div className="rounded-xl border border-border/60 bg-card">
-        <div className="flex flex-col items-center justify-center p-16 text-center">
-          <div className="mb-4 rounded-full bg-muted p-4">
-            <Users className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <h3 className="text-base font-semibold text-foreground">
-            No hay clientes aun
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground max-w-xs">
-            Agrega tu primer cliente para comenzar a facturar. Puedes subir su CSF para autocompletar los datos.
-          </p>
-          <Link href="/clients/new" className="mt-5">
-            <Button>Nuevo Cliente</Button>
-          </Link>
-        </div>
+      <div className="hoja-borrador px-6 py-14 text-center">
+        <p className="text-base font-medium text-tinta">Aún no tienes clientes</p>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-tinta-tenue">
+          Agrega a quien le facturas. Si tienes su Constancia de Situación Fiscal en PDF, los datos se llenan solos.
+        </p>
+        <Button asChild className="mt-5">
+          <Link href="/clients/new">Agregar mi primer cliente</Link>
+        </Button>
       </div>
     )
   }
 
   return (
     <div className="space-y-3">
-      {/* Search */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-tinta-tenue" />
         <Input
-          placeholder="Buscar por nombre, RFC o email..."
+          placeholder="Buscar por nombre, RFC o correo"
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="pl-9"
+          aria-label="Buscar clientes"
         />
       </div>
 
-      {/* List */}
-      <div className="rounded-xl border border-border/60 bg-card">
-        <div className="divide-y divide-border/40">
-        {/* Column header */}
-        <div className="hidden md:grid md:grid-cols-[1fr_130px_80px_160px_160px_72px] items-center gap-3 px-5 py-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-            Cliente
-          </span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-            RFC
-          </span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-            Tipo
-          </span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-            Regimen
-          </span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-            Contacto
-          </span>
-          <span />
-        </div>
-
-        {filtered.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              No se encontraron clientes para &ldquo;{search}&rdquo;
-            </p>
+      <div className="hoja">
+        <div className="divide-y divide-renglon">
+          <div className={`hidden ${COLUMNS} items-center gap-4 px-5 py-2.5 text-[12px] font-medium text-tinta-tenue md:grid`}>
+            <span>Cliente</span>
+            <span>RFC o número fiscal</span>
+            <span>Régimen</span>
+            <span>Contacto</span>
+            <span className="sr-only">Acciones</span>
           </div>
-        ) : (
-          pagination.items.map(client => (
-            <div
-              key={client.id}
-              className="group grid grid-cols-1 md:grid-cols-[1fr_130px_80px_160px_160px_72px] items-center gap-2 md:gap-3 px-5 py-3 transition-colors hover:bg-muted/30"
-            >
-              {/* Name with avatar */}
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-[11px] font-semibold text-muted-foreground/60">
-                  {getInitials(client.businessName)}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate leading-tight">
-                    {client.businessName}
+
+          {filtered.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-tinta-tenue">
+              Ningún cliente coincide con «{search}».
+            </p>
+          ) : (
+            pagination.items.map(client => {
+              const isMoral = client.rfc.length === 12
+              const isForeign = isForeignClient(client)
+              const taxId = isForeign ? client.foreignTaxId ?? 'XEXX010101000' : client.rfc
+              return (
+                <div
+                  key={client.id}
+                  className={`grid grid-cols-[minmax(0,1fr)_auto] ${COLUMNS} items-center gap-x-4 gap-y-1 px-5 py-3 transition-colors hover:bg-sello-tenue/40`}
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium leading-tight text-tinta">{client.businessName}</p>
+                    <p className="mt-0.5 text-[12px] text-tinta-tenue">
+                      {isForeign
+                        ? `En el extranjero · ${countryNames.get(client.country ?? '') ?? client.country}`
+                        : `Persona ${isMoral ? 'moral' : 'física'}`}
+                      <span className="font-mono md:hidden"> · {taxId}</span>
+                    </p>
+                  </div>
+
+                  <p className="hidden truncate font-mono text-[13px] text-tinta md:block" title={isForeign ? 'Número de identificación fiscal' : 'RFC'}>{taxId}</p>
+
+                  <p className="hidden truncate text-[13px] text-tinta-tenue md:block" title={client.taxRegime ? taxRegimeLabels[client.taxRegime] : undefined}>
+                    {client.taxRegime ? (
+                      <>
+                        <span className="font-mono">{client.taxRegime}</span>{' '}
+                        {(taxRegimeLabels[client.taxRegime] || '').replace(/^\d+\s*-\s*/, '')}
+                      </>
+                    ) : (
+                      '—'
+                    )}
                   </p>
-                  <p className="text-[12px] text-muted-foreground/40 mt-0.5 md:hidden">
-                    {client.rfc}
+
+                  <p className="hidden truncate text-[13px] text-tinta-tenue md:block" title={client.email ?? undefined}>
+                    {client.email || client.phone || (client.postalCode ? <span className="font-mono">CP {client.postalCode}</span> : '—')}
                   </p>
+
+                  <div className="row-span-2 flex items-center justify-end gap-0.5 md:row-span-1">
+                    <Button asChild variant="outline" size="sm" className="mr-1">
+                      <Link href={`/invoices/new?clientId=${client.id}`} aria-label={`Facturar a ${client.businessName}`}>
+                        <FilePlus2 className="h-3.5 w-3.5" />
+                        {/* On a phone the icon is enough: the client's name needs the room */}
+                        <span className="hidden sm:inline">Facturar</span>
+                      </Link>
+                    </Button>
+                    {!isForeign && <RequestClientDataDialog client={client} />}
+                    <EditClientDialog client={client} catalogs={catalogs} />
+                    <DeleteClientDialog clientId={client.id} clientName={client.businessName} />
+                  </div>
                 </div>
-              </div>
-
-              {/* RFC */}
-              <p className="hidden md:block text-[13px] font-mono tracking-wide text-muted-foreground/60">
-                {client.rfc}
-              </p>
-
-              {/* Tipo persona */}
-              <div className="hidden md:block">
-                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ${
-                  client.rfc.length === 12
-                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                    : 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
-                }`}>
-                  {client.rfc.length === 12 ? 'Moral' : 'Física'}
-                </span>
-              </div>
-
-              {/* Regimen */}
-              <div className="hidden md:block">
-                {client.taxRegime ? (
-                  <span className="inline-flex items-center rounded-md bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground/70 truncate max-w-full">
-                    {taxRegimeLabels[client.taxRegime] || client.taxRegime}
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-muted-foreground/30">—</span>
-                )}
-              </div>
-
-              {/* Contact */}
-              <div className="hidden md:block">
-                {client.email ? (
-                  <span className="flex items-center gap-1.5 text-[12px] text-muted-foreground/50 truncate" title={client.email}>
-                    <Mail className="h-3 w-3 shrink-0 text-muted-foreground/30" />
-                    <span className="truncate">{client.email}</span>
-                  </span>
-                ) : client.phone ? (
-                  <span className="flex items-center gap-1.5 text-[12px] text-muted-foreground/50">
-                    <Phone className="h-3 w-3 shrink-0 text-muted-foreground/30" />
-                    {client.phone}
-                  </span>
-                ) : client.postalCode ? (
-                  <span className="flex items-center gap-1.5 text-[12px] text-muted-foreground/50">
-                    <MapPin className="h-3 w-3 shrink-0 text-muted-foreground/30" />
-                    CP {client.postalCode}
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-muted-foreground/30">—</span>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-0.5">
-                <EditClientDialog client={client} catalogs={catalogs} />
-                <DeleteClientDialog
-                  clientId={client.id}
-                  clientName={client.businessName}
-                />
-              </div>
-            </div>
-          ))
-        )}
+              )
+            })
+          )}
         </div>
 
         <TablePagination

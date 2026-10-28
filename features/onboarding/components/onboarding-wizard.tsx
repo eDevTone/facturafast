@@ -1,45 +1,34 @@
 'use client'
 
-import type { CatalogOption } from '@shared/services/sat-catalog.service'
+import type { TaxRegimeOption } from '@shared/services/sat-catalog.service'
+import { Logo } from '@shared/components/logo'
 import { useState } from 'react'
 import { FiscalProfileStep } from './fiscal-profile-step'
 import { WelcomeStep } from './welcome-step'
 
 interface OnboardingWizardProps {
-  taxRegimes: CatalogOption[]
+  taxRegimes: TaxRegimeOption[]
 }
+
+const TOTAL_STEPS = 2
 
 export function OnboardingWizard({ taxRegimes }: OnboardingWizardProps) {
   const [step, setStep] = useState(0)
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg">
-        {/* Step indicator */}
-        <div className="mb-8 flex items-center justify-center gap-2">
-          <div
-            className={`h-1.5 w-8 rounded-full transition-colors ${
-              step === 0 ? 'bg-primary' : 'bg-muted'
-            }`}
-          />
-          <div
-            className={`h-1.5 w-8 rounded-full transition-colors ${
-              step === 1 ? 'bg-primary' : 'bg-muted'
-            }`}
-          />
+    <div className="flex min-h-screen justify-center px-4 py-10 sm:py-16">
+      <div className="w-full max-w-xl">
+        <div className="mb-8 flex items-center justify-between">
+          <Logo />
+          <p className="text-[13px] text-tinta-tenue" aria-live="polite">
+            Paso <span className="font-mono text-tinta">{step + 1}</span> de{' '}
+            <span className="font-mono">{TOTAL_STEPS}</span>
+          </p>
         </div>
 
-        {/* Steps */}
-        <div className="relative">
-          {step === 0 && (
-            <WelcomeStep onContinue={() => setStep(1)} />
-          )}
-          {step === 1 && (
-            <FiscalProfileStep
-              taxRegimes={taxRegimes}
-              onBack={() => setStep(0)}
-            />
-          )}
+        <div className="hoja p-6 sm:p-8">
+          {step === 0 && <WelcomeStep onContinue={() => setStep(1)} />}
+          {step === 1 && <FiscalProfileStep taxRegimes={taxRegimes} onBack={() => setStep(0)} />}
         </div>
       </div>
     </div>

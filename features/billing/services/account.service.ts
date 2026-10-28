@@ -74,12 +74,15 @@ export async function checkStampsBalance(userId: string): Promise<{
   }
 }
 
+type Executor = Pick<typeof db, 'update'>
+
 /**
- * Consume one stamp after a successful CFDI stamping.
- * Uses atomic decrement with guard to prevent negative balance.
+ * Take one stamp from the balance. Atomic: the guard keeps the balance from going negative.
+ * Pass a transaction to reserve the stamp together with other writes.
+ * @returns false when the user has no stamps left.
  */
-export async function consumeStamp(userId: string): Promise<void> {
-  const result = await db
+export async function consumeStamp(userId: string, executor: Executor = db): Promise<boolean> {
+  const result = await executor
     .update(accounts)
     .set({
       stampsBalance: sql`stamps_balance - 1`,
@@ -87,37 +90,61 @@ export async function consumeStamp(userId: string): Promise<void> {
       updatedAt: new Date(),
     })
     .where(and(eq(accounts.userId, userId), gt(accounts.stampsBalance, 0)))
-    .returning()
+    .returning({ id: accounts.id })
 
-  if (result.length === 0) {
-    throw new Error('No tienes timbres disponibles')
-  }
+  return result.length > 0
+}
+
+/** Give back a stamp reserved for a stamping attempt that the PAC rejected. */
+export async function refundStamp(userId: string, executor: Executor = db): Promise<void> {
+  await executor
+    .update(accounts)
+    .set({
+      stampsBalance: sql`stamps_balance + 1`,
+      totalStampsUsed: sql`greatest(total_stamps_used - 1, 0)`,
+      updatedAt: new Date(),
+    })
+    .where(eq(accounts.userId, userId))
 }
 
 /**
  * Add stamps to user's balance after a successful purchase.
- * Idempotent: if the same externalOrderId was already recorded, this is a no-op.
- * Runs in a transaction: updates balance + inserts purchase record.
+ * Idempotent: the purchase row is inserted first against a unique order id, and the
+ * balance only moves when that insert happened, all in one transaction.
+ * @returns true when stamps were added, false when the order was already credited.
  */
 export async function addStamps(
   userId: string,
   packageId: StampPackageId,
   provider: PaymentProviderId,
   externalOrderId: string,
-): Promise<void> {
+): Promise<boolean> {
   const pkg = STAMP_PACKAGES.find(p => p.id === packageId)
   if (!pkg) throw new Error(`Package not found: ${packageId}`)
 
-  const orderColumn = provider === 'stripe' ? stampPurchases.stripeSessionId : stampPurchases.conektaOrderId
-  const existing = await db.query.stampPurchases.findFirst({
-    where: eq(orderColumn, externalOrderId),
-  })
-  if (existing) {
-    console.log(`[billing] Skipping duplicate ${provider} order: ${externalOrderId}`)
-    return
-  }
+  // Make sure the account row exists before crediting it.
+  await getOrCreateAccount(userId)
 
-  await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
+    const inserted = await tx
+      .insert(stampPurchases)
+      .values({
+        userId,
+        packageId,
+        stampsAdded: pkg.stamps,
+        amountMxn: pkg.price * 100,
+        paymentProvider: provider,
+        conektaOrderId: provider === 'conekta' ? externalOrderId : null,
+        stripeSessionId: provider === 'stripe' ? externalOrderId : null,
+      })
+      .onConflictDoNothing()
+      .returning({ id: stampPurchases.id })
+
+    if (inserted.length === 0) {
+      console.log(`[billing] Skipping duplicate ${provider} order: ${externalOrderId}`)
+      return false
+    }
+
     await tx
       .update(accounts)
       .set({
@@ -127,15 +154,7 @@ export async function addStamps(
       })
       .where(eq(accounts.userId, userId))
 
-    await tx.insert(stampPurchases).values({
-      userId,
-      packageId,
-      stampsAdded: pkg.stamps,
-      amountMxn: pkg.price * 100,
-      paymentProvider: provider,
-      conektaOrderId: provider === 'conekta' ? externalOrderId : null,
-      stripeSessionId: provider === 'stripe' ? externalOrderId : null,
-    })
+    return true
   })
 }
 

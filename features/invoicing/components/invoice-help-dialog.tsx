@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from '@/shared/ui/dialog'
 import type { LucideIcon } from 'lucide-react'
-import { Ban, Copy, Download, Eye, HelpCircle, Pencil, Send, Trash2 } from 'lucide-react'
+import { Ban, Copy, Download, Eye, FilePen, Files, HelpCircle, Pencil, Send, Trash2 } from 'lucide-react'
 
 interface HelpAction {
   icon: LucideIcon
@@ -20,7 +20,7 @@ interface HelpAction {
 const DRAFT_ACTIONS: HelpAction[] = [
   {
     icon: Eye,
-    label: 'Vista Previa',
+    label: 'Vista previa',
     description: 'Genera un PDF para revisar tu factura antes de timbrar. Puedes descargarla como borrador.',
     color: 'text-muted-foreground',
   },
@@ -58,9 +58,9 @@ const TIMBRADA_ACTIONS: HelpAction[] = [
     color: 'text-muted-foreground',
   },
   {
-    icon: Eye,
-    label: 'Vista Previa',
-    description: 'Visualiza el PDF de la factura timbrada directamente en el navegador.',
+    icon: Files,
+    label: 'Duplicar',
+    description: 'Crea un borrador nuevo con el mismo cliente y conceptos. Útil para igualas mensuales.',
     color: 'text-muted-foreground',
   },
   {
@@ -70,9 +70,15 @@ const TIMBRADA_ACTIONS: HelpAction[] = [
     color: 'text-muted-foreground',
   },
   {
+    icon: FilePen,
+    label: 'Corregir factura',
+    description: 'Crea un borrador igual para que cambies lo que estaba mal. Al timbrarlo, pedimos al SAT cancelar esta con el motivo 01 (sustitución).',
+    color: 'text-muted-foreground',
+  },
+  {
     icon: Ban,
     label: 'Cancelar',
-    description: 'Solicita la cancelación ante el SAT. Requiere seleccionar un motivo. Esta acción es irreversible.',
+    description: 'Pide la cancelación al SAT con un motivo. Si tu cliente tiene que aceptarla, la factura queda "En cancelación" hasta que responda; tiene 3 días hábiles.',
     color: 'text-destructive',
   },
 ]
@@ -93,7 +99,7 @@ const CANCELADA_ACTIONS: HelpAction[] = [
   {
     icon: Download,
     label: 'Acuse de cancelación',
-    description: 'Comprobante oficial del SAT de que la cancelación fue aceptada. Consérvalo para auditorías y registros contables.',
+    description: 'Comprobante del SAT de que recibió la solicitud de cancelación. Consérvalo para auditorías y registros contables.',
     color: 'text-destructive',
   },
   {
@@ -112,7 +118,7 @@ const ACTIONS_BY_STATUS: Record<string, HelpAction[]> = {
 
 const FOOTER_BY_STATUS: Record<string, string | null> = {
   draft: 'El timbrado es irreversible y consume un timbre de tu plan.',
-  timbrada: 'La cancelación se reporta al SAT y es irreversible.',
+  timbrada: 'Una cancelación aceptada por el SAT no se puede deshacer. Cancelar no gasta timbres.',
   cancelada: null,
 }
 
@@ -129,7 +135,7 @@ export function InvoiceHelpDialog({ status }: InvoiceHelpDialogProps) {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-tinta-tenue hover:text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer"
           title="Ayuda"
         >
           <HelpCircle className="h-4 w-4" />
@@ -148,14 +154,14 @@ export function InvoiceHelpDialog({ status }: InvoiceHelpDialogProps) {
               </div>
               <div className="space-y-0.5">
                 <p className="text-[13px] font-medium text-foreground">{label}</p>
-                <p className="text-[12px] leading-relaxed text-muted-foreground/70">{description}</p>
+                <p className="text-[12px] leading-relaxed text-tinta-tenue">{description}</p>
               </div>
             </div>
           ))}
         </div>
 
         {footer && (
-          <p className="text-[11px] text-muted-foreground/40 pt-1">
+          <p className="text-[11px] text-tinta-tenue pt-1">
             {footer}
           </p>
         )}

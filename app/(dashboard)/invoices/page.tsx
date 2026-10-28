@@ -1,49 +1,72 @@
 import { auth } from '@clerk/nextjs/server'
 import { notFound } from 'next/navigation'
+import { AccountantDialog } from '@features/accountant/components/accountant-dialog'
 import { InvoiceList } from '@features/invoicing/components/invoice-list'
 import { getInvoices } from '@features/invoicing/services/invoice.service'
+import { getPaidAmountsByInvoice } from '@features/payments/services/payment.service'
+import { countRecurringInvoices } from '@features/recurring/services/recurring.service'
+import { todayInMexico } from '@features/stamping/utils/cfdi-xml'
 import { Button } from '@shared/ui/button'
-import { Plus } from 'lucide-react'
+import { CalendarSync, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-export default async function FacturasPage() {
+export default async function FacturasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ estado?: string }>
+}) {
   const { userId } = await auth()
+  const { estado } = await searchParams
 
   if (!userId) {
     notFound()
   }
 
-  const invoices = await getInvoices(userId)
+  const [invoices, paidByInvoice, recurringCount] = await Promise.all([
+    getInvoices(userId),
+    getPaidAmountsByInvoice(userId),
+    countRecurringInvoices(userId),
+  ])
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Facturas
-            {invoices.length > 0 && (
-              <span className="ml-2.5 text-sm font-normal text-muted-foreground">
-                {invoices.length}
-              </span>
-            )}
-          </h1>
-          <p className="text-[13px] text-muted-foreground mt-1">
-            Gestiona tus facturas CFDI 4.0
-          </p>
-        </div>
-        <Link href="/invoices/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nueva Factura
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className="text-[22px] font-semibold tracking-tight">
+          Facturas
+          {invoices.length > 0 && (
+            <span className="ml-2.5 font-mono text-sm font-normal text-tinta-tenue">{invoices.length}</span>
+          )}
+        </h1>
+        <div className="flex flex-wrap items-center gap-2">
+          {invoices.some((invoice) => invoice.status !== 'draft') && <AccountantDialog />}
+          {recurringCount > 0 && (
+            <Button asChild variant="outline">
+              <Link href="/invoices/recurring">
+                <CalendarSync />
+                Cada mes
+                <span className="font-mono text-[12px] text-tinta-tenue">{recurringCount}</span>
+              </Link>
+            </Button>
+          )}
+          <Button asChild>
+            <Link href="/invoices/new">
+              <Plus />
+              Nueva factura
+            </Link>
           </Button>
-        </Link>
+        </div>
       </div>
 
       {/* Invoice List */}
-      <InvoiceList invoices={invoices} />
+      <InvoiceList
+        invoices={invoices}
+        paidByInvoice={paidByInvoice}
+        today={todayInMexico()}
+        initialFilter={estado === 'por-cobrar' ? 'por_cobrar' : estado === 'vencidas' ? 'vencidas' : undefined}
+      />
     </div>
   )
 }

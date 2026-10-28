@@ -17,11 +17,11 @@ export default async function NewClientPage() {
           <ArrowLeft className="h-3.5 w-3.5" />
           Clientes
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Nuevo Cliente
+        <h1 className="text-[22px] font-semibold tracking-tight text-foreground">
+          Nuevo cliente
         </h1>
-        <p className="text-[13px] text-muted-foreground mt-1">
-          Ingresa los datos fiscales y de contacto del cliente
+        <p className="mt-1 text-[13px] text-muted-foreground">
+          Sube su constancia fiscal para llenar los datos, o escríbelos tú.
         </p>
       </div>
 

@@ -1,6 +1,5 @@
 'use client'
 
-import { ShieldAlert } from 'lucide-react'
 import { useState } from 'react'
 
 import { CsdUploadDialog } from '@features/fiscal-profile/components/csd-upload-dialog'
@@ -16,32 +15,17 @@ export function MissingCsdBanner({ profileId, profileName }: MissingCsdBannerPro
 
   return (
     <>
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/15">
-            <ShieldAlert className="h-4 w-4 text-amber-500" />
-          </div>
-
-          <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">
-                Faltan certificados CSD
-              </p>
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              El perfil <span className="font-medium text-foreground">{profileName}</span> no
-              tiene certificados configurados. Súbelos para poder timbrar esta factura.
-            </p>
-          </div>
-
-          <div className="shrink-0">
-            <Button
-              size="sm"
-              onClick={() => setOpen(true)}
-              className="bg-amber-500 hover:bg-amber-500/90 text-white"
-            >
-              Subir certificados
-            </Button>
-          </div>
+      <div className="flex flex-col gap-3 rounded-[4px] border border-ocre/40 bg-ocre-tenue px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-tinta">Falta tu CSD para timbrar</p>
+          <p className="mt-0.5 text-[13px] text-tinta-tenue">
+            Sube el .cer, el .key y la contraseña del sello de <span className="text-tinta">{profileName}</span>.
+            Es distinto de tu e.firma; lo generas en CertiSAT.
+          </p>
         </div>
+        <Button size="sm" variant="outline" className="shrink-0 border-ocre/50" onClick={() => setOpen(true)}>
+          Subir CSD
+        </Button>
       </div>
 
       <CsdUploadDialog

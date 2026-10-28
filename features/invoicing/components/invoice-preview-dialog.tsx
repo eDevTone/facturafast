@@ -98,13 +98,13 @@ export function InvoicePreviewDialog({ invoice, emisor, labels }: InvoicePreview
       <DialogTrigger asChild>
         <Button variant="outline">
           <Eye className="h-4 w-4 mr-2" />
-          Vista Previa
+          Vista previa
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-6 pr-14 pt-5 pb-3 border-b border-border/40 flex-row items-center justify-between space-y-0">
           <DialogTitle className="text-base">
-            Vista Previa — {folioLabel}
+            Vista previa · {folioLabel}
           </DialogTitle>
           <Button
             variant="outline"

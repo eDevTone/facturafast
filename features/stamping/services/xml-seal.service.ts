@@ -28,6 +28,13 @@ export function buildCadenaOriginal(xml: string): string {
   parts.push(extractAttr(xml, 'cfdi:Comprobante', 'LugarExpedicion'))
   parts.push(extractAttr(xml, 'cfdi:Comprobante', 'Confirmacion'))
 
+  // ── CfdiRelacionados: TipoRelacion, then each UUID, node by node ─────────
+  // (InformacionGlobal, not used yet, goes before them.)
+  for (const [block] of xml.matchAll(/<cfdi:CfdiRelacionados\s[^>]*>[\s\S]*?<\/cfdi:CfdiRelacionados>/g)) {
+    parts.push(extractAttrFromTag(block.match(/<cfdi:CfdiRelacionados\s[^>]*>/)![0], 'TipoRelacion'))
+    for (const [tag] of block.matchAll(/<cfdi:CfdiRelacionado\s[^>]*>/g)) parts.push(extractAttrFromTag(tag, 'UUID'))
+  }
+
   // ── Emisor ───────────────────────────────────────────────────────────────
   parts.push(extractAttr(xml, 'cfdi:Emisor', 'Rfc'))
   parts.push(extractAttr(xml, 'cfdi:Emisor', 'Nombre'))
@@ -117,6 +124,9 @@ export function buildCadenaOriginal(xml: string): string {
     parts.push(extractAttrFromTag(impBlock, 'TotalImpuestosTrasladados'))
   }
 
+  // ── Complemento de pagos 2.0 ─────────────────────────────────────────────
+  parts.push(...pagos20Parts(xml))
+
   const filtered = parts.filter(Boolean)
   return `||${filtered.join('|')}||`
 }
@@ -151,14 +161,9 @@ export function sealXml(params: {
   keyBase64: string
   keyPassword: string
 }): string {
+  // The cadena original and the XML carry the client's RFC and name: they are never logged.
   const cadenaOriginal = buildCadenaOriginal(params.xml)
-
-  console.log('[SEAL] Cadena original:', cadenaOriginal)
-  console.log('[SEAL] XML to seal:', params.xml)
-
   const sello = signCadenaOriginal(cadenaOriginal, params.keyBase64, params.keyPassword)
-
-  console.log('[SEAL] Sello generated, length:', sello.length)
 
   // Verify locally: decrypt sello with public key from .cer and compare
   try {
@@ -167,7 +172,6 @@ export function sealXml(params: {
     const publicKey = cert.publicKey
     const signatureBuffer = Buffer.from(sello, 'base64')
     const isValid = crypto.verify('SHA256', Buffer.from(cadenaOriginal, 'utf8'), publicKey, signatureBuffer)
-    console.log('[SEAL] Local signature verification:', isValid ? 'VALID' : 'INVALID')
     if (!isValid) {
       console.error('[SEAL] WARNING: .cer and .key may not be a matching pair')
     }
@@ -176,6 +180,63 @@ export function sealXml(params: {
   }
 
   return params.xml.replace('Sello=""', `Sello="${sello}"`)
+}
+
+// ── Complemento de pagos 2.0 (Pagos20.xslt) ──────────────────────────────────
+
+const PAGOS_TOTALES_ATTRS = [
+  'TotalRetencionesIVA', 'TotalRetencionesISR', 'TotalRetencionesIEPS',
+  'TotalTrasladosBaseIVA16', 'TotalTrasladosImpuestoIVA16',
+  'TotalTrasladosBaseIVA8', 'TotalTrasladosImpuestoIVA8',
+  'TotalTrasladosBaseIVA0', 'TotalTrasladosImpuestoIVA0',
+  'TotalTrasladosBaseIVAExento', 'MontoTotalPagos',
+]
+const PAGO_ATTRS = [
+  'FechaPago', 'FormaDePagoP', 'MonedaP', 'TipoCambioP', 'Monto', 'NumOperacion',
+  'RfcEmisorCtaOrd', 'NomBancoOrdExt', 'CtaOrdenante', 'RfcEmisorCtaBen', 'CtaBeneficiario',
+  'TipoCadPago', 'CertPago', 'CadPago', 'SelloPago',
+]
+const DOCTO_ATTRS = [
+  'IdDocumento', 'Serie', 'Folio', 'MonedaDR', 'EquivalenciaDR', 'NumParcialidad',
+  'ImpSaldoAnt', 'ImpPagado', 'ImpSaldoInsoluto', 'ObjetoImpDR',
+]
+const IMPUESTO_DR_ATTRS = ['BaseDR', 'ImpuestoDR', 'TipoFactorDR', 'TasaOCuotaDR', 'ImporteDR']
+
+function attrsFromTag(tag: string, names: string[]): string[] {
+  return names.map((name) => extractAttrFromTag(tag, name))
+}
+
+/**
+ * Pagos20.xslt: Version, Totales, then for each Pago its attributes, each DoctoRelacionado
+ * (attributes, RetencionDR, TrasladoDR) and its ImpuestosP (RetencionP, then TrasladoP).
+ * Empty values are dropped by the caller, as the XSLT skips missing optional attributes.
+ */
+function pagos20Parts(xml: string): string[] {
+  const pagosTag = xml.match(/<pago20:Pagos\s[^>]*>/)?.[0]
+  if (!pagosTag) return []
+
+  const parts = [extractAttrFromTag(pagosTag, 'Version')]
+  const totalesTag = xml.match(/<pago20:Totales\s[^>]*>/)?.[0]
+  if (totalesTag) parts.push(...attrsFromTag(totalesTag, PAGOS_TOTALES_ATTRS))
+
+  for (const [pagoBlock] of xml.matchAll(/<pago20:Pago\s[^>]*>[\s\S]*?<\/pago20:Pago>/g)) {
+    parts.push(...attrsFromTag(pagoBlock.match(/<pago20:Pago\s[^>]*>/)![0], PAGO_ATTRS))
+
+    const doctos = pagoBlock.matchAll(/<pago20:DoctoRelacionado\s[^>]*?(?:\/>|>[\s\S]*?<\/pago20:DoctoRelacionado>)/g)
+    for (const [doctoBlock] of doctos) {
+      parts.push(...attrsFromTag(doctoBlock.match(/<pago20:DoctoRelacionado\s[^>]*>/)![0], DOCTO_ATTRS))
+      for (const [tag] of doctoBlock.matchAll(/<pago20:RetencionDR\s[^>]*>/g)) parts.push(...attrsFromTag(tag, IMPUESTO_DR_ATTRS))
+      for (const [tag] of doctoBlock.matchAll(/<pago20:TrasladoDR\s[^>]*>/g)) parts.push(...attrsFromTag(tag, IMPUESTO_DR_ATTRS))
+    }
+
+    for (const [tag] of pagoBlock.matchAll(/<pago20:RetencionP\s[^>]*>/g)) {
+      parts.push(...attrsFromTag(tag, ['ImpuestoP', 'ImporteP']))
+    }
+    for (const [tag] of pagoBlock.matchAll(/<pago20:TrasladoP\s[^>]*>/g)) {
+      parts.push(...attrsFromTag(tag, ['BaseP', 'ImpuestoP', 'TipoFactorP', 'TasaOCuotaP', 'ImporteP']))
+    }
+  }
+  return parts
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -193,5 +254,21 @@ function extractAttrFromTag(tag: string, attrName: string): string {
   // "SubTotal" matching when looking for "Total", or "ClaveUnidad" matching "Unidad"
   const regex = new RegExp(`(?<=\\s)${attrName}="([^"]*)"`)
   const match = tag.match(regex)
-  return match?.[1] || ''
+  return match ? normalizeForCadena(match[1]) : ''
+}
+
+/**
+ * The SAT XSLT reads the parsed attribute value (entities decoded) and applies
+ * normalize-space(); the cadena original must do the same or the seal won't verify
+ * for names like "Pérez &amp; Asociados" or descriptions with double spaces.
+ */
+function normalizeForCadena(raw: string): string {
+  return raw
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim()
 }

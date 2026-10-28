@@ -15,7 +15,12 @@ import {
   taxRegimes,
   unitCodes,
   productServiceCodes,
+  countries,
+  currencies,
 } from '../schemas/sat-catalogs.schema'
+// The complete official c_Pais and c_Moneda, converted with scripts/sat-catalog-to-json.py
+import countryData from './data/c_pais.json'
+import currencyData from './data/c_moneda.json'
 
 dotenv.config({ path: '.env.local' })
 
@@ -195,6 +200,14 @@ async function seed() {
     console.log('🛒 Inserting product_service_codes...')
     await db.insert(productServiceCodes).values(claveProdServData).onConflictDoNothing()
     console.log(`   ✅ ${claveProdServData.length} records`)
+
+    console.log('🌎 Inserting countries (c_Pais)...')
+    await db.insert(countries).values(countryData).onConflictDoNothing()
+    console.log(`   ✅ ${countryData.length} records`)
+
+    console.log('💱 Inserting currencies (c_Moneda)...')
+    await db.insert(currencies).values(currencyData).onConflictDoNothing()
+    console.log(`   ✅ ${currencyData.length} records`)
 
     console.log('\n✅ Seed completado exitosamente!')
   } catch (error) {

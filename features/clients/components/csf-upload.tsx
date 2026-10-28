@@ -7,6 +7,8 @@ import { extractCsfAction } from '../actions/extract-csf.action'
 import { mapCsfToClientData } from '../services/csf-extraction.service'
 
 interface CSFUploadProps {
+  /** Reads the PDF; the public page of "Pedir datos a un cliente" passes one that checks its link. */
+  extract?: (formData: FormData) => ReturnType<typeof extractCsfAction>
   onDataExtracted: (data: {
     rfc: string
     businessName: string
@@ -15,7 +17,7 @@ interface CSFUploadProps {
   }) => void
 }
 
-export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
+export function CSFUpload({ extract = extractCsfAction, onDataExtracted }: CSFUploadProps) {
   const [file, setFile] = useState<File | null>(null)
   const [isExtracting, setIsExtracting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,12 +32,12 @@ export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
 
   const validateAndSetFile = (selectedFile: File) => {
     if (selectedFile.type !== 'application/pdf') {
-      setError('Solo se permiten archivos PDF')
+      setError('La constancia debe ser un PDF. Descárgala del portal del SAT y súbela de nuevo.')
       setFile(null)
       return
     }
     if (selectedFile.size > 10 * 1024 * 1024) {
-      setError('El archivo debe ser menor a 10MB')
+      setError('El PDF pesa más de 10 MB. Sube la constancia original que descargaste del SAT.')
       setFile(null)
       return
     }
@@ -52,7 +54,7 @@ export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const result = await extractCsfAction(formData)
+      const result = await extract(formData)
 
       if (!result.success) {
         throw new Error(result.error)
@@ -64,7 +66,7 @@ export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
       setFile(null)
     } catch (err) {
       console.error('CSF extraction error:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Error al extraer datos del CSF'
+      const errorMessage = err instanceof Error ? err.message : 'No pudimos leer la constancia. Escribe los datos a mano.'
       setError(errorMessage)
     } finally {
       setIsExtracting(false)
@@ -104,19 +106,15 @@ export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
       >
         <label
           htmlFor="csf-upload"
-          className={`flex cursor-pointer items-center gap-4 rounded-xl border border-dashed px-5 py-4 transition-colors ${
+          className={`flex cursor-pointer items-center gap-4 rounded-[4px] border border-dashed px-5 py-4 transition-colors ${
             isDragOver
-              ? 'border-primary/60 bg-primary/5'
+              ? 'border-sello bg-sello-tenue/60'
               : file
-                ? 'border-primary/40 bg-primary/5'
-                : 'border-border/60 hover:border-border hover:bg-muted/30'
+                ? 'border-sello/60 bg-sello-tenue/40'
+                : 'border-tinta-tenue/40 bg-hoja hover:border-sello/60'
           }`}
         >
-          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-            file ? 'bg-primary/15' : 'bg-muted'
-          }`}>
-            <FileText className={`h-4.5 w-4.5 ${file ? 'text-primary' : 'text-muted-foreground'}`} />
-          </div>
+          <FileText className={`h-5 w-5 shrink-0 ${file ? 'text-sello' : 'text-tinta-tenue'}`} />
 
           <div className="flex-1 min-w-0">
             {file ? (
@@ -125,16 +123,16 @@ export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
                   {file.name}
                 </p>
                 <p className="text-[12px] text-muted-foreground">
-                  {(file.size / 1024).toFixed(0)} KB — Listo para extraer
+                  <span className="font-mono">{(file.size / 1024).toFixed(0)} KB</span>, listo para leer
                 </p>
               </>
             ) : (
               <>
                 <p className="text-sm font-medium text-foreground">
-                  Constancia de Situación Fiscal
+                  Llenar con la Constancia de Situación Fiscal
                 </p>
                 <p className="text-[12px] text-muted-foreground">
-                  Arrastra tu CSF o haz clic para autocompletar los datos
+                  Arrastra el PDF aquí o haz clic para elegirlo. Puedes saltarte este paso.
                 </p>
               </>
             )}
@@ -146,7 +144,8 @@ export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 p-0"
+                aria-label="Quitar archivo"
                 onClick={(e) => {
                   e.preventDefault()
                   setFile(null)
@@ -167,16 +166,16 @@ export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
               >
                 {isExtracting ? (
                   <>
-                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                    Extrayendo...
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Leyendo…
                   </>
                 ) : (
-                  'Extraer datos'
+                  'Leer datos'
                 )}
               </Button>
             </div>
           ) : (
-            <Upload className="h-4 w-4 shrink-0 text-muted-foreground/50" />
+            <Upload className="h-4 w-4 shrink-0 text-tinta-tenue" />
           )}
 
           <input
@@ -192,9 +191,9 @@ export function CSFUpload({ onDataExtracted }: CSFUploadProps) {
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-2.5">
-          <p className="text-[13px] text-destructive">{error}</p>
-        </div>
+        <p role="alert" className="rounded-[4px] border-l-2 border-tinta-roja bg-hoja px-4 py-2.5 text-[13px] text-tinta-roja">
+          {error}
+        </p>
       )}
     </div>
   )

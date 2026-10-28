@@ -1,0 +1,1252 @@
+[
+ {
+  "code": "AFG",
+  "description": "Afganistán",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ALA",
+  "description": "Islas Åland",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ALB",
+  "description": "Albania",
+  "taxIdFormat": null
+ },
+ {
+  "code": "DEU",
+  "description": "Alemania",
+  "taxIdFormat": null
+ },
+ {
+  "code": "AND",
+  "description": "Andorra",
+  "taxIdFormat": null
+ },
+ {
+  "code": "AGO",
+  "description": "Angola",
+  "taxIdFormat": null
+ },
+ {
+  "code": "AIA",
+  "description": "Anguila",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ATA",
+  "description": "Antártida",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ATG",
+  "description": "Antigua y Barbuda",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SAU",
+  "description": "Arabia Saudita",
+  "taxIdFormat": null
+ },
+ {
+  "code": "DZA",
+  "description": "Argelia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ARG",
+  "description": "Argentina",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ARM",
+  "description": "Armenia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ABW",
+  "description": "Aruba",
+  "taxIdFormat": null
+ },
+ {
+  "code": "AUS",
+  "description": "Australia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "AUT",
+  "description": "Austria",
+  "taxIdFormat": null
+ },
+ {
+  "code": "AZE",
+  "description": "Azerbaiyán",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BHS",
+  "description": "Bahamas (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BGD",
+  "description": "Bangladés",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BRB",
+  "description": "Barbados",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BHR",
+  "description": "Baréin",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BEL",
+  "description": "Bélgica",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BLZ",
+  "description": "Belice",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BEN",
+  "description": "Benín",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BMU",
+  "description": "Bermudas",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BLR",
+  "description": "Bielorrusia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MMR",
+  "description": "Myanmar",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BOL",
+  "description": "Bolivia, Estado Plurinacional de",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BIH",
+  "description": "Bosnia y Herzegovina",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BWA",
+  "description": "Botsuana",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BRA",
+  "description": "Brasil",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BRN",
+  "description": "Brunéi Darussalam",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BGR",
+  "description": "Bulgaria",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BFA",
+  "description": "Burkina Faso",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BDI",
+  "description": "Burundi",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BTN",
+  "description": "Bután",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CPV",
+  "description": "Cabo Verde",
+  "taxIdFormat": null
+ },
+ {
+  "code": "KHM",
+  "description": "Camboya",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CMR",
+  "description": "Camerún",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CAN",
+  "description": "Canadá",
+  "taxIdFormat": "[0-9]{9}"
+ },
+ {
+  "code": "QAT",
+  "description": "Catar",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BES",
+  "description": "Bonaire, San Eustaquio y Saba",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TCD",
+  "description": "Chad",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CHL",
+  "description": "Chile",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CHN",
+  "description": "China",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CYP",
+  "description": "Chipre",
+  "taxIdFormat": null
+ },
+ {
+  "code": "COL",
+  "description": "Colombia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "COM",
+  "description": "Comoras",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PRK",
+  "description": "Corea (la República Democrática Popular de)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "KOR",
+  "description": "Corea (la República de)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CIV",
+  "description": "Côte d'Ivoire",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CRI",
+  "description": "Costa Rica",
+  "taxIdFormat": null
+ },
+ {
+  "code": "HRV",
+  "description": "Croacia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CUB",
+  "description": "Cuba",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CUW",
+  "description": "Curaçao",
+  "taxIdFormat": null
+ },
+ {
+  "code": "DNK",
+  "description": "Dinamarca",
+  "taxIdFormat": null
+ },
+ {
+  "code": "DMA",
+  "description": "Dominica",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ECU",
+  "description": "Ecuador",
+  "taxIdFormat": null
+ },
+ {
+  "code": "EGY",
+  "description": "Egipto",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SLV",
+  "description": "El Salvador",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ARE",
+  "description": "Emiratos Árabes Unidos (Los)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ERI",
+  "description": "Eritrea",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SVK",
+  "description": "Eslovaquia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SVN",
+  "description": "Eslovenia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ESP",
+  "description": "España",
+  "taxIdFormat": null
+ },
+ {
+  "code": "USA",
+  "description": "Estados Unidos (los)",
+  "taxIdFormat": "[0-9]{9}"
+ },
+ {
+  "code": "EST",
+  "description": "Estonia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ETH",
+  "description": "Etiopía",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PHL",
+  "description": "Filipinas (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "FIN",
+  "description": "Finlandia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "FJI",
+  "description": "Fiyi",
+  "taxIdFormat": null
+ },
+ {
+  "code": "FRA",
+  "description": "Francia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GAB",
+  "description": "Gabón",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GMB",
+  "description": "Gambia (La)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GEO",
+  "description": "Georgia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GHA",
+  "description": "Ghana",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GIB",
+  "description": "Gibraltar",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GRD",
+  "description": "Granada",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GRC",
+  "description": "Grecia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GRL",
+  "description": "Groenlandia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GLP",
+  "description": "Guadalupe",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GUM",
+  "description": "Guam",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GTM",
+  "description": "Guatemala",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GUF",
+  "description": "Guayana Francesa",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GGY",
+  "description": "Guernsey",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GIN",
+  "description": "Guinea",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GNB",
+  "description": "Guinea-Bisáu",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GNQ",
+  "description": "Guinea Ecuatorial",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GUY",
+  "description": "Guyana",
+  "taxIdFormat": null
+ },
+ {
+  "code": "HTI",
+  "description": "Haití",
+  "taxIdFormat": null
+ },
+ {
+  "code": "HND",
+  "description": "Honduras",
+  "taxIdFormat": null
+ },
+ {
+  "code": "HKG",
+  "description": "Hong Kong",
+  "taxIdFormat": null
+ },
+ {
+  "code": "HUN",
+  "description": "Hungría",
+  "taxIdFormat": null
+ },
+ {
+  "code": "IND",
+  "description": "India",
+  "taxIdFormat": null
+ },
+ {
+  "code": "IDN",
+  "description": "Indonesia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "IRQ",
+  "description": "Irak",
+  "taxIdFormat": null
+ },
+ {
+  "code": "IRN",
+  "description": "Irán (la República Islámica de)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "IRL",
+  "description": "Irlanda",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BVT",
+  "description": "Isla Bouvet",
+  "taxIdFormat": null
+ },
+ {
+  "code": "IMN",
+  "description": "Isla de Man",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CXR",
+  "description": "Isla de Navidad",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NFK",
+  "description": "Isla Norfolk",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ISL",
+  "description": "Islandia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CYM",
+  "description": "Islas Caimán (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CCK",
+  "description": "Islas Cocos (Keeling)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "COK",
+  "description": "Islas Cook (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "FRO",
+  "description": "Islas Feroe (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SGS",
+  "description": "Georgia del sur y las islas sandwich del sur",
+  "taxIdFormat": null
+ },
+ {
+  "code": "HMD",
+  "description": "Isla Heard e Islas McDonald",
+  "taxIdFormat": null
+ },
+ {
+  "code": "FLK",
+  "description": "Islas Malvinas [Falkland] (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MNP",
+  "description": "Islas Marianas del Norte (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MHL",
+  "description": "Islas Marshall (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PCN",
+  "description": "Pitcairn",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SLB",
+  "description": "Islas Salomón (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TCA",
+  "description": "Islas Turcas y Caicos (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "UMI",
+  "description": "Islas de Ultramar Menores de Estados Unidos (las)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "VGB",
+  "description": "Islas Vírgenes (Británicas)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "VIR",
+  "description": "Islas Vírgenes (EE.UU.)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ISR",
+  "description": "Israel",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ITA",
+  "description": "Italia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "JAM",
+  "description": "Jamaica",
+  "taxIdFormat": null
+ },
+ {
+  "code": "JPN",
+  "description": "Japón",
+  "taxIdFormat": null
+ },
+ {
+  "code": "JEY",
+  "description": "Jersey",
+  "taxIdFormat": null
+ },
+ {
+  "code": "JOR",
+  "description": "Jordania",
+  "taxIdFormat": null
+ },
+ {
+  "code": "KAZ",
+  "description": "Kazajistán",
+  "taxIdFormat": null
+ },
+ {
+  "code": "KEN",
+  "description": "Kenia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "KGZ",
+  "description": "Kirguistán",
+  "taxIdFormat": null
+ },
+ {
+  "code": "KIR",
+  "description": "Kiribati",
+  "taxIdFormat": null
+ },
+ {
+  "code": "KWT",
+  "description": "Kuwait",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LAO",
+  "description": "Lao, (la) República Democrática Popular",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LSO",
+  "description": "Lesoto",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LVA",
+  "description": "Letonia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LBN",
+  "description": "Líbano",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LBR",
+  "description": "Liberia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LBY",
+  "description": "Libia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LIE",
+  "description": "Liechtenstein",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LTU",
+  "description": "Lituania",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LUX",
+  "description": "Luxemburgo",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MAC",
+  "description": "Macao",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MDG",
+  "description": "Madagascar",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MYS",
+  "description": "Malasia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MWI",
+  "description": "Malaui",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MDV",
+  "description": "Maldivas",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MLI",
+  "description": "Malí",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MLT",
+  "description": "Malta",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MAR",
+  "description": "Marruecos",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MTQ",
+  "description": "Martinica",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MUS",
+  "description": "Mauricio",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MRT",
+  "description": "Mauritania",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MYT",
+  "description": "Mayotte",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MEX",
+  "description": "México",
+  "taxIdFormat": "[A-Z&Ñ]{3,4}[0-9]{2}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])[A-Z0-9]{2}[0-9A]"
+ },
+ {
+  "code": "FSM",
+  "description": "Micronesia (los Estados Federados de)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MDA",
+  "description": "Moldavia (la República de)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MCO",
+  "description": "Mónaco",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MNG",
+  "description": "Mongolia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MNE",
+  "description": "Montenegro",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MSR",
+  "description": "Montserrat",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MOZ",
+  "description": "Mozambique",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NAM",
+  "description": "Namibia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NRU",
+  "description": "Nauru",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NPL",
+  "description": "Nepal",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NIC",
+  "description": "Nicaragua",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NER",
+  "description": "Níger (el)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NGA",
+  "description": "Nigeria",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NIU",
+  "description": "Niue",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NOR",
+  "description": "Noruega",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NCL",
+  "description": "Nueva Caledonia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NZL",
+  "description": "Nueva Zelanda",
+  "taxIdFormat": null
+ },
+ {
+  "code": "OMN",
+  "description": "Omán",
+  "taxIdFormat": null
+ },
+ {
+  "code": "NLD",
+  "description": "Países Bajos (los)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PAK",
+  "description": "Pakistán",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PLW",
+  "description": "Palaos",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PSE",
+  "description": "Palestina, Estado de",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PAN",
+  "description": "Panamá",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PNG",
+  "description": "Papúa Nueva Guinea",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PRY",
+  "description": "Paraguay",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PER",
+  "description": "Perú",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PYF",
+  "description": "Polinesia Francesa",
+  "taxIdFormat": null
+ },
+ {
+  "code": "POL",
+  "description": "Polonia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PRT",
+  "description": "Portugal",
+  "taxIdFormat": null
+ },
+ {
+  "code": "PRI",
+  "description": "Puerto Rico",
+  "taxIdFormat": null
+ },
+ {
+  "code": "GBR",
+  "description": "Reino Unido (el)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CAF",
+  "description": "República Centroafricana (la)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CZE",
+  "description": "República Checa (la)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MKD",
+  "description": "Macedonia (la antigua República Yugoslava de)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "COG",
+  "description": "Congo",
+  "taxIdFormat": null
+ },
+ {
+  "code": "COD",
+  "description": "Congo (la República Democrática del)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "DOM",
+  "description": "República Dominicana (la)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "REU",
+  "description": "Reunión",
+  "taxIdFormat": null
+ },
+ {
+  "code": "RWA",
+  "description": "Ruanda",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ROU",
+  "description": "Rumania",
+  "taxIdFormat": null
+ },
+ {
+  "code": "RUS",
+  "description": "Rusia, (la) Federación de",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ESH",
+  "description": "Sahara Occidental",
+  "taxIdFormat": null
+ },
+ {
+  "code": "WSM",
+  "description": "Samoa",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ASM",
+  "description": "Samoa Americana",
+  "taxIdFormat": null
+ },
+ {
+  "code": "BLM",
+  "description": "San Bartolomé",
+  "taxIdFormat": null
+ },
+ {
+  "code": "KNA",
+  "description": "San Cristóbal y Nieves",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SMR",
+  "description": "San Marino",
+  "taxIdFormat": null
+ },
+ {
+  "code": "MAF",
+  "description": "San Martín (parte francesa)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SPM",
+  "description": "San Pedro y Miquelón",
+  "taxIdFormat": null
+ },
+ {
+  "code": "VCT",
+  "description": "San Vicente y las Granadinas",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SHN",
+  "description": "Santa Helena, Ascensión y Tristán de Acuña",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LCA",
+  "description": "Santa Lucía",
+  "taxIdFormat": null
+ },
+ {
+  "code": "STP",
+  "description": "Santo Tomé y Príncipe",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SEN",
+  "description": "Senegal",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SRB",
+  "description": "Serbia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SYC",
+  "description": "Seychelles",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SLE",
+  "description": "Sierra leona",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SGP",
+  "description": "Singapur",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SXM",
+  "description": "Sint Maarten (parte holandesa)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SYR",
+  "description": "Siria, (la) República Árabe",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SOM",
+  "description": "Somalia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "LKA",
+  "description": "Sri Lanka",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SWZ",
+  "description": "Suazilandia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ZAF",
+  "description": "Sudáfrica",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SDN",
+  "description": "Sudán (el)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SSD",
+  "description": "Sudán del Sur",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SWE",
+  "description": "Suecia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "CHE",
+  "description": "Suiza",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SUR",
+  "description": "Surinam",
+  "taxIdFormat": null
+ },
+ {
+  "code": "SJM",
+  "description": "Svalbard y Jan Mayen",
+  "taxIdFormat": null
+ },
+ {
+  "code": "THA",
+  "description": "Tailandia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TWN",
+  "description": "Taiwán (Provincia de China)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TZA",
+  "description": "Tanzania, República Unida de",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TJK",
+  "description": "Tayikistán",
+  "taxIdFormat": null
+ },
+ {
+  "code": "IOT",
+  "description": "Territorio Británico del Océano Índico (el)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ATF",
+  "description": "Territorios Australes Franceses (los)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TLS",
+  "description": "Timor-Leste",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TGO",
+  "description": "Togo",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TKL",
+  "description": "Tokelau",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TON",
+  "description": "Tonga",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TTO",
+  "description": "Trinidad y Tobago",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TUN",
+  "description": "Túnez",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TKM",
+  "description": "Turkmenistán",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TUR",
+  "description": "Turquía",
+  "taxIdFormat": null
+ },
+ {
+  "code": "TUV",
+  "description": "Tuvalu",
+  "taxIdFormat": null
+ },
+ {
+  "code": "UKR",
+  "description": "Ucrania",
+  "taxIdFormat": null
+ },
+ {
+  "code": "UGA",
+  "description": "Uganda",
+  "taxIdFormat": null
+ },
+ {
+  "code": "URY",
+  "description": "Uruguay",
+  "taxIdFormat": null
+ },
+ {
+  "code": "UZB",
+  "description": "Uzbekistán",
+  "taxIdFormat": null
+ },
+ {
+  "code": "VUT",
+  "description": "Vanuatu",
+  "taxIdFormat": null
+ },
+ {
+  "code": "VAT",
+  "description": "Santa Sede[Estado de la Ciudad del Vaticano] (la)",
+  "taxIdFormat": null
+ },
+ {
+  "code": "VEN",
+  "description": "Venezuela, República Bolivariana de",
+  "taxIdFormat": null
+ },
+ {
+  "code": "VNM",
+  "description": "Viet Nam",
+  "taxIdFormat": null
+ },
+ {
+  "code": "WLF",
+  "description": "Wallis y Futuna",
+  "taxIdFormat": null
+ },
+ {
+  "code": "YEM",
+  "description": "Yemen",
+  "taxIdFormat": null
+ },
+ {
+  "code": "DJI",
+  "description": "Yibuti",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ZMB",
+  "description": "Zambia",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ZWE",
+  "description": "Zimbabue",
+  "taxIdFormat": null
+ },
+ {
+  "code": "ZZZ",
+  "description": "Países no declarados",
+  "taxIdFormat": null
+ }
+]

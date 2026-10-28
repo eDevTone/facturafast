@@ -2,15 +2,21 @@ import { Column, Preview, Row, Section, Text } from '@react-email/components'
 import { EmailFooter } from '../components/email-footer'
 import { EmailHeader } from '../components/email-header'
 import { EmailLayout } from '../components/email-layout'
+import { amountWithCurrency, EmailPaymentDetails } from '../components/email-payment-details'
 
 interface InvoiceStampedEmailProps {
   clientName: string
   businessName: string
   folioLabel: string
+  /** Formatted in the invoice currency: "$1,000.00" or "USD 1,000.00". */
   total: string
   currency: string
   uuid: string
   stampedAt: string
+  /** "19 nov 2026" when the invoice has days of credit and is still owed. */
+  dueDate?: string | null
+  /** The issuer's payment details, only when the invoice is still owed. */
+  paymentDetails?: string[]
 }
 
 export function InvoiceStampedEmail({
@@ -21,16 +27,19 @@ export function InvoiceStampedEmail({
   currency,
   uuid,
   stampedAt,
+  dueDate,
+  paymentDetails = [],
 }: InvoiceStampedEmailProps) {
+  const amount = amountWithCurrency(total, currency)
   return (
-    <EmailLayout preview={`Factura ${folioLabel} — ${total} ${currency}`}>
-      <Preview>Factura {folioLabel} — {total} {currency}</Preview>
+    <EmailLayout preview={`Factura ${folioLabel} — ${amount}`}>
+      <Preview>Factura {folioLabel} — {amount}</Preview>
 
       {/* Card container */}
       <Section
         style={{
           backgroundColor: '#ffffff',
-          borderRadius: '12px',
+          borderRadius: '4px',
           padding: '32px',
         }}
       >
@@ -41,7 +50,7 @@ export function InvoiceStampedEmail({
           style={{
             fontSize: '15px',
             lineHeight: '24px',
-            color: '#19213d',
+            color: '#141414',
             margin: '0 0 16px 0',
           }}
         >
@@ -52,79 +61,95 @@ export function InvoiceStampedEmail({
           style={{
             fontSize: '15px',
             lineHeight: '24px',
-            color: '#19213d',
+            color: '#141414',
             margin: '0 0 24px 0',
           }}
         >
           Se ha emitido la factura <strong>{folioLabel}</strong> por{' '}
-          <strong>{total} {currency}</strong>.
+          <strong>{amount}</strong>.
         </Text>
 
         {/* Invoice summary card */}
         <Section
           style={{
-            backgroundColor: '#f4f4f5',
-            borderRadius: '8px',
+            backgroundColor: '#f5f5f7',
+            borderRadius: '4px',
             padding: '20px',
             margin: '0 0 24px 0',
           }}
         >
           <Row style={{ padding: '4px 0' }}>
             <Column>
-              <Text style={{ fontSize: '12px', color: '#868da6', margin: '0', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '600' }}>
+              <Text style={{ fontSize: '12px', color: '#5e5e66', margin: '0', fontWeight: '600' }}>
                 Folio
               </Text>
             </Column>
             <Column style={{ textAlign: 'right' }}>
-              <Text style={{ fontSize: '14px', color: '#19213d', margin: '0', fontWeight: '600', fontFamily: 'monospace' }}>
+              <Text style={{ fontSize: '14px', color: '#141414', margin: '0', fontWeight: '600', fontFamily: '"IBM Plex Mono", Menlo, monospace' }}>
                 {folioLabel}
               </Text>
             </Column>
           </Row>
           <Row style={{ padding: '4px 0' }}>
             <Column>
-              <Text style={{ fontSize: '12px', color: '#868da6', margin: '0', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '600' }}>
+              <Text style={{ fontSize: '12px', color: '#5e5e66', margin: '0', fontWeight: '600' }}>
                 Total
               </Text>
             </Column>
             <Column style={{ textAlign: 'right' }}>
-              <Text style={{ fontSize: '14px', color: '#10b981', margin: '0', fontWeight: '700', fontFamily: 'monospace' }}>
-                {total} {currency}
+              <Text style={{ fontSize: '14px', color: '#2f4ba8', margin: '0', fontWeight: '700', fontFamily: '"IBM Plex Mono", Menlo, monospace' }}>
+                {amount}
               </Text>
             </Column>
           </Row>
           <Row style={{ padding: '4px 0' }}>
             <Column>
-              <Text style={{ fontSize: '12px', color: '#868da6', margin: '0', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '600' }}>
+              <Text style={{ fontSize: '12px', color: '#5e5e66', margin: '0', fontWeight: '600' }}>
                 UUID
               </Text>
             </Column>
             <Column style={{ textAlign: 'right' }}>
-              <Text style={{ fontSize: '11px', color: '#19213d', margin: '0', fontFamily: 'monospace' }}>
+              <Text style={{ fontSize: '11px', color: '#141414', margin: '0', fontFamily: '"IBM Plex Mono", Menlo, monospace' }}>
                 {uuid}
               </Text>
             </Column>
           </Row>
           <Row style={{ padding: '4px 0' }}>
             <Column>
-              <Text style={{ fontSize: '12px', color: '#868da6', margin: '0', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '600' }}>
+              <Text style={{ fontSize: '12px', color: '#5e5e66', margin: '0', fontWeight: '600' }}>
                 Fecha
               </Text>
             </Column>
             <Column style={{ textAlign: 'right' }}>
-              <Text style={{ fontSize: '13px', color: '#19213d', margin: '0' }}>
+              <Text style={{ fontSize: '13px', color: '#141414', margin: '0' }}>
                 {stampedAt}
               </Text>
             </Column>
           </Row>
+          {dueDate && (
+            <Row style={{ padding: '4px 0' }}>
+              <Column>
+                <Text style={{ fontSize: '12px', color: '#5e5e66', margin: '0', fontWeight: '600' }}>
+                  Vence
+                </Text>
+              </Column>
+              <Column style={{ textAlign: 'right' }}>
+                <Text style={{ fontSize: '13px', color: '#141414', margin: '0' }}>
+                  {dueDate}
+                </Text>
+              </Column>
+            </Row>
+          )}
         </Section>
+
+        <EmailPaymentDetails lines={paymentDetails} />
 
         {/* Attachments note */}
         <Text
           style={{
             fontSize: '14px',
             lineHeight: '22px',
-            color: '#5d6481',
+            color: '#5e5e66',
             margin: '0 0 8px 0',
           }}
         >
@@ -134,7 +159,7 @@ export function InvoiceStampedEmail({
           style={{
             fontSize: '14px',
             lineHeight: '22px',
-            color: '#5d6481',
+            color: '#5e5e66',
             margin: '0 0 24px 0',
           }}
         >

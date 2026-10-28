@@ -3,6 +3,7 @@
 import { KeyRound, ShieldCheck, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Input } from '@shared/ui/input'
+import { SectionLabel } from '@shared/components/section-label'
 
 export interface CsdFile {
   name: string
@@ -45,7 +46,7 @@ export function CsdUploadFields({
     const file = e.target.files?.[0]
     if (!file) return
     if (!file.name.toLowerCase().endsWith('.cer')) {
-      toast.error('Selecciona un archivo .cer')
+      toast.error('Ese archivo no es un .cer', { description: 'Elige el certificado que termina en .cer.' })
       return
     }
     const base64 = await readFileAsBase64(file)
@@ -56,40 +57,40 @@ export function CsdUploadFields({
     const file = e.target.files?.[0]
     if (!file) return
     if (!file.name.toLowerCase().endsWith('.key')) {
-      toast.error('Selecciona un archivo .key')
+      toast.error('Ese archivo no es un .key', { description: 'Elige la llave privada que termina en .key.' })
       return
     }
     const base64 = await readFileAsBase64(file)
     onKeyChange({ name: file.name, base64 })
   }
 
-  const showPassword = !!(cerFile || keyFile)
+  // Stored files (empty base64) need no password; only a new upload does.
+  const showPassword = !!(cerFile?.base64 || keyFile?.base64)
 
   const fields = (
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {/* .cer upload */}
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-            Certificado (.cer)
-          </label>
+          <span className="mb-1.5 block text-[13px] font-medium text-tinta">Certificado (.cer)</span>
           {cerFile ? (
-            <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
-              <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-xs text-foreground truncate flex-1">{cerFile.name}</span>
+            <div className="flex items-center gap-2 rounded-[4px] border border-sello/40 bg-sello-tenue/50 px-3 py-2">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-sello" />
+              <span className="flex-1 truncate font-mono text-[12px] text-tinta">{cerFile.name}</span>
+              {!cerFile.base64 && <span className="text-[11px] text-tinta-tenue">guardado</span>}
               <button
                 type="button"
                 onClick={() => onCerChange(null)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Eliminar archivo .cer"
+                className="text-tinta-tenue transition-colors hover:text-tinta"
+                aria-label={cerFile.base64 ? 'Quitar archivo .cer' : 'Reemplazar archivo .cer'}
               >
                 <X className="h-3 w-3" />
               </button>
             </div>
           ) : (
-            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 hover:border-muted-foreground/50 transition-colors">
-              <Upload className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Subir .cer</span>
+            <label className="flex cursor-pointer items-center gap-2 rounded-[4px] border border-dashed border-tinta-tenue/40 bg-hoja px-3 py-2 transition-colors hover:border-sello/60 focus-within:border-sello">
+              <Upload className="h-4 w-4 text-tinta-tenue" />
+              <span className="text-[13px] text-tinta-tenue">Elegir archivo .cer</span>
               <input
                 type="file"
                 accept=".cer"
@@ -102,26 +103,25 @@ export function CsdUploadFields({
 
         {/* .key upload */}
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-            Llave privada (.key)
-          </label>
+          <span className="mb-1.5 block text-[13px] font-medium text-tinta">Llave privada (.key)</span>
           {keyFile ? (
-            <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
-              <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-xs text-foreground truncate flex-1">{keyFile.name}</span>
+            <div className="flex items-center gap-2 rounded-[4px] border border-sello/40 bg-sello-tenue/50 px-3 py-2">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-sello" />
+              <span className="flex-1 truncate font-mono text-[12px] text-tinta">{keyFile.name}</span>
+              {!keyFile.base64 && <span className="text-[11px] text-tinta-tenue">guardado</span>}
               <button
                 type="button"
                 onClick={() => onKeyChange(null)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Eliminar archivo .key"
+                className="text-tinta-tenue transition-colors hover:text-tinta"
+                aria-label={keyFile.base64 ? 'Quitar archivo .key' : 'Reemplazar archivo .key'}
               >
                 <X className="h-3 w-3" />
               </button>
             </div>
           ) : (
-            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 hover:border-muted-foreground/50 transition-colors">
-              <Upload className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Subir .key</span>
+            <label className="flex cursor-pointer items-center gap-2 rounded-[4px] border border-dashed border-tinta-tenue/40 bg-hoja px-3 py-2 transition-colors hover:border-sello/60 focus-within:border-sello">
+              <Upload className="h-4 w-4 text-tinta-tenue" />
+              <span className="text-[13px] text-tinta-tenue">Elegir archivo .key</span>
               <input
                 type="file"
                 accept=".key"
@@ -136,19 +136,21 @@ export function CsdUploadFields({
       {/* Password field — appears when at least one file is uploaded */}
       {showPassword && (
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">
-            <KeyRound className="h-3.5 w-3.5" />
-            Contraseña del certificado
+          <label htmlFor="csd-password" className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-tinta">
+            <KeyRound className="h-3.5 w-3.5 text-tinta-tenue" />
+            Contraseña de la llave privada
           </label>
           <Input
+            id="csd-password"
             type="password"
             togglePassword
-            placeholder="Contraseña de la llave privada"
+            autoComplete="off"
+            placeholder="La que pusiste al generar tu CSD"
             value={keyPassword}
             onChange={(e) => onPasswordChange(e.target.value)}
           />
-          <p className="text-xs text-muted-foreground mt-1">
-            Se almacena encriptada con AES-256. Nunca en texto plano.
+          <p className="mt-1 text-[12px] text-tinta-tenue">
+            Se guarda cifrada y solo se usa para sellar tus facturas.
           </p>
         </div>
       )}
@@ -160,11 +162,11 @@ export function CsdUploadFields({
   }
 
   return (
-    <div className="rounded-lg border border-dashed p-4 space-y-4">
+    <div className="space-y-4">
       <div>
-        <p className="text-sm font-medium">Certificado de Sello Digital (CSD)</p>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Necesario para timbrar facturas reales. Puedes agregarlo después.
+        <SectionLabel>Certificado de sello digital (CSD)</SectionLabel>
+        <p className="mt-2 text-[13px] text-tinta-tenue">
+          Lo necesitas para timbrar. Es distinto de tu e.firma: se tramita en CertiSAT. Puedes agregarlo después.
         </p>
       </div>
       {fields}

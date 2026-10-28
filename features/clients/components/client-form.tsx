@@ -7,7 +7,10 @@ import { useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 
+import { cn } from '@/lib/utils'
+import { SectionLabel } from '@shared/components/section-label'
 import { Button } from '@shared/ui/button'
+import { Combobox } from '@shared/ui/combobox'
 import {
   Form,
   FormControl,
@@ -17,65 +20,105 @@ import {
   FormMessage,
 } from '@shared/ui/form'
 import { Input } from '@shared/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@shared/ui/select'
 
-import type { CatalogOption, TaxRegimeOption } from '@shared/services/sat-catalog.service'
+import type { CatalogOption, CountryOption, TaxRegimeOption } from '@shared/services/sat-catalog.service'
+import { toComboboxOptions } from '@shared/utils/catalog-options'
+import { regimeFitsRfc } from '@shared/utils/rfc'
+import { MAX_PAYMENT_TERMS_DAYS } from '@features/collections/utils/due-date'
 import { createClientAction } from '../actions/create-client.action'
 import { createClientFormSchema, type ClientFormData } from '../schemas/client-form.schema'
+import { foreignTaxIdMatches, normalizeForeignTaxId } from '../utils/foreign-client'
 import { CSFUpload } from './csf-upload'
+
+/** Uso CFDI applied when the client has none: "Gastos en general" (P01 no longer exists in CFDI 4.0). */
+const DEFAULT_CFDI_USAGE = 'G03'
+
+export interface CreatedClient {
+  id: string
+  businessName: string
+  rfc: string
+  cfdiUsage: string | null
+}
 
 interface ClientFormProps {
   defaultValues?: Partial<ClientFormData>
-  onSubmit?: (formData: FormData) => Promise<any>
+  /** Custom submit (edit mode). The form shows the success/error toast; the caller only reacts. */
+  onSubmit?: (data: ClientFormData) => Promise<{ success: boolean; error?: string }>
+  /** Create mode inside another screen (e.g. a dialog in the invoice form): called instead of navigating. */
+  onCreated?: (client: CreatedClient) => void
   onCancel?: () => void
   submitLabel?: string
   showCSFUpload?: boolean
   catalogs: {
     taxRegimes: TaxRegimeOption[]
     cfdiUsages: CatalogOption[]
+    countries: CountryOption[]
   }
+}
+
+/** What a 9-digit tax id is called in each country that uses one. */
+const NINE_DIGIT_IDS: Record<string, string> = {
+  USA: 'su EIN (o SSN), 9 dígitos sin guiones',
+  CAN: 'su Business Number, 9 dígitos',
 }
 
 export function ClientForm({
   defaultValues,
   onSubmit: customOnSubmit,
+  onCreated,
   onCancel,
-  submitLabel = 'Guardar Cliente',
+  submitLabel = 'Guardar cliente',
   showCSFUpload = true,
   catalogs,
 }: ClientFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isEditing = !!defaultValues
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(createClientFormSchema),
-    defaultValues: defaultValues || {
+    defaultValues: {
+      isForeign: false,
       rfc: '',
       businessName: '',
       email: '',
       phone: '',
       postalCode: '',
       taxRegime: '',
-      cfdiUsage: '',
+      country: '',
+      foreignTaxId: '',
+      paymentTermsDays: null,
+      ...defaultValues,
+      cfdiUsage: defaultValues?.cfdiUsage || DEFAULT_CFDI_USAGE,
     },
   })
 
-  // Watch RFC to determine person type and filter tax regimes
+  const isForeign = useWatch({ control: form.control, name: 'isForeign' })
+  const country = useWatch({ control: form.control, name: 'country' })
+  const countryOptions = useMemo(() => toComboboxOptions(catalogs.countries), [catalogs.countries])
+  const taxIdFormat = catalogs.countries.find(c => c.value === country)?.taxIdFormat ?? null
+
+  // Watch RFC to determine person type and filter tax regimes and CFDI usages
   const rfcValue = useWatch({ control: form.control, name: 'rfc' })
   const personType = rfcValue?.length === 12 ? 'moral' : rfcValue?.length === 13 ? 'fisica' : null
 
-  const filteredTaxRegimes = useMemo(() => {
-    if (!personType) return catalogs.taxRegimes
-    return catalogs.taxRegimes.filter(r =>
-      personType === 'moral' ? r.applicableToMoral : r.applicableToFisica
-    )
+  const regimeOptions = useMemo(() => {
+    const regimes = personType
+      ? catalogs.taxRegimes.filter(r => (personType === 'moral' ? r.applicableToMoral : r.applicableToFisica))
+      : catalogs.taxRegimes
+    return regimes.map(r => ({ value: r.value, hint: r.value, label: r.label.replace(/^\d+\s*-\s*/, '') }))
   }, [catalogs.taxRegimes, personType])
+
+  /** A régimen picked before the RFC may not fit it once typed: it is dropped so the user picks again. */
+  const dropUnfittingRegime = (rfc: string) => {
+    const regime = catalogs.taxRegimes.find(r => r.value === form.getValues('taxRegime'))
+    if (regime && !regimeFitsRfc(regime, rfc)) form.setValue('taxRegime', '')
+  }
+
+  const usageOptions = useMemo(
+    () => catalogs.cfdiUsages.map(u => ({ value: u.value, hint: u.value, label: u.label.replace(/^\w+\s*-\s*/, '') })),
+    [catalogs.cfdiUsages],
+  )
 
   const handleCSFData = (data: {
     rfc: string
@@ -98,48 +141,76 @@ export function ClientForm({
       form.setValue('cfdiUsage', data.cfdiUsage, { shouldDirty: true })
     }
 
-    toast.success('Datos extraídos del CSF', {
-      description: 'Revisa y completa la información faltante.'
+    toast.success('Datos tomados de la constancia', {
+      description: 'Revísalos y completa lo que falte.'
     })
   }
 
-  async function onSubmit(data: ClientFormData) {
+  async function onSubmit(input: ClientFormData) {
+    let data = input
+    // NumRegIdTrib must follow the pattern c_Pais gives the country (CFDI40156).
+    if (data.isForeign && data.foreignTaxId) {
+      const foreignTaxId = normalizeForeignTaxId(data.foreignTaxId)
+      if (!foreignTaxIdMatches(foreignTaxId, taxIdFormat)) {
+        form.setError('foreignTaxId', {
+          message: taxIdFormat === '[0-9]{9}' ? 'Lleva 9 dígitos, sin guiones' : 'No tiene el formato que el SAT pide para ese país',
+        })
+        return
+      }
+      data = { ...data, foreignTaxId }
+    }
+
     setIsSubmitting(true)
 
-    const toastId = toast.loading(defaultValues ? 'Actualizando cliente...' : 'Creando cliente...')
+    const toastId = toast.loading(isEditing ? 'Guardando cambios…' : 'Guardando cliente…')
 
     try {
-      const formData = new FormData()
-      Object.entries(data).forEach(([key, value]) => {
-        if (value) formData.append(key, value)
+      if (customOnSubmit) {
+        const result = await customOnSubmit(data)
+        if (result.success) {
+          toast.success('Cliente actualizado', { id: toastId })
+        } else {
+          toast.error('No se guardaron los cambios', {
+            id: toastId,
+            description: result.error || 'Revisa los datos e inténtalo de nuevo.',
+          })
+        }
+        return
+      }
+
+      const result = await createClientAction(data)
+      if (!result.success || !('data' in result) || !result.data) {
+        toast.error('No se pudo guardar el cliente', {
+          id: toastId,
+          description: result.error || 'Revisa los datos e inténtalo de nuevo.',
+        })
+        return
+      }
+
+      toast.success('Cliente guardado', {
+        id: toastId,
+        description: data.isForeign ? data.businessName : `RFC ${data.rfc}`,
       })
 
-      const result = customOnSubmit 
-        ? await customOnSubmit(formData)
-        : await createClientAction(data)
-
-      if (result.success) {
-        toast.success(defaultValues ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente', {
-          id: toastId,
-          description: `RFC: ${data.rfc}`
+      if (onCreated) {
+        onCreated({
+          id: result.data.id,
+          businessName: result.data.businessName,
+          rfc: result.data.rfc,
+          cfdiUsage: result.data.cfdiUsage ?? null,
         })
-
-        if (!customOnSubmit) {
-          router.push('/clients')
-          router.refresh()
-          form.reset()
-        }
-      } else {
-        toast.error(defaultValues ? 'Error al actualizar cliente' : 'Error al crear cliente', {
-          id: toastId,
-          description: result.error || 'Intenta de nuevo'
-        })
+        form.reset()
+        return
       }
+
+      router.push('/clients')
+      router.refresh()
+      form.reset()
     } catch (error) {
       console.error('Form error:', error)
-      toast.error('Error inesperado', {
+      toast.error('No se pudo guardar el cliente', {
         id: toastId,
-        description: defaultValues ? 'No se pudo actualizar el cliente' : 'No se pudo crear el cliente'
+        description: 'Hubo un problema de conexión. Inténtalo de nuevo.',
       })
     } finally {
       setIsSubmitting(false)
@@ -149,228 +220,382 @@ export function ClientForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* CSF Upload */}
-        {showCSFUpload && <CSFUpload onDataExtracted={handleCSFData} />}
+        {showCSFUpload && !isForeign && <CSFUpload onDataExtracted={handleCSFData} />}
 
-        {/* Main form card */}
-        <div className="rounded-xl border border-border/60 bg-card p-5 space-y-8">
-
-        {/* Datos Fiscales */}
-        <section className="space-y-4">
-          <div>
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-              Datos Fiscales
-            </h2>
-            <div className="mt-1 h-px bg-border/40" />
-          </div>
-
-          <div className="grid grid-cols-5 gap-4">
-            {/* RFC */}
-            <FormField
-              control={form.control}
-              name="rfc"
-              render={({ field }) => (
-                <FormItem className="col-span-3">
-                  <FormLabel>RFC</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="XAXX010101000"
-                      className="font-mono tracking-wide"
-                      {...field}
-                      onChange={e => field.onChange(e.target.value.toUpperCase())}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Código Postal */}
-            <FormField
-              control={form.control}
-              name="postalCode"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Código Postal</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="76000"
-                      maxLength={5}
-                      className="font-mono tracking-wide"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Razón Social */}
-          <FormField
-            control={form.control}
-            name="businessName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Razón Social / Nombre</FormLabel>
-                <FormControl>
-                  <Input placeholder="EMPRESA EJEMPLO SA DE CV" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Régimen Fiscal */}
-          <FormField
-            control={form.control}
-            name="taxRegime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Régimen Fiscal
-                  {personType && (
-                    <span className="ml-1.5 text-[10px] font-normal text-muted-foreground/50">
-                      Persona {personType === 'moral' ? 'Moral' : 'Física'}
-                    </span>
+        <div className="hoja space-y-8 p-5 sm:p-6">
+          {/* Datos fiscales */}
+          <section className="space-y-4">
+            <SectionLabel
+              action={
+                <FormField
+                  control={form.control}
+                  name="isForeign"
+                  render={({ field }) => (
+                    <div className="flex items-center gap-1 text-[13px]" role="radiogroup" aria-label="Dónde reside el cliente">
+                      {([
+                        [false, 'En México'],
+                        [true, 'En el extranjero'],
+                      ] as const).map(([value, label]) => (
+                        <button
+                          key={label}
+                          type="button"
+                          role="radio"
+                          aria-checked={field.value === value}
+                          onClick={() => {
+                            field.onChange(value)
+                            form.clearErrors()
+                          }}
+                          className={cn(
+                            'whitespace-nowrap rounded-[4px] px-2 py-0.5 transition-colors',
+                            field.value === value ? 'bg-sello-tenue font-medium text-tinta' : 'text-tinta-tenue hover:text-tinta',
+                          )}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
                   )}
-                </FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona régimen fiscal" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {filteredTaxRegimes.map(regime => (
-                      <SelectItem key={regime.value} value={regime.value}>
-                        {regime.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </section>
+                />
+              }
+            >
+              Datos fiscales
+            </SectionLabel>
 
-        {/* Contacto */}
-        <section className="space-y-4">
-          <div>
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-              Contacto
-            </h2>
-            <div className="mt-1 h-px bg-border/40" />
-          </div>
+            {isForeign ? (
+              <ForeignClientFields form={form} countryOptions={countryOptions} country={country} taxIdFormat={taxIdFormat} />
+            ) : (
+            <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
+              <FormField
+                control={form.control}
+                name="rfc"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-3">
+                    <FormLabel>RFC</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="EKU9003173C9"
+                        className="font-mono tracking-wide"
+                        autoComplete="off"
+                        {...field}
+                        onChange={e => {
+                          const rfc = e.target.value.toUpperCase().trim()
+                          field.onChange(rfc)
+                          dropUnfittingRegime(rfc)
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* Email */}
+              <FormField
+                control={form.control}
+                name="postalCode"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>Código postal fiscal</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="76000"
+                        maxLength={5}
+                        inputMode="numeric"
+                        className="font-mono tracking-wide"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
-              name="email"
+              name="businessName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-muted-foreground">
-                    Email
-                    <span className="ml-1.5 text-[11px] text-muted-foreground/50">opcional</span>
-                  </FormLabel>
+                  <FormLabel>Razón social o nombre</FormLabel>
                   <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="cliente@ejemplo.com"
-                      {...field}
-                    />
+                    <Input placeholder="Como aparece en su constancia, sin «SA de CV»" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Teléfono */}
             <FormField
               control={form.control}
-              name="phone"
-              render={({ field }) => (
+              name="taxRegime"
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel className="text-muted-foreground">
-                    Teléfono
-                    <span className="ml-1.5 text-[11px] text-muted-foreground/50">opcional</span>
+                  <FormLabel>
+                    Régimen fiscal
+                    {personType && (
+                      <span className="ml-1.5 text-[12px] font-normal text-tinta-tenue">
+                        persona {personType === 'moral' ? 'moral' : 'física'}
+                      </span>
+                    )}
                   </FormLabel>
-                  <FormControl>
-                    <Input placeholder="442 123 4567" {...field} />
-                  </FormControl>
+                  <Combobox
+                    options={regimeOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Elige el régimen"
+                    searchPlaceholder="Busca por clave o nombre"
+                    emptyText="Ningún régimen coincide"
+                    aria-invalid={!!fieldState.error}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-        </section>
-
-        {/* Facturación */}
-        <section className="space-y-4">
-          <div>
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-              Facturación
-            </h2>
-            <div className="mt-1 h-px bg-border/40" />
-          </div>
-
-          {/* Uso CFDI */}
-          <FormField
-            control={form.control}
-            name="cfdiUsage"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-muted-foreground">
-                  Uso CFDI
-                  <span className="ml-1.5 text-[11px] text-muted-foreground/50">opcional</span>
-                </FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona uso CFDI" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {catalogs.cfdiUsages.map(usage => (
-                      <SelectItem key={usage.value} value={usage.value}>
-                        {usage.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
+            </>
             )}
-          />
-        </section>
+          </section>
 
-        </div>{/* end main form card */}
+          {/* Contacto */}
+          <section className="space-y-4">
+            <SectionLabel>Contacto</SectionLabel>
 
-        {/* Actions */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Correo
+                      <span className="ml-1.5 text-[12px] font-normal text-tinta-tenue">opcional, ahí le llegan sus facturas</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="facturas@cliente.mx" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Teléfono
+                      <span className="ml-1.5 text-[12px] font-normal text-tinta-tenue">opcional</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="442 123 4567" inputMode="tel" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </section>
+
+          {/* Facturación: a client abroad always gets S01, so only the days of credit apply */}
+          <section className="space-y-4">
+            <SectionLabel>Facturación</SectionLabel>
+
+            <div className={cn('grid grid-cols-1 gap-4', !isForeign && 'sm:grid-cols-[1fr_180px]')}>
+              {!isForeign && (
+                <FormField
+                  control={form.control}
+                  name="cfdiUsage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Uso del CFDI habitual
+                        <span className="ml-1.5 text-[12px] font-normal text-tinta-tenue">se propone al facturarle</span>
+                      </FormLabel>
+                      <Combobox
+                        options={usageOptions}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Elige el uso"
+                        searchPlaceholder="Busca por clave o nombre"
+                        emptyText="Ningún uso coincide"
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <FormField
+                control={form.control}
+                name="paymentTermsDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Días de crédito
+                      <span className="ml-1.5 text-[12px] font-normal text-tinta-tenue">opcional</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        max={MAX_PAYMENT_TERMS_DAYS}
+                        step={1}
+                        placeholder="30"
+                        className="max-w-[120px] font-mono"
+                        name={field.name}
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <p className="text-[12px] text-tinta-tenue">Lo que tarda en pagarte. Con eso sabemos cuándo vence cada factura.</p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </section>
+        </div>
+
         <div className="flex items-center justify-between">
           <Button
             type="button"
             variant="ghost"
-            onClick={() => onCancel ? onCancel() : router.push('/clients')}
+            onClick={() => (onCancel ? onCancel() : router.push('/clients'))}
             disabled={isSubmitting}
-            className="text-muted-foreground"
           >
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Guardando...
-              </>
-            ) : (
-              submitLabel
-            )}
+            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isSubmitting ? 'Guardando…' : submitLabel}
           </Button>
         </div>
       </form>
     </Form>
+  )
+}
+
+/**
+ * A client abroad: country (c_Pais), tax id (NumRegIdTrib), name, and the IVA it is charged.
+ * RFC, CP, régimen and uso CFDI are the ones the SAT fixes (XEXX010101000, issuer's CP, 616, S01).
+ */
+function ForeignClientFields({
+  form,
+  countryOptions,
+  country,
+  taxIdFormat,
+}: {
+  form: ReturnType<typeof useForm<ClientFormData>>
+  countryOptions: ReturnType<typeof toComboboxOptions>
+  country: string | undefined
+  taxIdFormat: string | null
+}) {
+  const taxIdHint = country && NINE_DIGIT_IDS[country]
+    ? `Escribe ${NINE_DIGIT_IDS[country]}.`
+    : taxIdFormat
+      ? 'Con el formato que el SAT pide para ese país.'
+      : 'Como lo usa en su país.'
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
+        <FormField
+          control={form.control}
+          name="country"
+          render={({ field, fieldState }) => (
+            <FormItem className="sm:col-span-2">
+              <FormLabel>País</FormLabel>
+              <Combobox
+                options={countryOptions}
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="¿Dónde reside?"
+                searchPlaceholder="Busca el país"
+                emptyText="Ningún país coincide"
+                aria-invalid={!!fieldState.error}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="foreignTaxId"
+          render={({ field }) => (
+            <FormItem className="sm:col-span-3">
+              <FormLabel>
+                Número de identificación fiscal
+                <span className="ml-1.5 text-[12px] font-normal text-tinta-tenue">opcional</span>
+              </FormLabel>
+              <FormControl>
+                <Input placeholder="123456789" className="font-mono tracking-wide" autoComplete="off" {...field} />
+              </FormControl>
+              <p className="text-[12px] text-tinta-tenue">
+                {taxIdHint} Si le facturas servicios de tecnología con IVA 0 %, la factura debe llevarlo.
+              </p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="businessName"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Nombre o razón social</FormLabel>
+            <FormControl>
+              <Input placeholder="Acme Inc." {...field} />
+            </FormControl>
+            <p className="text-[12px] text-tinta-tenue">
+              En la factura va con el RFC genérico XEXX010101000, como pide el SAT para los clientes del extranjero.
+            </p>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="ivaRate"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>¿Le cobras IVA?</FormLabel>
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="IVA que le cobras">
+              {([
+                ['0', '0 % · exportación de servicios'],
+                ['0.16', '16 %'],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={field.value === value}
+                  onClick={() => field.onChange(value)}
+                  className={cn(
+                    'rounded-[4px] border px-3 py-1.5 text-[13px] transition-colors',
+                    field.value === value
+                      ? 'border-sello bg-sello-tenue font-medium text-tinta'
+                      : 'border-renglon text-tinta-tenue hover:border-tinta-tenue/50 hover:text-tinta',
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="max-w-prose text-[12px] leading-relaxed text-tinta-tenue">
+              El 0 % aplica si tu cliente no tiene establecimiento en México, aprovecha todo el servicio fuera del país y
+              te paga por transferencia o cheque desde una cuenta de un banco del extranjero (LIVA art. 29; RLIVA arts. 58
+              y 61). Si te paga por PayPal, Wise o tarjeta, revísalo con tu contador. Si no se cumple, es 16 %.
+            </p>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   )
 }

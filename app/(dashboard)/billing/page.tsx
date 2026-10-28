@@ -1,8 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { BillingPage } from '@features/billing/components/billing-page'
 import { getOrCreateAccount, getPurchaseHistory } from '@features/billing/services/account.service'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -25,18 +23,12 @@ export default async function BillingRoute({
   ])
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl">
       <div className="mb-8">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Dashboard
-        </Link>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-[22px] font-semibold tracking-tight text-foreground">
           Timbres
         </h1>
+        <p className="mt-1 text-[13px] text-muted-foreground">Tu saldo y los paquetes para recargar.</p>
       </div>
 
       <BillingPage

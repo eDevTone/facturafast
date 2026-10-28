@@ -1,3 +1,5 @@
+import type { StampingFix } from '../utils/stamping-errors'
+
 // ── SW Sapien API Response ────────────────────────────────────────────────────
 
 export interface SwApiResponse<T = SwStampData> {
@@ -21,8 +23,13 @@ export interface SwStampData {
 
 // ── Stamping ─────────────────────────────────────────────────────────────────
 
+export type StampingErrorCode = 'NO_STAMPS' | 'IN_PROGRESS' | 'PAC_REJECTED' | 'CSD_EXPIRED'
+
 export interface StampingResult {
   success: boolean
+  code?: StampingErrorCode
+  /** On a rejection, where the user fixes it (see `explainStampingError`). */
+  fix?: StampingFix
   uuid?: string
   cfdi?: string
   stampedAt?: string
@@ -39,6 +46,8 @@ export interface StampingResult {
 
 export interface CancellationResult {
   success: boolean
+  /** Code the SAT gave the UUID: 201 request received, 202 already cancelled; anything else is a rejection. */
+  code?: string
   acknowledgment?: string
   error?: string
 }

@@ -17,8 +17,9 @@ export function ClerkThemeSync({ children }: { children: React.ReactNode }) {
         baseTheme: isDark ? dark : undefined,
         variables: {
           ...clerkAppearance.variables,
-          colorPrimary: isDark ? '#10b981' : '#059669',
-          colorSuccess: isDark ? '#10b981' : '#059669',
+          // Clerk needs literal colors: the stamp blue of each mode.
+          colorPrimary: isDark ? '#8fa4f0' : '#2f4ba8',
+          colorSuccess: isDark ? '#8fa4f0' : '#2f4ba8',
         },
       }}
     >

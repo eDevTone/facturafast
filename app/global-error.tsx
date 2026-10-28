@@ -1,5 +1,6 @@
 'use client'
 
+// Renders without the root layout (no fonts, no globals.css), so colors are inline.
 export default function GlobalError({
   error,
   reset,
@@ -9,39 +10,55 @@ export default function GlobalError({
 }) {
   return (
     <html lang="es">
-      <body className="flex min-h-screen items-center justify-center bg-background font-sans antialiased">
-        <div className="mx-auto max-w-md px-6 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-            <svg
-              className="h-6 w-6 text-destructive"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-lg font-semibold text-foreground">
-            Algo salió mal
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Ocurrió un error inesperado. Por favor intenta de nuevo.
+      <body
+        style={{
+          margin: 0,
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#f5f5f7',
+          color: '#141414',
+          fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+          padding: '24px',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 420,
+            background: '#ffffff',
+            borderRadius: 4,
+            borderLeft: '2px solid #b8382a',
+            boxShadow: '0 0 0 1px #e5e5ea, 0 2px 6px rgb(0 0 0 / 0.05)',
+            padding: '40px 32px',
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>FacturaFast no pudo abrir esta pantalla</h2>
+          <p style={{ marginTop: 8, fontSize: 14, color: '#5e5e66', lineHeight: 1.5 }}>
+            Ocurrió un error inesperado. Tus facturas y datos no se modificaron. Vuelve a intentarlo; si sigue fallando,
+            escríbenos con el código de abajo.
           </p>
           {error.digest && (
-            <p className="mt-2 font-mono text-xs text-muted-foreground/50">
-              Código: {error.digest}
+            <p style={{ marginTop: 8, fontSize: 12, color: '#5e5e66' }}>
+              Código <span style={{ fontFamily: 'ui-monospace, monospace', color: '#141414' }}>{error.digest}</span>
             </p>
           )}
           <button
             onClick={reset}
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            style={{
+              marginTop: 24,
+              height: 36,
+              padding: '0 16px',
+              border: 0,
+              borderRadius: 6,
+              background: '#2f4ba8',
+              color: '#ffffff',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
           >
-            Reintentar
+            Volver a intentar
           </button>
         </div>
       </body>

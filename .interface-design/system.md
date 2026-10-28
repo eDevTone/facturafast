@@ -1,80 +1,52 @@
-# FacturaFast Design System
+# FacturaFast Design System — "Talonario"
 
 ## Direction
-Professional business tool with emerald accent, tuned per mode. Dense, efficient, serious. Inspired by Vercel/Linear.
+A well-made book of invoices for the freelancer who invoices at the end of the month without being an accountant: white paper, black ink, and a blue rubber stamp that confirms something official happened. Calm, precise, in Spanish (es-MX). Light ("papel") is the default; dark is "papel carbón".
 
-## Color Palette
+Domain vocabulary that drives decisions: folio, timbre/sello, talonario, representación impresa, cadena original, UUID, acuse, constancia, el contador.
 
-### Dark Mode (default)
-- **Background:** `#09090b` (near-black)
-- **Card:** `#111113` (elevated surface)
-- **Muted:** `#18181b` (secondary surface)
-- **Border:** `#232328` (subtle separation)
-- **Sidebar:** `#0c0c0e` (darker than bg)
-- **Primary:** `#10b981` (emerald-500 — vibrant on dark)
-- **Primary foreground:** `#022c22` (dark text on emerald buttons)
-- **Foreground:** `#fafafa`
-- **Muted foreground:** `#a1a1aa`
+## Color (tokens in `app/globals.css`)
+Neutral greys and the stamp blue, the same values as the landing (`facturafast-landing/src/styles/global.css`). Change them in both places. Emails (`features/notifications/email`) and `app/global-error.tsx` repeat the light values inline.
 
-### Light Mode
-- **Background:** `#fafafa`
-- **Card:** `#ffffff`
-- **Muted:** `#f4f4f5`
-- **Border:** `#e4e4e7`
-- **Input border:** `#d4d4d8` (slightly stronger than border)
-- **Sidebar:** `#ffffff`
-- **Primary:** `#059669` (emerald-600 — darker for 5.1:1 contrast on white)
-- **Primary foreground:** `#ecfdf5` (light text on emerald buttons)
-- **Foreground:** `#09090b`
-- **Muted foreground:** `#52525b`
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `papel` | `#f5f5f7` | `#181818` | page background, the desk under the sheets |
+| `hoja` | `#ffffff` | `#1f1f1f` | documents, panels, inputs |
+| `tinta` | `#141414` | `#ededed` | primary text (black ink) |
+| `tinta-tenue` | `#5e5e66` | `#a3a3a3` | secondary text, labels |
+| `renglon` | `#e5e5ea` | `#313131` | rules, borders, guilloché |
+| `sello` | `#2f4ba8` | `#8fa4f0` | **the only accent**: actions, focus, "timbrada" |
+| `sello-tenue` | `#eef1fb` | `#272727` | active/selected washes |
+| `tinta-roja` | `#b8382a` | `#e0705f` | folio in the document header, "cancelada", destructive |
+| `ocre` / `ocre-tenue` | `#a86a12` / `#f5ecdc` | `#d9a441` / `#2e2716` | warnings (missing/expiring CSD, low balance) |
 
-### Semantic (shared)
-- **Destructive:** `#ef4444`
-- **Warning:** `#f59e0b`
-- **Success:** matches primary per mode
-
-## Depth Strategy
-- **Dark:** Borders only. No shadows. Cards use `border-border/60`, hover `border-border`. Layered surfaces create hierarchy.
-- **Light:** Borders + subtle `shadow-sm` on elevated elements. Cards use `border-border/60`.
+shadcn names (`primary`, `border`, `muted`, `destructive`…) map onto these, so `shared/ui` keeps working. Never use Tailwind palette colors (emerald, amber, blue…) in components.
 
 ## Typography
-- **Font:** Geist Sans (`--font-geist-sans`)
-- **Mono:** Geist Mono (RFC, codes, postal codes)
-- **Page titles:** `text-2xl font-semibold tracking-tight`
-- **Section labels:** `text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60`
-- **Body:** `text-sm`
-- **Small/meta:** `text-[13px] text-muted-foreground`
+- **IBM Plex Sans** (400/500/600) for the interface; **IBM Plex Mono** (400/500) for folio, RFC, CP, UUID, SAT codes and every amount (`font-mono` turns on tabular figures).
+- Page title: `text-[22px] font-semibold tracking-tight`. Body `text-sm`. Meta `text-[13px] text-tinta-tenue`.
+- Section labels are sentence case, `text-[13px] font-medium text-tinta-tenue`, via `SectionLabel` (`shared/components/section-label.tsx`). No uppercase tracked eyebrows — the only uppercase text is inside a rubber stamp.
 
-## Spacing
-Base unit: 4px. Key values: `p-5` cards, `gap-3`/`gap-4` grids, `space-y-6`/`space-y-8` page sections.
+## Depth, radius, spacing
+- Only sheets of paper lift: `.hoja` (4px radius, hairline ring + `--shadow-hoja`). Drafts are `.hoja-borrador` (dashed pencil edge, no lift).
+- Rules (`border-renglon`) separate rows like a printed form; they are not frames.
+- Radius: 3/4px for paper and small controls, 6px for buttons, inputs and stamps.
+- Spacing base 4px. Sheets use `px-5 sm:px-7/8`, `py-5/6`.
 
-## Navigation
-- Sidebar: `w-60`, emerald active state (`bg-primary/10 text-primary`)
-- Nav items: `h-4 w-4` icons, `text-sm`, `rounded-lg`
-- Section headers: `text-[11px]` uppercase tracking-wider
-- Header: `h-14`, blur backdrop, `border-border/50`
+## Signature: the stamp
+1. **Invoice detail as a sheet** (`invoice-detail.tsx`): guilloché header band (`.guilloche`), folio "Nº A-0127" in `tinta-roja` (`Folio` component), ruled concepts, totals with "Neto a recibir" when there are withholdings.
+2. **The stamp** (`.sello`): double-framed rubber stamp next to the totals — `text-sello` "Timbrada · fecha · UUID …a3f9", `text-tinta-roja` rotated +4° for "Cancelada". `.sello-impresion` animates it once (200ms) only right after stamping; respects reduced motion.
+3. **Status in lists** (`StatusBadge`): `.sello-mini` — stamp ink for timbrada, red for cancelada, dashed pencil for borrador.
+4. **Logo** (`shared/components/logo.tsx`): "FF" inside a small double-framed stamp.
+5. **Stamp balance** (`UsageIndicator`, billing): a perforated postage `.timbre` with the number in Plex Mono; packages are "pliegos".
+6. **PDF** (`invoice-pdf-document.tsx`): same red folio and stamp block.
 
-## Status Badges
-- Draft: `bg-muted text-muted-foreground`
-- Timbrada: `bg-primary/15 text-primary`
-- Cancelada: `bg-destructive/15 text-destructive`
+## Components and patterns
+- `Combobox` (`shared/ui/combobox.tsx`): searchable select for clients (name + RFC), SAT keys (allows typing any 8-digit code), payment form, uso CFDI, régimen.
+- Segmented choices (PUE/PPD, precios con/sin IVA, status filters): small buttons with `role="radio"`, selected = `bg-sello-tenue`.
+- Empty states show the blank document they'll become (e.g. "Nº 0001 · Tu talonario está en blanco") with one specific CTA.
+- Errors: `RouteError` (`shared/components/route-error.tsx`) says what failed and that data was not modified.
+- Navigation: one list in `shared/components/nav-config.ts` (Inicio, Facturas, Clientes, Timbres, Mis datos fiscales); active item = sheet + stamp-blue tab on the edge.
 
-## Component Patterns
-- **Cards:** `rounded-xl border border-border/60 bg-card`
-- **Inputs:** `bg-muted/50 border-input`, focus: `ring-2 ring-ring/40`
-- **Buttons default:** `bg-primary text-primary-foreground`, `rounded-lg`, `shadow-sm`
-- **Buttons outline:** `border-border/60 bg-background`, hover `bg-muted/50`
-- **Buttons ghost:** `text-muted-foreground`, hover `bg-muted/50 text-foreground`
-- **Empty states:** Centered icon in `rounded-full bg-muted p-4`, title + subtitle + CTA
-
-## Theme Toggle
-- `next-themes` with `attribute="class"`, default dark
-- Sun icon in dark mode, moon icon in light mode
-- Clerk syncs via `ClerkThemeSync` component with per-mode hex values
-
-## UI Library
-- Tailwind CSS v4 with `@theme` directive
-- shadcn/ui components (Radix primitives)
-- Lucide React icons
-- Sonner toasts (auto-detects theme)
-- Clerk auth with `@clerk/themes` dark base
+## Copy
+Spanish, sentence case, plain verbs, tú. Buttons say what happens ("Guardar y timbrar", "Comprar timbres"). Errors explain what happened and how to fix it; no apologies, no emojis.

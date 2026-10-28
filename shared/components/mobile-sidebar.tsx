@@ -1,23 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { Show, UserButton } from "@clerk/nextjs";
+import { Menu } from "lucide-react";
 import Link from "next/link";
-import { Menu, Receipt } from "lucide-react";
-import {
-  LayoutDashboard,
-  Users,
-  Building2,
-} from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/shared/ui/sheet";
-import { NavItem } from "./nav-item";
+import { useState } from "react";
 import { UsageIndicator } from "@features/billing/components/usage-indicator";
+import { Button } from "@/shared/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/shared/ui/sheet";
+import { Logo } from "./logo";
+import { NAV_ENTRIES } from "./nav-config";
+import { NavItem } from "./nav-item";
 
 interface MobileSidebarProps {
   stampsBalance?: number;
@@ -25,68 +17,39 @@ interface MobileSidebarProps {
 
 export function MobileSidebar({ stampsBalance = 0 }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8 md:hidden">
           <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle menu</span>
+          <span className="sr-only">Abrir menú</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-60 border-border/50 bg-sidebar p-0">
+      <SheetContent side="left" className="w-64 border-renglon bg-sidebar p-0">
         <div className="flex h-full flex-col">
-          {/* Logo */}
           <SheetHeader className="px-5 pt-5 pb-4">
             <SheetTitle className="text-left">
-              <Link
-                href="/"
-                className="flex items-center gap-2.5"
-                onClick={() => setOpen(false)}
-              >
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
-                  <Receipt className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <span className="text-[15px] font-semibold tracking-tight text-foreground">
-                  FacturaFast
-                </span>
+              <Link href="/dashboard" onClick={close} aria-label="FacturaFast, inicio">
+                <Logo />
               </Link>
             </SheetTitle>
           </SheetHeader>
 
-          {/* Navigation */}
-          <nav
-            className="flex-1 space-y-6 overflow-y-auto px-3 py-2"
-            onClick={() => setOpen(false)}
-          >
-            <div>
-              <NavItem href="/dashboard" icon={LayoutDashboard} label="Dashboard" />
-            </div>
-
-            <div className="space-y-1">
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                Ventas
-              </p>
-              <NavItem href="/invoices" icon={Receipt} label="Facturas" />
-            </div>
-
-            <div className="space-y-1">
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                Catálogos
-              </p>
-              <NavItem href="/clients" icon={Users} label="Clientes" />
-            </div>
-
-            <div className="space-y-1">
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                Configuración
-              </p>
-              <NavItem href="/fiscal-profiles" icon={Building2} label="Perfiles Fiscales" />
-            </div>
+          <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Principal">
+            {NAV_ENTRIES.map((entry) => (
+              <NavItem key={entry.href} {...entry} onNavigate={close} />
+            ))}
           </nav>
 
-          {/* Usage */}
           <UsageIndicator stampsBalance={stampsBalance} />
+
+          <div className="border-t border-renglon px-4 py-3">
+            <Show when="signed-in">
+              <UserButton showName />
+            </Show>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

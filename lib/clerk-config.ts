@@ -1,6 +1,6 @@
 /**
  * Clerk Configuration - FacturaFast Theme
- * Matches the app's dark/light emerald design system
+ * Matches the "Talonario" design system (paper, ink and stamp blue)
  */
 
 import { esMX } from "@clerk/localizations";
@@ -11,6 +11,8 @@ import type { Appearance } from "@clerk/types";
  */
 export const clerkLocalization = {
   ...esMX,
+  // Missing in esMX: the sign-up password field falls back to English ("Create a password").
+  formFieldInputPlaceholder__signUpPassword: "Crea una contraseña",
   signIn: {
     ...esMX.signIn,
     start: {
@@ -35,23 +37,23 @@ export const clerkLocalization = {
  */
 export const clerkAppearance: Appearance = {
   variables: {
-    colorPrimary: "#10b981",
-    colorSuccess: "#10b981",
-    colorWarning: "#f59e0b",
-    colorDanger: "#ef4444",
+    colorPrimary: "#2f4ba8",
+    colorSuccess: "#2f4ba8",
+    colorWarning: "#a86a12",
+    colorDanger: "#b8382a",
     colorBackground: "var(--color-card)",
     colorInputBackground: "var(--color-muted)",
     colorInputText: "var(--color-foreground)",
     colorText: "var(--color-foreground)",
     colorTextSecondary: "var(--color-muted-foreground)",
-    borderRadius: "0.5rem",
-    fontFamily: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
-    fontFamilyButtons: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
+    borderRadius: "0.375rem",
+    fontFamily: "var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif",
+    fontFamilyButtons: "var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif",
     spacingUnit: "1rem",
   },
   elements: {
     // Root card
-    card: "bg-card border border-border/60 shadow-none rounded-xl",
+    card: "hoja shadow-none",
     rootBox: "mx-auto",
 
     // Header

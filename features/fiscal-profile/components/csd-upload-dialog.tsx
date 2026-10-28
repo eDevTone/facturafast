@@ -1,6 +1,6 @@
 'use client'
 
-import { Loader2, ShieldCheck } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 
@@ -48,7 +48,7 @@ export function CsdUploadDialog({
 
   const handleSave = () => {
     if (!cerFile || !keyFile || !keyPassword) {
-      toast.error('Necesitas el .cer, .key y la contraseña')
+      toast.error('Faltan datos del CSD', { description: 'Sube el .cer, el .key y escribe su contraseña.' })
       return
     }
 
@@ -63,11 +63,11 @@ export function CsdUploadDialog({
       })
 
       if (result.success) {
-        toast.success('Certificados guardados correctamente')
+        toast.success('CSD guardado', { description: 'Ya puedes timbrar con este RFC.' })
         reset()
         onOpenChange(false)
       } else {
-        toast.error('Error al guardar', { description: result.error })
+        toast.error('No se pudo guardar el CSD', { description: result.error })
       }
     })
   }
@@ -78,13 +78,10 @@ export function CsdUploadDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-primary" />
-            Subir certificados CSD
-          </DialogTitle>
+          <DialogTitle>Subir tu CSD</DialogTitle>
           <DialogDescription>
-            Para timbrar facturas con <span className="font-medium text-foreground">{profileName}</span>,
-            sube tu certificado (.cer), llave privada (.key) y contraseña.
+            Para timbrar como <span className="font-medium text-foreground">{profileName}</span> sube el
+            certificado (.cer), la llave privada (.key) y su contraseña. Es tu CSD de CertiSAT, no tu e.firma.
           </DialogDescription>
         </DialogHeader>
 
@@ -103,7 +100,7 @@ export function CsdUploadDialog({
         <DialogFooter>
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={() => handleOpenChange(false)}
             disabled={isPending}
           >
@@ -114,8 +111,8 @@ export function CsdUploadDialog({
             onClick={handleSave}
             disabled={!isComplete || isPending}
           >
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Guardar certificados
+            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            Guardar CSD
           </Button>
         </DialogFooter>
       </DialogContent>

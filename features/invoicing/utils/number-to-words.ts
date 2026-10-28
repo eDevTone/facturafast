@@ -49,12 +49,19 @@ function groupToWords(n: number): string {
  * numberToSpanishWords(300) // "TRESCIENTOS PESOS 00/100 M.N."
  * numberToSpanishWords(1250.50) // "MIL DOSCIENTOS CINCUENTA PESOS 50/100 M.N."
  */
-export function numberToSpanishWords(amount: number): string {
+/** How the amount closes in each currency: "PESOS … M.N." or "DÓLARES … USD". */
+const CURRENCY_WORDS: Record<string, { name: string; suffix: string }> = {
+  MXN: { name: 'PESOS', suffix: 'M.N.' },
+  USD: { name: 'DÓLARES', suffix: 'USD' },
+}
+
+export function numberToSpanishWords(amount: number, currency = 'MXN'): string {
   const integer = Math.floor(Math.abs(amount))
   const cents = Math.round((Math.abs(amount) - integer) * 100)
+  const { name, suffix } = CURRENCY_WORDS[currency] ?? { name: currency, suffix: currency }
 
   if (integer === 0) {
-    return `CERO PESOS ${cents.toString().padStart(2, '0')}/100 M.N.`
+    return `CERO ${name} ${cents.toString().padStart(2, '0')}/100 ${suffix}`
   }
 
   const millions = Math.floor(integer / 1_000_000)
@@ -85,5 +92,5 @@ export function numberToSpanishWords(amount: number): string {
 
   words = words.trimEnd()
 
-  return `${words} PESOS ${cents.toString().padStart(2, '0')}/100 M.N.`
+  return `${words} ${name} ${cents.toString().padStart(2, '0')}/100 ${suffix}`
 }

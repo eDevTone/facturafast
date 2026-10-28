@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { Building2, ShieldCheck, ShieldOff, Star, Trash2, Pencil } from 'lucide-react'
+import { useTransition } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { formatDate } from '@shared/utils/date'
 import { Button } from '@shared/ui/button'
 import {
   AlertDialog,
@@ -17,37 +18,53 @@ import {
   AlertDialogTrigger,
 } from '@shared/ui/alert-dialog'
 
-import { profileHasCSD, isCertExpired } from '../types/fiscal-profile.types'
+import { csdDaysLeftLabel, csdExpiry, type CsdExpiry } from '../utils/csd-expiry'
+import { CsdRenewalGuide } from './csd-renewal-guide'
 import { setDefaultIssuingProfileAction } from '../actions/update-issuing-profile.action'
 import { deleteIssuingProfileAction as deleteAction } from '../actions/delete-issuing-profile.action'
-import type { IssuingProfile } from '../types/fiscal-profile.types'
+import type { PublicIssuingProfile } from '../types/fiscal-profile.types'
 
 interface IssuingProfileCardProps {
-  profile: IssuingProfile
-  onEdit?: (profile: IssuingProfile) => void
-  selectable?: boolean
-  selected?: boolean
-  onSelect?: (profile: IssuingProfile) => void
+  profile: PublicIssuingProfile
+  /** Régimen description, e.g. "Régimen Simplificado de Confianza". */
+  taxRegimeLabel?: string
+  onEdit?: (profile: PublicIssuingProfile) => void
 }
 
-export function IssuingProfileCard({
-  profile,
-  onEdit,
-  selectable = false,
-  selected = false,
-  onSelect,
-}: IssuingProfileCardProps) {
+/** CSD state as a small stamp: valid until a date, about to expire, expired, or missing. */
+function CsdStamp({ profile, expiry }: { profile: PublicIssuingProfile; expiry: CsdExpiry }) {
+  if (!profile.hasCsd) {
+    return <span className="sello-mini text-ocre">Sin CSD</span>
+  }
+  if (expiry.state === 'vencido') {
+    return <span className="sello-mini text-tinta-roja">CSD vencido</span>
+  }
+  if (expiry.state === 'por_vencer') {
+    return <span className="sello-mini text-ocre">CSD {csdDaysLeftLabel(expiry.daysLeft)}</span>
+  }
+  return (
+    <span className="sello-mini text-sello">
+      CSD vigente
+      {profile.certValidUntil && (
+        <span className="font-normal">
+          hasta {formatDate(profile.certValidUntil, { day: 'numeric', month: 'short', year: 'numeric' })}
+        </span>
+      )}
+    </span>
+  )
+}
+
+export function IssuingProfileCard({ profile, taxRegimeLabel, onEdit }: IssuingProfileCardProps) {
   const [pending, startTransition] = useTransition()
-  const hasCSD = profileHasCSD(profile)
-  const expired = isCertExpired(profile)
+  const expiry = csdExpiry(profile.certValidUntil)
 
   const handleSetDefault = () => {
     startTransition(async () => {
       try {
         await setDefaultIssuingProfileAction(profile.id)
-        toast.success('Perfil establecido como predeterminado')
+        toast.success(`${profile.rfc} es ahora tu RFC predeterminado`)
       } catch {
-        toast.error('Error al actualizar el perfil')
+        toast.error('No se pudo cambiar el RFC predeterminado', { description: 'Inténtalo de nuevo.' })
       }
     })
   }
@@ -58,144 +75,79 @@ export function IssuingProfileCard({
         await deleteAction(profile.id)
         toast.success('Perfil eliminado')
       } catch {
-        toast.error('Error al eliminar el perfil')
+        toast.error('No se pudo eliminar el perfil', { description: 'Inténtalo de nuevo.' })
       }
     })
   }
 
-  const cardClass = selectable
-    ? `cursor-pointer transition-all ${selected ? 'ring-2 ring-primary bg-primary/[0.03]' : 'hover:border-border'}`
-    : 'hover:border-border'
-
   return (
-    <div
-      className={`rounded-xl border border-border/60 bg-card p-5 transition-colors ${cardClass}`}
-      onClick={() => selectable && onSelect?.(profile)}
-    >
-      {/* Top: icon + RFC + badges */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${profile.isDefault ? 'bg-primary/10' : 'bg-muted/60'}`}>
-            <Building2 className={`h-4 w-4 ${profile.isDefault ? 'text-primary' : 'text-muted-foreground/60'}`} />
-          </div>
-
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono font-semibold text-sm text-foreground">{profile.rfc}</span>
-              {profile.isDefault && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">
-                  <Star className="h-2.5 w-2.5" />
-                  Default
-                </span>
-              )}
-              {selected && (
-                <span className="inline-flex items-center rounded-md bg-primary px-1.5 py-0.5 text-[11px] font-medium text-primary-foreground">
-                  Seleccionado
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground truncate mt-0.5">{profile.businessName}</p>
-            <p className="text-[12px] text-muted-foreground/40 mt-1">
-              Régimen {profile.taxRegime} · CP {profile.postalCode}
-            </p>
-          </div>
+    <article className="hoja flex min-w-0 flex-col p-5">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+        <div className="min-w-0">
+          <p className="font-mono text-[15px] font-medium text-tinta">{profile.rfc}</p>
+          <p className="mt-0.5 truncate text-sm text-tinta">{profile.businessName}</p>
         </div>
-
-        {/* CSD badge */}
-        {!selectable && (
-          <div className="shrink-0">
-            {hasCSD ? (
-              <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${
-                expired
-                  ? 'bg-destructive/10 text-destructive'
-                  : 'bg-primary/10 text-primary'
-              }`}>
-                {expired ? <ShieldOff className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />}
-                {expired ? 'CSD vencido' : 'CSD listo'}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
-                <ShieldOff className="h-3 w-3" />
-                Sin CSD
-              </span>
-            )}
-          </div>
-        )}
+        {profile.isDefault && <span className="text-[12px] font-medium text-sello">Predeterminado</span>}
       </div>
 
-      {/* Actions (non-selectable mode) */}
-      {!selectable && (
-        <div className="mt-4 flex items-center gap-1.5 pt-3 border-t border-border/40">
-          {!profile.isDefault && (
+      <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 border-t border-renglon pt-3 text-[13px]">
+        <dt className="text-tinta-tenue">Régimen</dt>
+        <dd className="min-w-0 truncate text-tinta" title={taxRegimeLabel}>
+          <span className="font-mono">{profile.taxRegime}</span>
+          {taxRegimeLabel && <span className="text-tinta-tenue"> {taxRegimeLabel}</span>}
+        </dd>
+        <dt className="text-tinta-tenue">CP fiscal</dt>
+        <dd className="font-mono text-tinta">{profile.postalCode}</dd>
+        <dt className="text-tinta-tenue">Sellos</dt>
+        <dd className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+          <CsdStamp profile={profile} expiry={expiry} />
+          {(!profile.hasCsd || expiry.state !== 'vigente') && <CsdRenewalGuide />}
+        </dd>
+      </dl>
+
+      <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-renglon pt-3">
+        {!profile.isDefault && (
+          <Button size="sm" variant="ghost" onClick={handleSetDefault} disabled={pending}>
+            Usar como predeterminado
+          </Button>
+        )}
+
+        {onEdit && (
+          <Button size="sm" variant="ghost" onClick={() => onEdit(profile)}>
+            <Pencil className="h-3.5 w-3.5" />
+            Editar
+          </Button>
+        )}
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
             <Button
               size="sm"
               variant="ghost"
-              onClick={handleSetDefault}
+              className="ml-auto hover:text-destructive"
               disabled={pending}
-              className="text-[12px] h-7 text-muted-foreground hover:text-foreground"
+              aria-label={`Eliminar el perfil ${profile.rfc}`}
             >
-              <Star className="h-3 w-3 mr-1" />
-              Predeterminar
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
-          )}
-
-          {onEdit && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onEdit(profile)}
-              className="text-[12px] h-7 text-muted-foreground hover:text-foreground"
-            >
-              <Pencil className="h-3 w-3 mr-1" />
-              Editar
-            </Button>
-          )}
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-[12px] h-7 text-muted-foreground/40 hover:text-destructive ml-auto"
-                disabled={pending}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>¿Eliminar perfil?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Se eliminará el perfil <strong>{profile.rfc}</strong>. Esta acción no se puede deshacer.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-                  Eliminar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
-
-      {/* CSD status in selectable mode */}
-      {selectable && (
-        <div className="mt-3 flex items-center gap-2">
-          {hasCSD ? (
-            <span className={`text-[12px] flex items-center gap-1 ${expired ? 'text-destructive' : 'text-primary'}`}>
-              <ShieldCheck className="h-3 w-3" />
-              {expired ? 'CSD vencido' : 'CSD cargado'}
-            </span>
-          ) : (
-            <span className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
-              <ShieldOff className="h-3 w-3" />
-              Sin CSD
-            </span>
-          )}
-        </div>
-      )}
-    </div>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar el perfil {profile.rfc}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Ya no podrás facturar con este RFC ni con su CSD. Las facturas que ya timbraste se conservan.
+                No se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Eliminar perfil
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </article>
   )
 }

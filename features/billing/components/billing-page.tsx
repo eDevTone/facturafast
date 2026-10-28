@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { CheckCircle2, XCircle, Zap } from 'lucide-react'
 import { toast } from 'sonner'
+
+import { cn } from '@/lib/utils'
+import { SectionLabel } from '@shared/components/section-label'
 import { STAMP_PACKAGES } from '../constants/plans'
 import type { StampPackageId } from '../constants/plans'
 import type { PurchaseRecord } from '../types/billing.types'
@@ -30,77 +32,77 @@ export function BillingPage({ stampsBalance, purchaseHistory, paymentSuccess, pa
         // redirect() throws a NEXT_REDIRECT error — that's expected
         const isRedirect = error instanceof Error && error.message.includes('NEXT_REDIRECT')
         if (!isRedirect) {
-          toast.error('Error al iniciar el pago')
+          toast.error('No se pudo abrir el pago', { description: 'Revisa tu conexión e inténtalo de nuevo.' })
           setLoadingPackage(null)
         }
       }
     })
   }
 
-  const isLowBalance = stampsBalance < 10
+  const isDepleted = stampsBalance <= 0
+  const isLow = !isDepleted && stampsBalance <= 1
 
   return (
-    <div className="space-y-8">
-      {/* Payment success */}
+    <div className="space-y-10">
       {paymentSuccess && (
-        <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/[0.05] px-4 py-3">
-          <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-          <p className="text-sm text-foreground">
-            Pago procesado correctamente. Tus timbres se añadirán en unos momentos.
-          </p>
-        </div>
+        <p role="status" className="hoja border-l-2 border-sello px-4 py-3 text-sm text-tinta">
+          Recibimos tu pago. Los timbres aparecen en tu saldo en cuanto el banco lo confirme; con OXXO o SPEI puede
+          tardar unas horas.
+        </p>
       )}
 
-      {/* Payment error */}
       {paymentError && (
-        <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/[0.05] px-4 py-3">
-          <XCircle className="h-4 w-4 text-destructive shrink-0" />
-          <p className="text-sm text-foreground">
-            El pago no pudo completarse. Intenta de nuevo o usa otro método de pago.
-          </p>
-        </div>
+        <p role="alert" className="hoja border-l-2 border-tinta-roja px-4 py-3 text-sm text-tinta">
+          El pago no se completó y no se te cobró. Inténtalo de nuevo o paga con otro método (tarjeta, OXXO o SPEI).
+        </p>
       )}
 
-      {/* Balance prominente */}
-      <div className="rounded-xl border border-border/60 bg-card p-6">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-          Tu saldo
-        </p>
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-4xl font-bold font-mono tracking-tight text-foreground">
-            {stampsBalance}
-          </span>
-          <span className="text-sm text-muted-foreground">timbres disponibles</span>
+      {/* Balance: a postage-style timbre */}
+      <section className="flex flex-wrap items-center gap-6">
+        <div className="timbre w-44 rounded-[2px]">
+          <div className="timbre-cara px-4 py-5 text-center">
+            <p
+              className={cn(
+                'font-mono text-5xl font-medium leading-none',
+                isDepleted ? 'text-tinta-roja' : isLow ? 'text-ocre' : 'text-tinta',
+              )}
+            >
+              {stampsBalance}
+            </p>
+            <p className="mt-2 text-[12px] text-tinta-tenue">
+              {stampsBalance === 1 ? 'timbre disponible' : 'timbres disponibles'}
+            </p>
+          </div>
         </div>
-        {isLowBalance && (
-          <p className="mt-2 flex items-center gap-1.5 text-[13px] text-amber-500">
-            <Zap className="h-3.5 w-3.5" />
-            Te quedan pocos timbres — elige un paquete para recargar
-          </p>
-        )}
-      </div>
+        <div className="max-w-sm space-y-1 text-sm text-tinta-tenue">
+          <p>Cada factura timbrada usa un timbre. Los borradores no gastan timbres.</p>
+          {isDepleted ? (
+            <p className="font-medium text-tinta-roja">Te quedaste sin timbres: compra un paquete para seguir timbrando.</p>
+          ) : isLow ? (
+            <p className="font-medium text-ocre">Te queda un timbre. Recarga antes de tu próxima factura.</p>
+          ) : null}
+        </div>
+      </section>
 
-      {/* Package cards */}
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-4">
-          Paquetes de timbres
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {STAMP_PACKAGES.map(pkg => (
+      <section className="space-y-4">
+        <SectionLabel rule={false}>Pliegos de timbres</SectionLabel>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {STAMP_PACKAGES.map((pkg, index) => (
             <PackageCard
               key={pkg.id}
               pkg={pkg}
+              note={index === 0 ? 'Para empezar' : undefined}
               onSelect={handleSelectPackage}
               isLoading={loadingPackage === pkg.id}
+              disabled={loadingPackage !== null && loadingPackage !== pkg.id}
             />
           ))}
         </div>
-        <p className="mt-3 text-center text-[12px] text-muted-foreground/40">
-          Los timbres no vencen y se acumulan con cada compra.
+        <p className="text-[13px] text-tinta-tenue">
+          Precios en MXN. Los timbres no vencen y se suman a tu saldo. Paga con tarjeta, OXXO o SPEI.
         </p>
-      </div>
+      </section>
 
-      {/* Purchase history */}
       <PurchaseHistory purchases={purchaseHistory} />
     </div>
   )

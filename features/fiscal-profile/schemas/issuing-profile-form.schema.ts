@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { paymentDetailsSchema } from './payment-details.schema'
 
 export const issuingProfileFormSchema = z.object({
   rfc: z
@@ -14,6 +15,8 @@ export const issuingProfileFormSchema = z.object({
     .regex(/^[0-9]{5}$/, 'Solo números'),
   email: z.string().email('Correo inválido'),
   phone: z.string().optional(),
-})
+  /** Email the client when an invoice falls due, and a week later. */
+  autoReminders: z.boolean(),
+}).merge(paymentDetailsSchema)
 
 export type IssuingProfileFormValues = z.infer<typeof issuingProfileFormSchema>

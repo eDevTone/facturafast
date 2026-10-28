@@ -110,7 +110,7 @@ export function upsertKeyValue(
 export function moveKeys(
   rawKv: Record<string, string | string[]>,
   keyset: Set<string>,
-  section: Record<string, any>
+  section: Record<string, unknown>
 ): void {
   for (const k of Object.keys(rawKv)) {
     if (keyset.has(k)) {

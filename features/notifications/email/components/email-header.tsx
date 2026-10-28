@@ -6,15 +6,23 @@ import { Section, Text } from '@react-email/components'
 export function EmailHeader() {
   return (
     <Section style={{ paddingBottom: '24px' }}>
-      <Text
-        style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          color: '#10b981',
-          margin: '0',
-          letterSpacing: '-0.5px',
-        }}
-      >
+      {/* The FF stamp mark, drawn with a bordered inline box (images are often blocked in mail clients) */}
+      <Text style={{ margin: '0', fontSize: '16px', fontWeight: '600', color: '#141414' }}>
+        <span
+          style={{
+            display: 'inline-block',
+            border: '1.5px solid #2f4ba8',
+            borderRadius: '6px',
+            padding: '2px 6px',
+            marginRight: '8px',
+            color: '#2f4ba8',
+            fontFamily: '"IBM Plex Mono", Menlo, monospace',
+            fontSize: '13px',
+            fontWeight: '500',
+          }}
+        >
+          FF
+        </span>
         FacturaFast
       </Text>
     </Section>

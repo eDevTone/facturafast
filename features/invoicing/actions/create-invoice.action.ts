@@ -2,18 +2,23 @@
 
 import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
+import { createInvoiceFormSchema } from '../schemas/invoice-form.schema'
 import { createInvoice } from '../services/invoice.service'
-import type { CreateInvoiceInput } from '../types/invoice.types'
 
-export async function createInvoiceAction(data: CreateInvoiceInput) {
+export async function createInvoiceAction(data: unknown) {
   const { userId } = await auth()
 
   if (!userId) {
     return { success: false as const, error: 'No autorizado' }
   }
 
+  const parsed = createInvoiceFormSchema.safeParse(data)
+  if (!parsed.success) {
+    return { success: false as const, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+  }
+
   try {
-    const invoice = await createInvoice(userId, data)
+    const invoice = await createInvoice(userId, parsed.data)
 
     revalidatePath('/invoices')
     revalidatePath(`/invoices/${invoice.id}`)

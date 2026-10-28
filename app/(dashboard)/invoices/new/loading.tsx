@@ -1,55 +1,33 @@
 import { Skeleton } from '@shared/ui/skeleton'
 
-export default function NewInvoiceLoading() {
+/** Placeholder shaped like the invoice sheet: header band, parties, concepts and totals. */
+export default function Loading() {
   return (
-    <div className="space-y-6">
-      {/* Back + Header */}
-      <div>
-        <Skeleton className="h-4 w-20 mb-4" />
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="mt-2 h-4 w-56" />
-      </div>
-
-      {/* Form card */}
-      <div className="rounded-xl border border-border/60 bg-card p-6 space-y-6">
-        {/* Issuer & Client selects */}
-        <div className="grid gap-6 md:grid-cols-2">
+    <div className="mx-auto max-w-4xl space-y-5">
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-7 w-56" />
+      <div className="hoja overflow-hidden">
+        <div className="flex justify-between gap-6 border-b border-renglon px-8 py-6">
           <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-5 w-56" />
+            <Skeleton className="h-4 w-72" />
           </div>
           <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="ml-auto h-4 w-24" />
+            <Skeleton className="h-7 w-32" />
           </div>
         </div>
-
-        {/* Invoice fields */}
-        <div className="grid gap-4 md:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-10 w-full rounded-lg" />
-            </div>
-          ))}
-        </div>
-
-        {/* Line items */}
-        <div className="space-y-3">
-          <Skeleton className="h-4 w-20" />
-          <div className="flex gap-3">
-            <Skeleton className="h-10 flex-1 rounded-lg" />
-            <Skeleton className="h-10 w-20 rounded-lg" />
-            <Skeleton className="h-10 w-24 rounded-lg" />
-            <Skeleton className="h-10 w-10 rounded-md" />
+        <div className="space-y-6 px-8 py-6">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
           </div>
+          <div className="space-y-3">
+            <Skeleton className="h-10" />
+            <Skeleton className="h-10" />
+          </div>
+          <Skeleton className="ml-auto h-24 w-full max-w-xs" />
         </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center justify-end gap-3">
-        <Skeleton className="h-10 w-24 rounded-lg" />
-        <Skeleton className="h-10 w-32 rounded-lg" />
       </div>
     </div>
   )

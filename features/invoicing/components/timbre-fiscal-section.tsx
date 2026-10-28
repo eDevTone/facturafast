@@ -18,11 +18,12 @@ function TruncatedSeal({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] text-muted-foreground/60 mb-0.5">{label}</p>
+        <p className="mb-0.5 text-[12px] text-tinta-tenue">{label}</p>
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-0.5 text-[10px] text-muted-foreground/40 hover:text-muted-foreground transition-colors shrink-0"
+          aria-expanded={expanded}
+          className="flex shrink-0 items-center gap-0.5 text-[12px] text-tinta-tenue transition-colors hover:text-tinta"
         >
           {expanded ? (
             <>Ocultar <ChevronUp className="h-3 w-3" /></>
@@ -32,7 +33,7 @@ function TruncatedSeal({ label, value }: { label: string; value: string }) {
         </button>
       </div>
       <p
-        className={`text-[11px] font-mono text-muted-foreground/60 leading-relaxed ${
+        className={`font-mono text-[11px] leading-relaxed text-tinta-tenue ${
           expanded ? 'break-all whitespace-pre-wrap' : 'truncate'
         }`}
       >
@@ -44,15 +45,10 @@ function TruncatedSeal({ label, value }: { label: string; value: string }) {
 
 export function TimbreFiscalSection({ invoice, emisor }: TimbreFiscalSectionProps) {
   return (
-    <section className="space-y-3">
-      <div>
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-          Timbre Fiscal Digital
-        </h2>
-        <div className="mt-1 h-px bg-border/40" />
-      </div>
+    <section className="space-y-3 border-t border-renglon pt-6">
+      <h2 className="text-[13px] font-medium text-tinta-tenue">Timbre fiscal digital</h2>
 
-      <div className="flex gap-5">
+      <div className="flex flex-col gap-5 sm:flex-row">
         {/* QR Code */}
         {invoice.qrCode && (
           <div className="shrink-0">
@@ -62,7 +58,7 @@ export function TimbreFiscalSection({ invoice, emisor }: TimbreFiscalSectionProp
               alt="Código QR de verificación fiscal"
               width={120}
               height={120}
-              className="rounded-lg border border-border/40"
+              className="rounded-[4px] border border-renglon bg-white p-1"
             />
           </div>
         )}
@@ -72,30 +68,30 @@ export function TimbreFiscalSection({ invoice, emisor }: TimbreFiscalSectionProp
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {invoice.uuid && (
               <div>
-                <p className="text-[11px] text-muted-foreground/60 mb-0.5">UUID Fiscal</p>
-                <p className="text-[12px] font-mono tracking-wide text-foreground break-all">
+                <p className="mb-0.5 text-[12px] text-tinta-tenue">Folio fiscal (UUID)</p>
+                <p className="font-mono text-[12px] text-tinta break-all">
                   {invoice.uuid}
                 </p>
               </div>
             )}
             {invoice.stampedAt && (
               <div>
-                <p className="text-[11px] text-muted-foreground/60 mb-0.5">Fecha de Timbrado</p>
-                <p className="text-[12px] text-foreground">{formatDateLong(invoice.stampedAt)}</p>
+                <p className="mb-0.5 text-[12px] text-tinta-tenue">Fecha de timbrado</p>
+                <p className="text-[12px] text-tinta">{formatDateLong(invoice.stampedAt)}</p>
               </div>
             )}
             {invoice.satCertificateNumber && (
               <div>
-                <p className="text-[11px] text-muted-foreground/60 mb-0.5">No. Certificado SAT</p>
-                <p className="text-[12px] font-mono tracking-wide text-foreground">
+                <p className="mb-0.5 text-[12px] text-tinta-tenue">Nº de certificado del SAT</p>
+                <p className="font-mono text-[12px] text-tinta">
                   {invoice.satCertificateNumber}
                 </p>
               </div>
             )}
             {emisor?.certSerialNumber && (
               <div>
-                <p className="text-[11px] text-muted-foreground/60 mb-0.5">No. Certificado Emisor</p>
-                <p className="text-[12px] font-mono tracking-wide text-foreground">
+                <p className="mb-0.5 text-[12px] text-tinta-tenue">Nº de certificado del emisor</p>
+                <p className="font-mono text-[12px] text-tinta">
                   {emisor.certSerialNumber}
                 </p>
               </div>
@@ -105,13 +101,13 @@ export function TimbreFiscalSection({ invoice, emisor }: TimbreFiscalSectionProp
           {/* Sellos colapsables */}
           <div className="space-y-2">
             {invoice.cfdiSignature && (
-              <TruncatedSeal label="Sello Digital del CFDI" value={invoice.cfdiSignature} />
+              <TruncatedSeal label="Sello digital del CFDI" value={invoice.cfdiSignature} />
             )}
             {invoice.satSignature && (
               <TruncatedSeal label="Sello del SAT" value={invoice.satSignature} />
             )}
             {invoice.satOriginalChain && (
-              <TruncatedSeal label="Cadena Original del Timbre" value={invoice.satOriginalChain} />
+              <TruncatedSeal label="Cadena original del timbre" value={invoice.satOriginalChain} />
             )}
           </div>
         </div>

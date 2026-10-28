@@ -2,11 +2,12 @@
 
 import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
-import { cancelInvoice } from '../services/invoice.service'
+import type { CancellationReason } from '../constants/cancellation-reasons'
+import { cancelInvoice } from '../services/cancellation.service'
 
 export async function cancelInvoiceAction(
   invoiceId: string,
-  reason: '01' | '02' | '03' | '04',
+  reason: CancellationReason,
   replacementUuid?: string,
 ) {
   const { userId } = await auth()
@@ -25,7 +26,7 @@ export async function cancelInvoiceAction(
     revalidatePath('/invoices')
     revalidatePath(`/invoices/${invoiceId}`)
 
-    return { success: true as const }
+    return { success: true as const, outcome: result.outcome, cancellable: result.cancellable }
   } catch (error) {
     return {
       success: false as const,

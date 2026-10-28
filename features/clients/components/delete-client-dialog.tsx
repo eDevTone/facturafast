@@ -30,10 +30,10 @@ export function DeleteClientDialog({ clientId, clientName }: DeleteClientDialogP
     const result = await deleteClientAction(clientId)
 
     if (result.success) {
-      toast.success('Cliente eliminado correctamente')
+      toast.success('Cliente eliminado')
       setOpen(false)
     } else {
-      toast.error(result.error || 'Error al eliminar el cliente')
+      toast.error('No se pudo eliminar el cliente', { description: result.error || 'Inténtalo de nuevo.' })
     }
 
     setIsDeleting(false)
@@ -42,7 +42,7 @@ export function DeleteClientDialog({ clientId, clientName }: DeleteClientDialogP
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive" aria-label={`Eliminar ${clientName}`}>
           <Trash2 className="h-4 w-4" />
         </Button>
       </DialogTrigger>
@@ -50,8 +50,8 @@ export function DeleteClientDialog({ clientId, clientName }: DeleteClientDialogP
         <DialogHeader>
           <DialogTitle>Eliminar cliente</DialogTitle>
           <DialogDescription>
-            Estás a punto de eliminar a <strong className="text-foreground">{clientName}</strong>.
-            Esta acción se puede revertir desde la configuración.
+            <strong className="text-foreground">{clientName}</strong> dejará de aparecer en tu lista de clientes.
+            Las facturas que ya le timbraste se conservan y las puedes seguir descargando.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -67,7 +67,7 @@ export function DeleteClientDialog({ clientId, clientName }: DeleteClientDialogP
             onClick={handleDelete}
             disabled={isDeleting}
           >
-            {isDeleting ? 'Eliminando...' : 'Eliminar'}
+            {isDeleting ? 'Eliminando…' : 'Eliminar cliente'}
           </Button>
         </DialogFooter>
       </DialogContent>

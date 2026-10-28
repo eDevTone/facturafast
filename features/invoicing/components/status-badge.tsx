@@ -1,35 +1,47 @@
-'use client'
+import { cn } from '@/lib/utils'
+import type { Invoice } from '../types/invoice.types'
+import { invoiceStampState, type InvoiceStampState } from '../utils/cancellation-state'
 
-const config = {
+const config: Record<InvoiceStampState, { label: string; className: string }> = {
   draft: {
     label: 'Borrador',
-    className: 'bg-muted text-muted-foreground',
+    // Pencil: dashed, quiet ink
+    className: 'border-dashed text-tinta-tenue',
   },
   timbrada: {
     label: 'Timbrada',
-    className: 'bg-primary/15 text-primary',
+    className: 'text-sello',
+  },
+  // Pending with the SAT: ochre, dashed while the SAT works on it
+  por_cancelar: {
+    label: 'Por cancelar',
+    className: 'text-ocre',
+  },
+  en_cancelacion: {
+    label: 'En cancelación',
+    className: 'border-dashed text-ocre',
+  },
+  cancelacion_rechazada: {
+    label: 'Cancelación rechazada',
+    className: 'text-ocre',
   },
   cancelada: {
     label: 'Cancelada',
-    className: 'bg-destructive/15 text-destructive',
+    className: 'text-tinta-roja',
   },
 }
 
 interface StatusBadgeProps {
-  status: string
-  size?: 'sm' | 'md'
+  invoice: Pick<Invoice, 'status' | 'cancellationStatus' | 'cancellationSubstituteUuid'>
+  className?: string
 }
 
-export function StatusBadge({ status, size = 'sm' }: StatusBadgeProps) {
-  const { label, className } = config[status as keyof typeof config] ?? config.draft
+/**
+ * Small status stamp for lists and headers: stamp ink for timbrada, red for cancelada, pencil for
+ * borrador, and ochre while a cancellation is pending with the SAT.
+ */
+export function StatusBadge({ invoice, className }: StatusBadgeProps) {
+  const { label, className: tone } = config[invoiceStampState(invoice)]
 
-  return (
-    <span
-      className={`inline-flex items-center rounded-md font-medium ${className} ${
-        size === 'sm' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-[11px]'
-      }`}
-    >
-      {label}
-    </span>
-  )
+  return <span className={cn('sello-mini', tone, className)}>{label}</span>
 }

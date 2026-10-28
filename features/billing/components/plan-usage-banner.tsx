@@ -1,48 +1,45 @@
 'use client'
 
 import Link from 'next/link'
-import { Zap } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
 
 interface StampsBannerProps {
   stampsBalance: number
 }
 
+/** One-line stamp balance with a link to buy more; warns only when 1 or 0 are left. */
 export function StampsBanner({ stampsBalance }: StampsBannerProps) {
-  const isLow = stampsBalance < 10
-  const isDepleted = stampsBalance === 0
-
-  const iconColor = isDepleted
-    ? 'text-destructive'
-    : isLow
-      ? 'text-amber-500'
-      : 'text-primary/60'
+  const isDepleted = stampsBalance <= 0
+  const isLow = !isDepleted && stampsBalance <= 1
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/30 px-4 py-2.5">
-      <div className="flex items-center gap-2">
-        <Zap className={`h-3.5 w-3.5 ${iconColor}`} />
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-          Saldo
-        </span>
-        <span className="text-muted-foreground/30">·</span>
+    <div
+      className={cn(
+        'flex flex-wrap items-center justify-between gap-2 rounded-[4px] border-l-2 bg-hoja px-4 py-2.5 shadow-[var(--shadow-hoja)]',
+        isDepleted ? 'border-tinta-roja' : isLow ? 'border-ocre' : 'border-renglon',
+      )}
+    >
+      <p className="text-[13px] text-tinta-tenue">
         {isDepleted ? (
-          <span className="text-[13px] text-destructive font-medium">Sin timbres disponibles</span>
+          <span className="font-medium text-tinta-roja">Te quedaste sin timbres. Compra un paquete para seguir timbrando.</span>
         ) : (
-          <span className={`text-[13px] ${isLow ? 'text-amber-500' : 'text-muted-foreground'}`}>
-            <span className="font-mono font-medium">{stampsBalance}</span> timbres disponibles
-          </span>
+          <>
+            Te {stampsBalance === 1 ? 'queda' : 'quedan'}{' '}
+            <span className={cn('font-mono font-medium', isLow ? 'text-ocre' : 'text-tinta')}>{stampsBalance}</span>{' '}
+            {stampsBalance === 1 ? 'timbre' : 'timbres'}
+          </>
         )}
-      </div>
+      </p>
 
       <Link
         href="/billing"
-        className={`text-[13px] font-medium transition-colors ${
-          isDepleted || isLow
-            ? 'text-destructive hover:text-destructive/80'
-            : 'text-muted-foreground/50 hover:text-foreground'
-        }`}
+        className={cn(
+          'text-[13px] font-medium underline-offset-4 hover:underline',
+          isDepleted ? 'text-tinta-roja' : 'text-sello',
+        )}
       >
-        {isDepleted || isLow ? 'Recargar →' : 'Comprar timbres →'}
+        {isDepleted || isLow ? 'Recargar timbres' : 'Comprar timbres'}
       </Link>
     </div>
   )

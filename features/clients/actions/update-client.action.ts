@@ -2,24 +2,14 @@
 
 import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
-import { createClientFormSchema } from '../schemas/client-form.schema'
+import { createClientFormSchema, type ClientFormData } from '../schemas/client-form.schema'
 import { updateClient } from '../services/client.service'
 
-export async function updateClientAction(id: string, formData: FormData) {
+export async function updateClientAction(id: string, data: ClientFormData) {
   const { userId } = await auth()
 
   if (!userId) {
     return { success: false as const, error: 'No autorizado' }
-  }
-
-  const data = {
-    rfc: formData.get('rfc') as string,
-    businessName: formData.get('businessName') as string,
-    email: (formData.get('email') as string) || '',
-    phone: (formData.get('phone') as string) || '',
-    postalCode: formData.get('postalCode') as string,
-    taxRegime: (formData.get('taxRegime') as string) || '',
-    cfdiUsage: (formData.get('cfdiUsage') as string) || '',
   }
 
   const validation = createClientFormSchema.safeParse(data)
@@ -27,7 +17,7 @@ export async function updateClientAction(id: string, formData: FormData) {
   if (!validation.success) {
     return {
       success: false as const,
-      error: 'Datos inválidos',
+      error: validation.error.issues[0]?.message ?? 'Datos inválidos',
       fieldErrors: validation.error.flatten().fieldErrors,
     }
   }
@@ -40,7 +30,7 @@ export async function updateClientAction(id: string, formData: FormData) {
     console.error('Error updating client:', error)
     return {
       success: false as const,
-      error: 'Error al actualizar el cliente',
+      error: error instanceof Error ? error.message : 'Error al actualizar el cliente',
     }
   }
 }

@@ -20,6 +20,15 @@ interface ConektaOrder {
   checkout: ConektaCheckout
 }
 
+/** The fields of an order we trust when crediting stamps. */
+export interface ConektaPaidOrder {
+  id: string
+  paymentStatus: string
+  amount: number
+  currency: string
+  metadata: { package_id?: string; user_id?: string }
+}
+
 function getApiKey(): string {
   const apiKey = process.env.CONEKTA_API_KEY
   if (!apiKey) throw new Error('CONEKTA_API_KEY is not configured')
@@ -54,6 +63,28 @@ async function ensureCustomer(input: CreateCheckoutInput): Promise<string> {
     body: JSON.stringify({ name: input.customerName, email: input.customerEmail }),
   })
   return customer.id
+}
+
+/**
+ * Read an order straight from Conekta with our API key. The webhook body is not signed
+ * in a way we verify, so it is only a hint: amounts, status and metadata come from here.
+ */
+export async function fetchConektaOrder(orderId: string): Promise<ConektaPaidOrder> {
+  const order = await conektaFetch<{
+    id: string
+    payment_status: string
+    amount: number
+    currency: string
+    metadata?: { package_id?: string; user_id?: string }
+  }>(`/orders/${encodeURIComponent(orderId)}`)
+
+  return {
+    id: order.id,
+    paymentStatus: order.payment_status,
+    amount: order.amount,
+    currency: order.currency,
+    metadata: order.metadata ?? {},
+  }
 }
 
 export const conektaProvider: PaymentProvider = {

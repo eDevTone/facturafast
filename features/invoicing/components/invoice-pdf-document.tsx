@@ -6,8 +6,11 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer'
+import { paymentDetailLines, type PaymentDetails } from '@features/collections/utils/reminder-message'
+import { formatDay } from '@features/payments/utils/payment-dates'
 import { formatDateLong, formatDateShort, formatDateTime } from '@shared/utils/date'
 import type { InvoiceWithRelations } from '../types/invoice.types'
+import { invoiceAmounts } from '../utils/invoice-amounts'
 import { numberToSpanishWords } from '../utils/number-to-words'
 
 interface FiscalProfileData {
@@ -18,6 +21,8 @@ interface FiscalProfileData {
   fiscalAddress?: string | null
   logoUrl?: string | null
   certSerialNumber?: string | null
+  /** "Para que te paguen": printed while the invoice is owed. */
+  payment?: PaymentDetails | null
 }
 
 interface InvoicePdfDocumentProps {
@@ -28,6 +33,8 @@ interface InvoicePdfDocumentProps {
     paymentMethods: Record<string, string>
     cfdiUsages: Record<string, string>
     taxRegimes?: Record<string, string>
+    /** c_Pais names, for a client abroad. */
+    countries?: Record<string, string>
   }
 }
 
@@ -44,6 +51,9 @@ const palette = {
   white: '#ffffff',
   watermark: '#d4d4d8',
   destructive: '#111111',
+  // Talonario signature: folio in pre-printed red, stamp in rubber-stamp blue
+  folio: '#b8382a',
+  sello: '#2f4ba8',
 }
 
 const styles = StyleSheet.create({
@@ -247,6 +257,19 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: palette.text,
   },
+  relatedCard: {
+    backgroundColor: palette.cardBg,
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 14,
+  },
+  payCard: {
+    borderWidth: 1,
+    borderColor: palette.cardBg,
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 10,
+  },
   // Fiscal stamp section — optimized for B/W printing
   stampSection: {
     marginTop: 10,
@@ -308,10 +331,33 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: palette.label,
   },
+  sello: {
+    alignSelf: 'flex-start',
+    borderWidth: 1.5,
+    borderColor: palette.sello,
+    borderRadius: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    transform: 'rotate(-3deg)',
+    alignItems: 'center',
+  },
+  selloTitle: {
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
+    letterSpacing: 1,
+    color: palette.sello,
+  },
+  selloLine: {
+    fontSize: 7,
+    fontFamily: 'Courier',
+    color: palette.sello,
+  },
 })
 
-function formatCurrency(value: number): string {
-  return `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+/** "$1,000.00" in pesos; "USD 1,000.00" in another currency. */
+function formatCurrency(value: number, currency = 'MXN'): string {
+  const amount = value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return currency === 'MXN' ? `$${amount}` : `${currency} ${amount}`
 }
 
 function breakSeal(str: string): string {
@@ -326,6 +372,13 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
   const folioLabel = `${invoice.serie ? `${invoice.serie}-` : ''}${invoice.folio}`
   const isDraft = invoice.status === 'draft'
   const isStamped = invoice.status === 'timbrada' || invoice.status === 'cancelada'
+  // Same amounts as the XML (read back from it once stamped)
+  const amounts = invoiceAmounts(invoice)
+  // A PPD invoice, or a PUE one not paid yet, carries the due date and how to pay it.
+  const owed = invoice.status !== 'cancelada' && (invoice.paymentMethod === 'PPD' || invoice.awaitingPayment)
+  const payLines = owed ? paymentDetailLines(emisor?.payment ?? null) : []
+  const dueLine = owed && invoice.dueDate ? `Vence el ${formatDay(invoice.dueDate)}` : null
+  const hasWithholdings = amounts.withholdings > 0
 
   return (
     <Document title={`Factura ${folioLabel}`} author={emisor?.businessName || 'FacturaFast'}>
@@ -367,9 +420,16 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
             <Text style={{ ...styles.infoValueSmall, marginTop: 4 }}>
               RFC: {invoice.client.rfc}
             </Text>
-            <Text style={{ ...styles.infoValueMuted, marginTop: 2 }}>
-              C.P. {invoice.client.postalCode}
-            </Text>
+            {invoice.client.country ? (
+              <Text style={{ ...styles.infoValueMuted, marginTop: 2 }}>
+                Residencia fiscal: {invoice.client.country} — {labels.countries?.[invoice.client.country] || invoice.client.country}
+                {invoice.client.foreignTaxId ? ` · Núm. de registro: ${invoice.client.foreignTaxId}` : ''}
+              </Text>
+            ) : (
+              <Text style={{ ...styles.infoValueMuted, marginTop: 2 }}>
+                C.P. {invoice.client.postalCode}
+              </Text>
+            )}
             {invoice.client.taxRegime && (
               <Text style={{ ...styles.infoValueMuted, marginTop: 2 }}>
                 Régimen: {invoice.client.taxRegime} — {labels.taxRegimes?.[invoice.client.taxRegime] || invoice.client.taxRegime}
@@ -381,9 +441,10 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
           <View style={styles.infoCardWhite}>
             <Text style={styles.infoLabel}>Monto a pagar:</Text>
             <Text style={styles.amountLarge}>
-              {formatCurrency(parseFloat(invoice.total))}
+              {formatCurrency(amounts.total, invoice.currency)}
             </Text>
-            <Text style={styles.amountCurrency}>{invoice.currency}</Text>
+            {/* In pesos the amount has no code; in another currency it already starts with it */}
+            {invoice.currency === 'MXN' && <Text style={styles.amountCurrency}>MXN</Text>}
             <Text style={styles.amountDate}>
               {formatDateLong(invoice.issuedAt)}
             </Text>
@@ -393,8 +454,8 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
           <View style={{ width: 110, gap: 8 }}>
             <View style={styles.infoCardSmall}>
               <Text style={styles.infoLabel}>Número de factura:</Text>
-              <Text style={{ ...styles.infoValueSmall, fontFamily: 'Helvetica-Bold' }}>
-                Nº: {folioLabel}
+              <Text style={{ ...styles.infoValueSmall, fontFamily: 'Courier-Bold', color: palette.folio }}>
+                Nº {folioLabel}
               </Text>
             </View>
             <View style={styles.infoCardSmall}>
@@ -426,7 +487,25 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
               {invoice.cfdiUsage} — {labels.cfdiUsages[invoice.cfdiUsage] || invoice.cfdiUsage}
             </Text>
           </View>
+          {invoice.currency !== 'MXN' && invoice.exchangeRate && (
+            <View style={styles.paymentCard}>
+              <Text style={styles.paymentLabel}>Tipo de cambio</Text>
+              <Text style={styles.paymentValue}>
+                {Number(invoice.exchangeRate)} MXN por {invoice.currency}
+              </Text>
+            </View>
+          )}
         </View>
+
+        {/* CfdiRelacionados: the invoice this one replaces */}
+        {invoice.relationType && invoice.relatedUuid && (
+          <View style={styles.relatedCard}>
+            <Text style={styles.paymentLabel}>CFDI relacionado</Text>
+            <Text style={styles.paymentValue}>
+              {invoice.relationType === '04' ? '04 — Sustitución de los CFDI previos' : invoice.relationType} · UUID {invoice.relatedUuid}
+            </Text>
+          </View>
+        )}
 
         {/* Concepts table in card */}
         <View style={styles.conceptsCard}>
@@ -434,12 +513,12 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
           <View style={styles.tableHeader}>
             <Text style={styles.thDesc}>Descripción</Text>
             <Text style={styles.thQty}>Cant.</Text>
-            <Text style={styles.thPrice}>Precio</Text>
-            <Text style={styles.thAmount}>Total</Text>
+            <Text style={styles.thPrice}>Valor unitario</Text>
+            <Text style={styles.thAmount}>Importe</Text>
           </View>
 
           {/* Rows */}
-          {invoice.items.map(item => (
+          {invoice.items.map((item, index) => (
             <View key={item.id} style={styles.tableRow}>
               <View style={styles.tdDesc}>
                 <Text style={styles.tdDescText}>{item.description}</Text>
@@ -451,10 +530,10 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
                 {parseFloat(item.quantity).toLocaleString('es-MX')}
               </Text>
               <Text style={styles.tdPrice}>
-                {formatCurrency(parseFloat(item.unitPrice))}
+                {formatCurrency(amounts.concepts[index]?.unitValue ?? 0, invoice.currency)}
               </Text>
               <Text style={styles.tdAmount}>
-                {formatCurrency(parseFloat(item.amount))}
+                {formatCurrency(amounts.concepts[index]?.base ?? 0, invoice.currency)}
               </Text>
             </View>
           ))}
@@ -463,37 +542,62 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
           <View style={{ ...styles.totalsContainer, marginTop: 12 }}>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Subtotal</Text>
-              <Text style={styles.totalValue}>{formatCurrency(parseFloat(invoice.subtotal))}</Text>
+              <Text style={styles.totalValue}>{formatCurrency(amounts.subtotal, invoice.currency)}</Text>
             </View>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>IVA 16%</Text>
-              <Text style={styles.totalValue}>{formatCurrency(parseFloat(invoice.iva))}</Text>
+              <Text style={styles.totalLabel}>IVA {Number(invoice.ivaRate) === 0 ? 0 : 16}%</Text>
+              <Text style={styles.totalValue}>{formatCurrency(amounts.iva, invoice.currency)}</Text>
             </View>
-            {parseFloat(invoice.withholdings) > 0 && (
+            {amounts.isrWithheld > 0 && (
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Retenciones</Text>
-                <Text style={{ ...styles.totalValue, color: palette.destructive }}>
-                  -{formatCurrency(parseFloat(invoice.withholdings))}
-                </Text>
+                <Text style={styles.totalLabel}>Retención ISR</Text>
+                <Text style={styles.totalValue}>-{formatCurrency(amounts.isrWithheld, invoice.currency)}</Text>
+              </View>
+            )}
+            {amounts.ivaWithheld > 0 && (
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Retención IVA</Text>
+                <Text style={styles.totalValue}>-{formatCurrency(amounts.ivaWithheld, invoice.currency)}</Text>
               </View>
             )}
             <View style={styles.totalDivider} />
             <View style={{ ...styles.totalRow, alignItems: 'center' }}>
-              <Text style={styles.totalFinalLabel}>Monto total:</Text>
-              <Text style={styles.totalFinalValue}>{formatCurrency(parseFloat(invoice.total))}</Text>
+              <Text style={styles.totalFinalLabel}>{hasWithholdings ? 'Neto a recibir:' : 'Monto total:'}</Text>
+              <Text style={styles.totalFinalValue}>{formatCurrency(amounts.total, invoice.currency)}</Text>
             </View>
             <View style={{ width: 280, marginTop: 6 }}>
               <Text style={{ fontSize: 6.5, color: palette.label, letterSpacing: 0.2 }}>
-                {numberToSpanishWords(parseFloat(invoice.total))}
+                {numberToSpanishWords(amounts.total, invoice.currency)}
               </Text>
             </View>
           </View>
         </View>
 
+        {/* Para pagar: only while the invoice is owed (a paid PUE does not ask to be paid again) */}
+        {payLines.length + (dueLine ? 1 : 0) > 0 && (
+          <View style={styles.payCard} wrap={false}>
+            <Text style={styles.paymentLabel}>Para pagar</Text>
+            {dueLine && <Text style={{ ...styles.paymentValue, fontFamily: 'Helvetica-Bold' }}>{dueLine}</Text>}
+            {payLines.map((line) => (
+              <Text key={line} style={styles.paymentValue}>{line}</Text>
+            ))}
+          </View>
+        )}
+
         {/* Fiscal stamp */}
         {isStamped && invoice.uuid && (
           <View style={styles.stampSection}>
-            <Text style={styles.stampTitle}>SELLO DIGITAL</Text>
+            <View style={{ ...styles.sello, borderColor: invoice.status === 'cancelada' ? palette.folio : palette.sello, marginBottom: 10 }}>
+              <Text style={{ ...styles.selloTitle, color: invoice.status === 'cancelada' ? palette.folio : palette.sello }}>
+                {invoice.status === 'cancelada' ? 'CANCELADA' : 'TIMBRADA'}
+              </Text>
+              {invoice.stampedAt && (
+                <Text style={{ ...styles.selloLine, color: invoice.status === 'cancelada' ? palette.folio : palette.sello }}>
+                  {formatDateShort(invoice.stampedAt)} · UUID …{invoice.uuid.slice(-4)}
+                </Text>
+              )}
+            </View>
+            <Text style={styles.stampTitle}>Timbre fiscal digital</Text>
             <View style={styles.stampRow}>
               {invoice.qrCode && (
                 <Image
@@ -502,7 +606,7 @@ export function InvoicePdfDocument({ invoice, emisor, labels }: InvoicePdfDocume
                 />
               )}
               <View style={styles.stampInfo}>
-                <Text style={styles.stampLabel}>UUID Fiscal</Text>
+                <Text style={styles.stampLabel}>Folio fiscal (UUID)</Text>
                 <Text style={styles.stampUuid}>{invoice.uuid}</Text>
 
                 {invoice.stampedAt && (

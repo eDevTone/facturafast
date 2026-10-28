@@ -15,7 +15,7 @@ export async function stampInvoiceAction(invoiceId: string) {
     const result = await stampInvoice(invoiceId, userId)
 
     if (!result.success) {
-      return { success: false as const, error: result.error }
+      return { success: false as const, error: result.error, code: result.code, fix: result.fix }
     }
 
     revalidatePath('/invoices')
@@ -24,11 +24,14 @@ export async function stampInvoiceAction(invoiceId: string) {
     return {
       success: true as const,
       uuid: result.uuid,
+      replacement: result.replacement,
     }
   } catch (error) {
     return {
       success: false as const,
       error: error instanceof Error ? error.message : 'Error al timbrar la factura',
+      code: undefined,
+      fix: undefined,
     }
   }
 }

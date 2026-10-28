@@ -131,10 +131,10 @@ export function ImageUpload({
           }`}
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted/50">
-            <ImagePlus className="h-4 w-4 text-muted-foreground/60" />
+            <ImagePlus className="h-4 w-4 text-tinta-tenue" />
           </div>
-          <p className="text-[12px] text-muted-foreground/60">{placeholder}</p>
-          <p className="text-[10px] text-muted-foreground/40">
+          <p className="text-[12px] text-tinta-tenue">{placeholder}</p>
+          <p className="text-[11px] text-tinta-tenue">
             PNG, JPG o WebP · Máximo {maxSizeMB}MB
           </p>
         </button>

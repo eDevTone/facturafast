@@ -12,57 +12,103 @@ import {
   AlertDialogTrigger,
 } from '@shared/ui/alert-dialog'
 import { Button } from '@shared/ui/button'
-import { Send, Zap } from 'lucide-react'
+import { Loader2, Stamp } from 'lucide-react'
+import { formatCurrency } from '../utils/invoice-calculations'
 
 interface StampConfirmDialogProps {
   onConfirm: () => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   disabled?: boolean
+  /** Why the button is disabled, shown as its tooltip. */
+  disabledReason?: string
   isStamping?: boolean
+  clientName: string
   clientEmail?: string | null
+  total: number
+  hasWithholdings: boolean
+  stampsBalance: number
+  /** "A-3": the invoice this correction replaces; stamping asks the SAT to cancel it. */
+  replacesLabel?: string
+  /** Currency of the invoice. */
+  currency?: string
 }
 
-export function StampConfirmDialog({ onConfirm, disabled, isStamping, clientEmail }: StampConfirmDialogProps) {
+/** Last check before stamping: who, how much, and what it costs. */
+export function StampConfirmDialog({
+  onConfirm,
+  open,
+  onOpenChange,
+  disabled,
+  disabledReason,
+  isStamping,
+  clientName,
+  clientEmail,
+  total,
+  hasWithholdings,
+  stampsBalance,
+  replacesLabel,
+  currency = 'MXN',
+}: StampConfirmDialogProps) {
+  const noStamps = stampsBalance < 1
+
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogTrigger asChild>
-        <Button disabled={disabled || isStamping}>
-          <Send className="h-4 w-4 mr-2" />
-          {isStamping ? 'Timbrando...' : 'Timbrar'}
+        <Button disabled={disabled || isStamping} title={disabled ? disabledReason : undefined}>
+          {isStamping ? <Loader2 className="animate-spin" /> : <Stamp />}
+          {isStamping ? 'Timbrando…' : 'Timbrar'}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-sm">
+      <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>¿Timbrar esta factura?</AlertDialogTitle>
+          <AlertDialogTitle>Timbrar factura</AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <div className="space-y-3">
-              <p>Esta acción es irreversible. Al timbrar:</p>
-              <ul className="space-y-2 text-[13px]">
-                <li className="flex items-start gap-2">
-                  <Zap className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
-                  <span>Se consumirá <strong className="text-foreground">1 timbre</strong> de tu plan</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Send className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
-                  <span>La factura se enviará al SAT y no podrá editarse</span>
-                </li>
-                {clientEmail && (
-                  <li className="flex items-start gap-2">
-                    <span className="text-[13px] text-muted-foreground">📧</span>
-                    <span>
-                      Se enviará el XML y PDF a{' '}
-                      <strong className="text-foreground">{clientEmail}</strong>
-                    </span>
-                  </li>
+            <div className="space-y-4 text-sm text-tinta-tenue">
+              <dl className="divide-y divide-renglon border-y border-renglon">
+                <div className="flex justify-between gap-4 py-2">
+                  <dt>Cliente</dt>
+                  <dd className="truncate text-right text-tinta">{clientName}</dd>
+                </div>
+                <div className="flex justify-between gap-4 py-2">
+                  <dt>{hasWithholdings ? 'Neto a recibir' : 'Total'}</dt>
+                  <dd className="font-mono text-tinta">{formatCurrency(total, currency)}</dd>
+                </div>
+                {replacesLabel && (
+                  <div className="flex justify-between gap-4 py-2">
+                    <dt>Sustituye a</dt>
+                    <dd className="text-right text-tinta">
+                      <span className="font-mono">{replacesLabel}</span>, que se cancela con el motivo 01
+                    </dd>
+                  </div>
                 )}
-              </ul>
+                <div className="flex justify-between gap-4 py-2">
+                  <dt>Timbres</dt>
+                  <dd className={noStamps ? 'text-tinta-roja' : 'text-tinta'}>
+                    <span className="font-mono">{stampsBalance}</span> {stampsBalance === 1 ? 'disponible' : 'disponibles'} · usa 1
+                  </dd>
+                </div>
+              </dl>
+              <p>
+                {replacesLabel
+                  ? `Se envía al SAT y después pedimos cancelar la ${replacesLabel}.`
+                  : 'Se envía al SAT y ya no se puede editar; si te equivocas, puedes corregirla.'}
+                {clientEmail && (
+                  <> Enviaremos el XML y el PDF a <span className="text-tinta">{clientEmail}</span>.</>
+                )}
+              </p>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>
-            Confirmar y timbrar
-          </AlertDialogAction>
+          <AlertDialogCancel>Revisar de nuevo</AlertDialogCancel>
+          {noStamps ? (
+            <AlertDialogAction asChild>
+              <a href="/billing">Comprar timbres</a>
+            </AlertDialogAction>
+          ) : (
+            <AlertDialogAction onClick={onConfirm}>Timbrar ahora</AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
